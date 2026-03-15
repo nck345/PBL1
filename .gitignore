@@ -1,0 +1,17 @@
+# Bỏ qua file thực thi
+bin/
+*.exe
+
+# Bỏ qua cấu hình cá nhân của VS Code (tuỳ chọn cho thành viên)
+# Tuy nhiên, trong project này chúng ta GIỮ LẠI .vscode 
+# để chia sẻ script biên dịch cho cả nhóm nên KHÔNG ignore thư mục này.
+
+# Bỏ qua dữ liệu gốc (tránh ghi đè CSDL của nhau khi pull code)
+data/*.dat
+
+# Bỏ qua các file object sinh ra trong quá trình C++ compile (nếu có)
+*.o
+*.obj
+
+# Báo cáo crash
+*.log.crash
