@@ -68,3 +68,24 @@ Tất cả những phần phức tạp như "Build file ra thư mục `bin/`" ha
 1. Viết code.
 2. Lưu file hiện tại (Ctrl + S).
 3. Nhấn phím **`F5`** là chương trình sẽ tự động Cập nhật file biên dịch + Mở màn hình Debug + Chạy mượt mà!
+
+---
+
+## Phân công Nhiệm vụ 
+
+### 👨‍💻 Thành viên A: Kỹ sư Dữ liệu Truyện & Nền tảng Core
+**Nhiệm vụ:** Xây dựng móng vững chắc cho dự án và Quản lý toàn bộ danh mục Truyện.
+*   **Thiết kế Cấu trúc (Models):** Định nghĩa file `models/Comic.h` (id, tên truyện, giá, số lượng) và `models/Date.h` (Ngày tháng dùng chung).
+*   **Xử lý File nhị phân (Repository):** Hoàn thiện `repository/ComicRepo.cpp` để thực hiện chức năng Thêm mới, Sửa thông tin, Xóa truyện (Soft Delete) và Tìm kiếm Truyện trên file `comics.dat`.
+*   **Khởi chạy hệ thống (Core):** Xây dựng bộ Menu chính điều hướng của chương trình tại `main.cpp`.
+*   **Tiện ích:** Hỗ trợ viết các hàm nhập liệu chống lỗi (Validate input) tại thư viện `utils/InputHandler`.
+*   **Giao diện (UI):** Thiết kế màn hình "Quản lý Truyện", in ấn danh sách các bộ truyện dưới dạng bảng ngay ngắn, đẹp mắt.
+
+### 🕵️‍♂️ Thành viên B: Kỹ sư Logic Phiếu Thuê & Thống kê Thuế
+**Nhiệm vụ:** Xử lý các nghiệp vụ (thuật toán) khó nhất của phần mềm, móc nối dữ liệu giữa Phiếu Thuê và Kho Truyện.
+*   **Quản lý Phiếu thuê (Rental):** Định nghĩa `models/RentalSlip.h` và xây dựng `repository/RentalRepo.cpp` để lưu các phiếu do khách hàng thuê xuống file `rentals.dat`.
+*   **Xử lý Nghiệp vụ Cho Thuê (Services):**
+    *   `RentalService`: Khi khách hàng muốn thuê, B phải gọi hàm lấy truyện của Thành viên A để kiểm tra truyện có còn trong kho không. Nếu còn $\rightarrow$ tạo phiếu $\rightarrow$ tự động trừ số lượng truyện trong kho.
+    *   Định giá: Viết hàm tính số dư ngày mượn/ngày trả để quy ra tiền cọc và tiền thanh toán thực tế.
+*   **Thống kê Báo cáo (Statistics):** Chạy vòng quét toàn bộ dữ liệu ở cả 2 file `.dat` để đếm: Hôm nay/Tháng này thu được bao nhiêu tiền? Kho bị mất mát bao nhiêu quyển, đang cho thuê ra ngoài bao nhiêu quyển?
+*   **Giao diện (UI):** Xây dựng Menu "Quản lý Phiếu Thuê" và thiết kế Bảng Thống kê Doanh Thu cuối ngày cực xịn xò.
