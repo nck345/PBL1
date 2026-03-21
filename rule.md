@@ -24,7 +24,13 @@
 - **Đồng nhất thư viện UI:** 
   - Toàn bộ các module trong dự án phải dùng **chung một thư viện/framework UI** duy nhất là FTXUI.
 
-## 4. Quy trình phát triển dự án (Đặc biệt lưu ý)
+## 4. Thao tác Cơ sở Dữ liệu (File Nhị phân)
+
+- **Bảo toàn dữ liệu bằng Xóa mềm (Soft Delete):**
+  - Trong mọi quá trình làm nhiệm vụ "Xóa" một thư mục hay thực thể (v.d. Truyện, Phiếu Thuê), các thành viên **thuần túy dùng Soft Delete** (thay đổi trạng thái bộ cờ như `is_deleted = 1` bên trong `struct`).
+  - **Tuyệt đối cấm can thiệp thay đổi cấu trúc/kích thước File (Hard Delete)** - tránh mọi nguy cơ gây ra hiện tượng Lỗi khóa ngoại ngầm (Orphaned records) giữa thư viện `comics`.dat` và `rentals`.dat`.
+
+## 5. Quy trình phát triển dự án (Đặc biệt lưu ý)
 
 **Đặc biệt lưu ý: Mỗi lần mở máy tính lên để bắt đầu làm bất cứ cái gì thì phải fetch và pull code về nhánh `main`**
 
