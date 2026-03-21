@@ -26,6 +26,8 @@
 
 ## 4. Quy trình phát triển dự án (Đặc biệt lưu ý)
 
+**Đặc biệt lưu ý: Mỗi lần mở máy tính lên để bắt đầu làm bất cứ cái gì thì phải fetch và pull code về nhánh `main`**
+
 - **Bước 1:** Clone repo, vào nhánh `main` sau đó fetch hoặc pull code về. Nhớ kiểm tra xem ở IDE (VS Code, Antigravity) có đang hiển thị đúng nhánh chưa. Nếu đúng nhánh rồi thì xem có phải code mới nhất không, nếu chưa phải code mới thì phải pull về tới khi nó hiển thị đúng code mới trên nhánh `main`.
 - **Bước 2:** Tạo nhánh mới từ nhánh `main`, tiến hành code, commit, và push nhánh mới lên GitHub.
 - **Bước 3:** Sau 1 hay nhiều lần push, khi đã làm xong 1 chức năng hay 1 task (không quá nhỏ) thì tạo Pull Request từ nhánh cũ (nhánh vừa tạo) sang nhánh `main`. Nhắn tin thông báo cho Khiêm và đợi phản hồi. *(Lưu ý: Trong lúc đợi phản hồi thì ĐỪNG code thêm bất kỳ cái gì)*.
