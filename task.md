@@ -1,5 +1,5 @@
 # Danh sách nhiệm vụ dự án PBL1
-*(⚠️ Tuân thủ nghiêm ngặt tiêu chuẩn `rule.md`: Lập trình thủ tục - Không dùng Class/OOP, biến & hàm ở dạng `snake_case`, toàn bộ giao diện dùng thư viện **FTXUI**)*
+*(⚠️ Tuân thủ nghiêm ngặt tiêu chuẩn `.antigravity/rules/rule.md`: Lập trình thủ tục - Không dùng Class/OOP, biến & hàm ở dạng `snake_case`, toàn bộ giao diện dùng thư viện **FTXUI**)*
 
 ## 👨‍💻 Nhiệm vụ của Khiêm
 **Vai trò: Kỹ sư Dữ liệu Truyện & Nền tảng Core**

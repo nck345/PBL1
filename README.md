@@ -9,6 +9,9 @@ PBL1/
 │   ├── tasks.json          # Cấu hình biên dịch (Ctrl+Shift+B)
 │   └── launch.json         # Cấu hình chạy/debug (F5)
 │
+├── .antigravity/           # Cấu hình quy tắc
+│   └── rules/rule.md       # Các quy tắc phát triển dự án bắt buộc
+│
 ├── bin/                    # Chứa file thực thi sau khi build (.exe)
 │   └── main.exe            # Sản phẩm biên dịch
 │   
