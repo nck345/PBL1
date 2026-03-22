@@ -9,6 +9,9 @@ PBL1/
 │   ├── tasks.json          # Cấu hình biên dịch (Ctrl+Shift+B)
 │   └── launch.json         # Cấu hình chạy/debug (F5)
 │
+├── .antigravity/           # Cấu hình quy tắc
+│   └── rules/rule.md       # Các quy tắc phát triển dự án bắt buộc
+│
 ├── bin/                    # Chứa file thực thi sau khi build (.exe)
 │   └── main.exe            # Sản phẩm biên dịch
 │   
@@ -85,7 +88,7 @@ Tất cả những phần phức tạp như "Build file ra thư mục `bin/`" ha
 **Nhiệm vụ:** Xử lý các nghiệp vụ (thuật toán) khó nhất của phần mềm, móc nối dữ liệu giữa Phiếu Thuê và Kho Truyện.
 *   **Quản lý Phiếu thuê (Rental):** Định nghĩa `models/RentalSlip.h` và xây dựng `repository/RentalRepo.cpp` để lưu các phiếu do khách hàng thuê xuống file `rentals.dat`.
 *   **Xử lý Nghiệp vụ Cho Thuê (Services):**
-    *   `RentalService`: Khi khách hàng muốn thuê, B phải gọi hàm lấy truyện của Thành viên A để kiểm tra truyện có còn trong kho không. Nếu còn $\rightarrow$ tạo phiếu $\rightarrow$ tự động trừ số lượng truyện trong kho.
+    *   `RentalService`: Khi khách hàng muốn thuê, Như Ý phải gọi hàm lấy truyện của Khiêm để kiểm tra truyện có còn trong kho không. Nếu còn $\rightarrow$ tạo phiếu $\rightarrow$ tự động trừ số lượng truyện trong kho.
     *   Định giá: Viết hàm tính số dư ngày mượn/ngày trả để quy ra tiền cọc và tiền thanh toán thực tế.
 *   **Thống kê Báo cáo (Statistics):** Chạy vòng quét toàn bộ dữ liệu ở cả 2 file `.dat` để đếm: Hôm nay/Tháng này thu được bao nhiêu tiền? Kho bị mất mát bao nhiêu quyển, đang cho thuê ra ngoài bao nhiêu quyển?
 *   **Giao diện (UI):** Xây dựng Menu "Quản lý Phiếu Thuê" và thiết kế Bảng Thống kê Doanh Thu cuối ngày cực xịn xò.
