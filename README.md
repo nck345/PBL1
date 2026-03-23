@@ -62,11 +62,20 @@ Dự án này đã được cấu hình tự động hoàn toàn trên VS Code t
    * Nhấn **New**, sau đó dán đường dẫn này vào: `C:\msys64\ucrt64\bin`
    * Nhấn OK toàn bộ các bảng để lưu lại.
 
-### Bước 2: Cài đặt Extension hỗ trợ trong VS Code
+### Bước 2: Cài đặt thư viện giao diện FTXUI
+1. Tại khu vực Terminal của VS Code, hãy mở cửa sổ dòng lệnh **PowerShell**.
+2. Dán nguyên lệnh sau vào và nhấn **Enter** để tải thư viện FTXUI về máy:
+   ```powershell
+   C:\msys64\usr\bin\pacman.exe -S mingw-w64-ucrt-x86_64-ftxui
+   ```
+3. Nhập `Y` (hoặc `y`) và nhấn Enter nếu hệ thống hỏi xác nhận.
+*(Lưu ý: Dự án đã được cấu hình sẵn để tự động liên kết với thư viện này trong `tasks.json`, bạn chỉ cần tải về là xong!)*
+
+### Bước 3: Cài đặt Extension hỗ trợ trong VS Code
 Mở VS Code lên, bấm tổ hợp phím `Ctrl + Shift + X` (Mở chợ thủ thuật Extensions) và tìm cài đặt công cụ sau:
 * **C/C++** (Của nhà phát hành Microsoft, icon màu xanh/trắng)
 
-### Bước 3: Build & Chạy chương trình
+### Bước 4: Build & Chạy chương trình
 Tất cả những phần phức tạp như "Build file ra thư mục `bin/`" hay "Gom toàn bộ project để compile" đều đã được **cấu hình sẵn**. Công việc hàng ngày của bạn chỉ là:
 1. Viết code.
 2. Lưu file hiện tại (Ctrl + S).
