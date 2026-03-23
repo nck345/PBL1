@@ -40,10 +40,10 @@
 ### 1. Quản lý Cấu trúc & Dữ liệu Phiếu thuê (Models & Repository)
 - [x] Định nghĩa `struct` thuần túy `RentalSlip` trong `models/RentalSlip.h` với các thuộc tính: `id_phieu` , `id_truyen` , `id_khach_hang` , `ngay_muon`, `ngay_tra_du_kien` , `ngay_tra_thuc_te`,`tien_coc` , `tong_tien`, `trang_thai`(0: Đang thuê, 1: Đã trả, 2: Mất/Hỏng, 3: Quá hạn) **(~5% công việc)**
 - [x] Khai báo nguyên mẫu hàm trong `repository/RentalRepo.h`: `void save_rental_slip(const RentalSlip& slip);` và `void read_all_rental_slips();` **(~2% công việc)**
-- [ ] Định nghĩa hàm `save_rental_slip` tại `repository/RentalRepo.cpp`: Nhận đối tượng `RentalSlip`, thực thi mở file `rentals.dat` mode `ab` (hoặc cấu hình `ios::app | ios::binary` cho fstream nếu thích) và lưu cấu trúc xuống đĩa **(~4% công việc)**
-- [ ] Định nghĩa hàm `read_all_rental_slips` tại `repository/RentalRepo.cpp`: Mở file `rentals.dat` mode `rb` (hoặc `ios::in | ios::binary`), dùng `fread` trong vòng lặp `while` đọc đẩy toàn bộ lịch sử thuê vào mảng để hiển thị UI **(~4% công việc)**
-- [ ] Bổ sung cơ chế ghi đè `void update_rental_status(...)`: Mở `rentals.dat` bằng `fstream` với chế độ `ios::in | ios::out | ios::binary`. Tìm đúng vị trí ID phiếu, dùng `seekp()` nhảy đến đó và ghi đè `RentalSlip` đã cập nhật (có ngày trả, tổng tiền, trạng thái mới) tại chỗ **(~5% công việc)**
-- [ ] Bổ sung cơ chế ID tự tăng `int get_next_rental_id()`: Mở file `rentals.dat`, dùng `seekg(0, ios::end)` nhảy cuối file để đọc bản ghi RentalSlip cuối cùng. Lấy `id_phieu` đó cộng thêm 1. (Nếu file trống, return 1). Giảm xung đột qua lại với việc đếm ID bên phân hệ Truyện của Khiêm. **(~5% công việc)**
+- [x] Định nghĩa hàm `save_rental_slip` tại `repository/RentalRepo.cpp`: Nhận đối tượng `RentalSlip`, thực thi mở file `rentals.dat` mode `ab` (hoặc cấu hình `ios::app | ios::binary` cho fstream nếu thích) và lưu cấu trúc xuống đĩa **(~4% công việc)**
+- [x] Định nghĩa hàm `read_all_rental_slips` tại `repository/RentalRepo.cpp`: Mở file `rentals.dat` mode `rb` (hoặc `ios::in | ios::binary`), dùng `fread` trong vòng lặp `while` đọc đẩy toàn bộ lịch sử thuê vào mảng để hiển thị UI **(~4% công việc)**
+- [x] Bổ sung cơ chế ghi đè `void update_rental_status(...)`: Mở `rentals.dat` bằng `fstream` với chế độ `ios::in | ios::out | ios::binary`. Tìm đúng vị trí ID phiếu, dùng `seekp()` nhảy đến đó và ghi đè `RentalSlip` đã cập nhật (có ngày trả, tổng tiền, trạng thái mới) tại chỗ **(~5% công việc)**
+- [x] Bổ sung cơ chế ID tự tăng `int get_next_rental_id()`: Mở file `rentals.dat`, dùng `seekg(0, ios::end)` nhảy cuối file để đọc bản ghi RentalSlip cuối cùng. Lấy `id_phieu` đó cộng thêm 1. (Nếu file trống, return 1). Giảm xung đột với file metadata của A. **(~5% công việc)**
 
 ### 2. Xử lý Nghiệp vụ Logic (Services)
 - [ ] Khởi tạo nguyên mẫu `services/RentalService.h` và thư viện tự tạo hỗ trợ tính ngày **(~2% công việc)**
