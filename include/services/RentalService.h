@@ -18,4 +18,17 @@ void compute_payment_bill(RentalSlip &slip, double gia_bia);
 void process_return_comic(int id_phieu, Date ngay_tra_thuc_te,
                           int trang_thai_tra, double gia_bia);
 
+// Thong ke & Bao cao
+typedef struct {
+  double daily_revenue;
+  double monthly_revenue;
+  int rented_count;
+  int lost_count;
+} rental_statistics;
+
+rental_statistics compute_all_statistics(Date today, int target_month,
+                                         int target_year);
+void find_overdue_slips(RentalSlip overdue_list[], int &count, int max_size,
+                        Date today);
+
 #endif
