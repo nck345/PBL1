@@ -46,19 +46,19 @@
 - [x] Bổ sung cơ chế ID tự tăng `int get_next_rental_id()`: Mở file `rentals.dat`, dùng `seekg(0, ios::end)` nhảy cuối file để đọc bản ghi RentalSlip cuối cùng. Lấy `id_phieu` đó cộng thêm 1. (Nếu file trống, return 1). Giảm xung đột với file metadata của A. **(~5% công việc)**
 
 ### 2. Xử lý Nghiệp vụ Logic (Services)
-- [ ] Khởi tạo nguyên mẫu `services/RentalService.h` và thư viện tự tạo hỗ trợ tính ngày **(~2% công việc)**
-- [ ] Viết hàm tính ngày `long date_to_days(Date d)`: Nhận vào struct thuần túy `Date {int day, month, year}` (không dùng ctime) và quy đổi ra tổng số ngày tính từ gốc năm 0 để tiện thực hiện phép trừ thời gian **(~5% công việc)**
-- [ ] Viết hàm `void process_new_rental(...)`: Xử lý mượn. Bắt tham chiếu `gia_bia` truyện từ phân hệ Truyện (của Khiêm). Khởi tạo phiếu có `trang_thai = 0`, thiết lập thu `tien_coc = 100% gia_bia`. `ngay_tra_thuc_te = {0,0,0}` và `tong_tien = 0` sinh ID và chuyển cho hàm lưu file **(~10% công việc)**
-- [ ] Viết hàm `void process_return_comic(...)`: Xử lý trả. Lấy ngày hôm nay cập nhật vào `ngay_tra_thuc_te`. Cập nhật `trang_thai = 1` (Đã trả) hoặc `2` (Mất/hỏng - Tịch thu cọc) **(~10% công việc)**
-- [ ] Viết hàm `void compute_payment_bill(...)` lúc trả: Gọi `date_to_days` lấy `so_ngay_thue = ngay_tra_thuc_te - ngay_muon`. Tính `tong_tien = so_ngay_thue * (10% gia_bia)`. Cộng thêm phí phạt nếu lấy `ngay_tra_thuc_te > ngay_tra_du_kien`. Cuối cùng gọi ngược lại hàm ghi đè bằng `seekp()` **(~8% công việc)**
+- [x] Khởi tạo nguyên mẫu `services/RentalService.h` và thư viện tự tạo hỗ trợ tính ngày **(~2% công việc)**
+- [x] Viết hàm tính ngày `long date_to_days(Date d)`: Nhận vào struct thuần túy `Date {int day, month, year}` (không dùng ctime) và quy đổi ra tổng số ngày tính từ gốc năm 0 để tiện thực hiện phép trừ thời gian **(~5% công việc)**
+- [x] Viết hàm `void process_new_rental(...)`: Xử lý mượn. Bắt tham chiếu `gia_bia` truyện từ phân hệ Truyện (của Khiêm). Khởi tạo phiếu có `trang_thai = 0`, thiết lập thu `tien_coc = 100% gia_bia`. `ngay_tra_thuc_te = {0,0,0}` và `tong_tien = 0` sinh ID và chuyển cho hàm lưu file **(~10% công việc)**
+- [x] Viết hàm `void process_return_comic(...)`: Xử lý trả. Lấy ngày hôm nay cập nhật vào `ngay_tra_thuc_te`. Cập nhật `trang_thai = 1` (Đã trả) hoặc `2` (Mất/hỏng - Tịch thu cọc) **(~10% công việc)**
+- [x] Viết hàm `void compute_payment_bill(...)` lúc trả: Gọi `date_to_days` lấy `so_ngay_thue = ngay_tra_thuc_te - ngay_muon`. Tính `tong_tien = so_ngay_thue * (10% gia_bia)`. Cộng thêm phí phạt nếu lấy `ngay_tra_thuc_te > ngay_tra_du_kien`. Cuối cùng gọi ngược lại hàm ghi đè bằng `seekp()` **(~8% công việc)**
 
 ### 3. Thống kê & Báo cáo (Statistics)
-- [ ] Khởi tạo hàm `double compute_daily_revenue();` ở tầng logic: Đọc luồng dữ liệu file `rentals.dat`. Lọc những phiếu có ngày được quy định trùng với ngày hôm nay hoặc tháng này. Khấu trừ `tien_coc` tuỳ vào `trang_thai` (VD: trạng thái `2` thì thu luôn cọc) và cộng dồn lại vào tổng doanh thu **(~10% công việc)**
-- [ ] Viết hàm `int count_rented_comics();`: Lặp qua file `rentals.dat`, đếm tổng số các `RentalSlip` có thuộc tính `trang_thai == 0` (đương nhiên hoặc `3` nếu bổ sung quá hạn) và trả về số lượng để hiển thị lên màn thống kê UI **(~5% công việc)**
-- [ ] Viết hàm soát xét `void find_overdue_slips(...)`: Lập danh sách mảng các `RentalSlip` đang mượn (`trang_thai == 0`) mà thoả điều kiện `date_to_days(today) > date_to_days(ngay_tra_du_kien)`. Hàm này sẽ trả về mảng/danh sách này để tầng giao diện (UI) nhận dữ liệu chứ không in trực tiếp. **(~5% công việc)**
+- [x] Khởi tạo hàm `double compute_daily_revenue();` ở tầng logic: Đọc luồng dữ liệu file `rentals.dat`. Lọc những phiếu có ngày được quy định trùng với ngày hôm nay hoặc tháng này. Khấu trừ `tien_coc` tuỳ vào `trang_thai` (VD: trạng thái `2` thì thu luôn cọc) và cộng dồn lại vào tổng doanh thu **(~10% công việc)**
+- [x] Viết hàm `int count_rented_comics();`: Lặp qua file `rentals.dat`, đếm tổng số các `RentalSlip` có thuộc tính `trang_thai == 0` (đương nhiên hoặc `3` nếu bổ sung quá hạn) và trả về số lượng để hiển thị lên màn thống kê UI **(~5% công việc)**
+- [x] Viết hàm soát xét `void find_overdue_slips(...)`: Lập danh sách mảng các `RentalSlip` đang mượn (`trang_thai == 0`) mà thoả điều kiện `date_to_days(today) > date_to_days(ngay_tra_du_kien)`. Hàm này sẽ trả về mảng/danh sách này để tầng giao diện (UI) nhận dữ liệu chứ không in trực tiếp. **(~5% công việc)**
 
 ### 4. Giao diện (UI)
-- [ ] Khai báo `void render_rental_menu();`: Sử dụng vòng lặp vô tận, thư viện **FTXUI**, bắt event bàn phím để xuất ra các tuỳ chọn dạng `Menu` (1. Cho thuê, 2. Trả sách, 3. Thống kê Phiếu, 4. Thoát) **(~5% công việc)**
-- [ ] Xây dựng màn hình **Cho thuê Truyện**: Ứng dụng chức năng `Input` của **FTXUI** để nhập ID Truyện, ID Khách hàng, sau đó gọi hàm `process_new_rental` từ tầng Service để xử lý **(~5% công việc)**
-- [ ] Xây dựng màn hình **Trả Truyện & Thanh toán**: Dùng chức năng `Input` nhập ID Phiếu cần xử lý trả, gọi logic tính tiền tương ứng và hiển thị Bill tổng hợp ra Terminal **(~5% công việc)**
-- [ ] Khai báo `void render_revenue_table(...)`: Ứng dụng Component (Table) của **FTXUI** để đổ danh sách Thống kê & Phiếu quá hạn hiển thị theo dòng cột. Set thuộc tính `.color(Color::Red)` cho sách quá hạn và mất hỏng nhằm sinh cảnh báo **(~5% công việc)**
+- [x] Khai báo `void render_rental_menu();`: Sử dụng vòng lặp vô tận, thư viện **FTXUI**, bắt event bàn phím để xuất ra các tuỳ chọn dạng `Menu` (1. Cho thuê, 2. Trả sách, 3. Thống kê Phiếu, 4. Thoát) **(~5% công việc)**
+- [x] Xây dựng màn hình **Cho thuê Truyện**: Ứng dụng chức năng `Input` của **FTXUI** để nhập ID Truyện, ID Khách hàng, sau đó gọi hàm `process_new_rental` từ tầng Service để xử lý **(~5% công việc)**
+- [x] Xây dựng màn hình **Trả Truyện & Thanh toán**: Dùng chức năng `Input` nhập ID Phiếu cần xử lý trả, gọi logic tính tiền tương ứng và hiển thị Bill tổng hợp ra Terminal **(~5% công việc)**
+- [x] Khai báo `void render_revenue_table(...)`: Ứng dụng Component (Table) của **FTXUI** để đổ danh sách Thống kê & Phiếu quá hạn hiển thị theo dòng cột. Set thuộc tính `.color(Color::Red)` cho sách quá hạn và mất hỏng nhằm sinh cảnh báo **(~5% công việc)**
