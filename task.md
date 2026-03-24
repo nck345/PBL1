@@ -14,13 +14,13 @@
 - [x] Khởi tạo và viết tiện ích `utils/StringUtils.h` (Cắt khoảng trắng dư thừa, Format hiển thị tiền tệ VND...) **(~7% công việc)**
 
 ### 3. Xử lý File nhị phân (Repository)
-- [ ] Khởi tạo khung file `repository/ComicRepo.cpp` **(~2% công việc)**
-- [ ] Viết hàm **Đọc toàn bộ danh sách Truyện** (Load từ `comics.dat` ra mảng dữ liệu để phục vụ UI in bảng) **(~5% công việc)**
-- [ ] Viết hàm đọc/ghi `metadata.dat` để lấy ID tự động tăng (Cấp ID độc nhất mỗi khi thêm truyện mới) **(~8% công việc)**
-- [ ] Viết hàm **Thêm mới truyện** và cấu hình ghi dữ liệu xuống file `comics.dat` (kết hợp lấy ID tự sinh) **(~10% công việc)**
-- [ ] Viết hàm **Sửa thông tin truyện** (Đọc, tìm kiếm, cập nhật và lưu lại vào file) **(~8% công việc)**
-- [ ] Viết hàm **Xóa truyện** (Triển khai theo logic Soft Delete - đánh dấu trạng thái xóa chứ không xóa vật lý) **(~2% công việc)**
-- [ ] Viết hàm **Tìm kiếm Truyện** (Quét file `comics.dat` để lấy dữ liệu) **(~5% công việc)**
+- [x] Khởi tạo khung file `repository/ComicRepo.cpp` **(~2% công việc)**
+- [x] Viết hàm **Đọc toàn bộ danh sách Truyện** (Load từ `comics.dat` ra mảng dữ liệu để phục vụ UI in bảng) **(~5% công việc)**
+- [x] Viết hàm đọc/ghi `metadata.dat` để lấy ID tự động tăng (Cấp ID độc nhất mỗi khi thêm truyện mới) **(~8% công việc)**
+- [x] Viết hàm **Thêm mới truyện** và cấu hình ghi dữ liệu xuống file `comics.dat` (kết hợp lấy ID tự sinh) **(~10% công việc)**
+- [x] Viết hàm **Sửa thông tin truyện** (Đọc, tìm kiếm, cập nhật và lưu lại vào file) **(~8% công việc)**
+- [x] Viết hàm **Xóa truyện** (Triển khai theo logic Soft Delete - đánh dấu trạng thái xóa chứ không xóa vật lý) **(~2% công việc)**
+- [x] Viết hàm **Tìm kiếm Truyện** (Quét file `comics.dat` để lấy dữ liệu) **(~5% công việc)**
 
 ### 4. Giao diện (UI)
 - [ ] Khởi tạo tính năng UI bằng thư viện **FTXUI** vào dự án **(~5% công việc)**
