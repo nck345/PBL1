@@ -1,5 +1,6 @@
 #include "../../include/services/RentalService.h"
 #include "../../include/repository/RentalRepo.h"
+#include "../../include/repository/ComicRepo.h"
 #include <iostream>
 #include <fstream>
 
@@ -39,6 +40,29 @@ long date_to_days(Date d) {
 
 // Xử lý mượn truyện
 void process_new_rental(int id_truyen, int id_khach_hang, Date ngay_muon, Date ngay_tra_du_kien, double gia_bia) {
+    // 1. Kiem tra ton kho va lay thong tin sach
+    Comic comic;
+    if (!get_comic_by_id(id_truyen, comic)) {
+        cout << "Loi: Khong tim thay truyen voi ID: " << id_truyen << "\n";
+        return;
+    }
+    if (comic.is_deleted) {
+        cout << "Loi: Truyen nay da bi xoa khoi he thong!\n";
+        return;
+    }
+    if (comic.quantity <= 0) {
+        cout << "Loi: Truyen nay da het hang trong kho (khong the cho thue)!\n";
+        return;
+    }
+
+    // 2. Tien hanh tru so luong sach do xuat kho
+    comic.quantity -= 1;
+    if (!update_comic(comic)) {
+        cout << "Loi: Khong the cap nhat so luong truyen vao kho!\n";
+        return;
+    }
+
+    // 3. Lap Phieu
     RentalSlip slip;
     slip.id_phieu = get_next_rental_id(); // Lấy ID tự tăng từ đĩa (Repository)
     slip.id_truyen = id_truyen;
@@ -47,6 +71,8 @@ void process_new_rental(int id_truyen, int id_khach_hang, Date ngay_muon, Date n
     slip.ngay_tra_du_kien = ngay_tra_du_kien;
     slip.ngay_tra_thuc_te = {0, 0, 0}; // Gán mặt định chưa trả
     
+    // Bo qua tham so gia bia nap vao tu giao dien (neu co), dung gia bia chuan tu csdl
+    gia_bia = comic.price;
     slip.tien_coc = gia_bia; // 100% giá bìa - Thu hồi khi bắt đầu tạo phiếu
     slip.tong_tien = 0;
     slip.trang_thai = 0;     // Đang thuê
@@ -102,7 +128,7 @@ void process_return_comic(int id_phieu, Date ngay_tra_thuc_te, int trang_thai_tr
     while (inFile.read(reinterpret_cast<char*>(&slip), sizeof(RentalSlip))) {
         if (slip.id_phieu == id_phieu && slip.trang_thai == 0) {
             found = true;
-            break; // Tim thay phieu va phieu dọ con trong that thai dang muon
+            break; 
         }
     }
     inFile.close();
@@ -111,7 +137,19 @@ void process_return_comic(int id_phieu, Date ngay_tra_thuc_te, int trang_thai_tr
         slip.ngay_tra_thuc_te = ngay_tra_thuc_te; 
         slip.trang_thai = trang_thai_tra; // 1: Đã Trả Hoàn, 2: Làm Mất Hư Hỏng
         
-        // Cầu nối giao tiếp 
+        Comic comic;
+        if (get_comic_by_id(slip.id_truyen, comic)) {
+            gia_bia = comic.price;
+            
+            // Neu tra nguyen ven (1), thi moi cong lai hang vao ton kho
+            if (trang_thai_tra == 1) {
+                comic.quantity += 1;
+                update_comic(comic);
+            }
+        } else {
+            cout << "Canh bao: Phieu nay tham chieu toi truyen khong ton tai hoac bi xoa.\n";
+        }
+        
         compute_payment_bill(slip, gia_bia);
     } else {
         cout << "Khong tim thay Phieu hoac sach nay khach da tra roi.\n";
