@@ -3,17 +3,17 @@
 
 #include "Date.h"
 
-// Khai báo struct cho Phiếu Thuê (Không dùng OOP)
+// Khai báo struct cho Phiếu Thuê
 struct RentalSlip {
-    int id_phieu;
-    int id_truyen;
-    int id_khach_hang;
-    Date ngay_muon;
-    Date ngay_tra_du_kien;
-    Date ngay_tra_thuc_te;
-    double tien_coc;
-    double tong_tien;
-    int trang_thai; // 0: Đang thuê, 1: Đã trả, 2: Mất/Hỏng, 3: Quá hạn
+  int id_phieu;
+  int id_truyen;
+  int id_khach_hang;
+  Date ngay_muon;
+  Date ngay_tra_du_kien;
+  Date ngay_tra_thuc_te;
+  double tien_coc;
+  double tong_tien;
+  int trang_thai; // 0: Đang thuê, 1: Đã trả, 2: Mất/Hỏng, 3: Quá hạn
 };
 
-#endif // RENTALSLIP_H
+#endif
