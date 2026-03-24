@@ -28,9 +28,9 @@
 - [x] Dùng Component của FTXUI dựng **Menu** màn hình con cho phần "Quản lý Truyện" **(~8% công việc)**
 
 ### 5. Khởi chạy hệ thống (Core)
-- [ ] Viết sườn thực thi mã tại `main.cpp` **(~2% công việc)**
-- [ ] Thiết kế và lập trình Menu chính (Main Menu) với vòng lặp vô tận điều hướng **(~5% công việc)**
-- [ ] Liên kết các phím bấm/lệnh nhập vào Menu để gọi các hàm tương ứng từ UI và Repository **(~5% công việc)**
+- [x] Viết sườn thực thi mã tại `main.cpp` **(~2% công việc)**
+- [x] Thiết kế và lập trình Menu chính (Main Menu) với vòng lặp vô tận điều hướng **(~5% công việc)**
+- [x] Liên kết các phím bấm/lệnh nhập vào Menu để gọi các hàm tương ứng từ UI và Repository **(~5% công việc)**
 
 ---
 

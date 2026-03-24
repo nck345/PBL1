@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <cstdlib>
 
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/screen_interactive.hpp>
@@ -79,11 +80,13 @@ void render_comic_menu() {
     screen.Loop(renderer);
 
     if (selected == 0) {
+      system("cls");
       std::cout << "\n--- DANH SACH TRUYEN ---\n";
       std::vector<Comic> comics = read_all_comics();
       render_comic_table(comics);
       get_string_input("Nhan Enter de tiep tuc...");
     } else if (selected == 1) {
+      system("cls");
       std::cout << "\n--- THEM TRUYEN MOI ---\n";
       Comic new_comic;
 
@@ -107,6 +110,7 @@ void render_comic_menu() {
       std::cout << "Them truyen thanh cong!\n";
       get_string_input("Nhan Enter de tiep tuc...");
     } else if (selected == 2) {
+      system("cls");
       std::cout << "\n--- SUA THONG TIN TRUYEN ---\n";
       int id = get_int_input("Nhap ID truyen can sua: ");
       Comic comic_to_edit;
@@ -138,6 +142,7 @@ void render_comic_menu() {
       }
       get_string_input("Nhan Enter de tiep tuc...");
     } else if (selected == 3) {
+      system("cls");
       std::cout << "\n--- XOA TRUYEN ---\n";
       int id = get_int_input("Nhap ID truyen can xoa: ");
       if (delete_comic(id)) {
@@ -148,12 +153,14 @@ void render_comic_menu() {
       }
       get_string_input("Nhan Enter de tiep tuc...");
     } else if (selected == 4) {
+      system("cls");
       std::cout << "\n--- TIM KIEM TRUYEN ---\n";
       std::string kw = get_string_input("Nhap ten truyen can tim: ");
       std::vector<Comic> res = search_comics_by_name(kw);
       render_comic_table(res);
       get_string_input("Nhan Enter de tiep tuc...");
     } else if (selected == 5) {
+      system("cls");
       break;
     }
   }
