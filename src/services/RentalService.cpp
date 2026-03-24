@@ -155,3 +155,40 @@ void process_return_comic(int id_phieu, Date ngay_tra_thuc_te, int trang_thai_tr
         cout << "Khong tim thay Phieu hoac sach nay khach da tra roi.\n";
     }
 }
+
+// Thong ke & Bao cao
+rental_statistics compute_all_statistics(Date today, int target_month, int target_year) {
+    rental_statistics stats = {0.0, 0.0, 0, 0};
+
+    ifstream file("data/rentals.dat", ios::binary);
+    if (!file.is_open()) return stats;
+
+    RentalSlip slip;
+    while (file.read(reinterpret_cast<char*>(&slip), sizeof(RentalSlip))) {
+        // Dem so luong sach
+        if (slip.trang_thai == 0) {
+            stats.rented_count++;
+        } else if (slip.trang_thai == 2) {
+            stats.lost_count++;
+        }
+
+        // Tinh doanh thu
+        if (slip.trang_thai == 1 || slip.trang_thai == 2) {
+            // Doanh thu ngay
+            if (slip.ngay_tra_thuc_te.day == today.day && 
+                slip.ngay_tra_thuc_te.month == today.month && 
+                slip.ngay_tra_thuc_te.year == today.year) {
+                stats.daily_revenue += slip.tong_tien;
+            }
+            // Doanh thu thang
+            if (slip.ngay_tra_thuc_te.month == target_month && 
+                slip.ngay_tra_thuc_te.year == target_year) {
+                stats.monthly_revenue += slip.tong_tien;
+            }
+        }
+    }
+    
+    file.close();
+    return stats;
+}
+
