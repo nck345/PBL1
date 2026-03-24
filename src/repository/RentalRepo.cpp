@@ -1,7 +1,6 @@
 #include "../../include/repository/RentalRepo.h"
 #include <fstream>
 #include <iostream>
-#include <vector>
 
 using namespace std;
 

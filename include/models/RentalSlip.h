@@ -13,7 +13,7 @@ struct RentalSlip {
   Date ngay_tra_thuc_te;
   double tien_coc;
   double tong_tien;
-  int trang_thai; // 0: Đang thuê, 1: Đã trả, 2: Mất/Hỏng, 3: Quá hạn
+  int trang_thai; // 0: Đang thuê, 1: Đã trả, 2: Mất/Hỏng
 };
 
 #endif
