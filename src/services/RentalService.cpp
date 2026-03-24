@@ -37,3 +37,21 @@ long date_to_days(Date d) {
     return total_days;
 }
 
+// Xử lý mượn truyện
+void process_new_rental(int id_truyen, int id_khach_hang, Date ngay_muon, Date ngay_tra_du_kien, double gia_bia) {
+    RentalSlip slip;
+    slip.id_phieu = get_next_rental_id(); // Lấy ID tự tăng từ đĩa (Repository)
+    slip.id_truyen = id_truyen;
+    slip.id_khach_hang = id_khach_hang;
+    slip.ngay_muon = ngay_muon;
+    slip.ngay_tra_du_kien = ngay_tra_du_kien;
+    slip.ngay_tra_thuc_te = {0, 0, 0}; // Gán mặt định chưa trả
+    
+    slip.tien_coc = gia_bia; // 100% giá bìa - Thu hồi khi bắt đầu tạo phiếu
+    slip.tong_tien = 0;
+    slip.trang_thai = 0;     // Đang thuê
+
+    // Gọi Repository để lưu cấu trúc ghi liền xuống disk
+    save_rental_slip(slip);
+}
+
