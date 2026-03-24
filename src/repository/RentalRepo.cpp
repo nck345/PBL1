@@ -51,6 +51,19 @@ void read_all_rental_slips() {
   file.close();
 }
 
+std::vector<RentalSlip> get_all_rental_slips() {
+  std::vector<RentalSlip> list;
+  ifstream file("data/rentals.dat", ios::binary);
+  if (!file.is_open()) return list;
+
+  RentalSlip slip;
+  while (file.read(reinterpret_cast<char*>(&slip), sizeof(RentalSlip))) {
+      list.push_back(slip);
+  }
+  file.close();
+  return list;
+}
+
 void update_rental_status(const RentalSlip &updated_slip) {
   fstream file("data/rentals.dat", ios::in | ios::out | ios::binary);
   if (!file.is_open()) {
