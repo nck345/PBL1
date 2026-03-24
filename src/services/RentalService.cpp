@@ -55,3 +55,36 @@ void process_new_rental(int id_truyen, int id_khach_hang, Date ngay_muon, Date n
     save_rental_slip(slip);
 }
 
+// Tính toán hóa đơn
+void compute_payment_bill(RentalSlip& slip, double gia_bia) {
+// 1. Trường hợp làm mất hoặc hư hỏng nặng
+    if (slip.trang_thai == 2) {
+        // Phạt đền 100% giá bìa (Đúng bằng số tiền cọc ban đầu slip.tien_coc)
+        // Hệ thống chốt tổng tiền bằng giá bìa, khách không được thối lại tiền
+        slip.tong_tien = gia_bia; 
+        
+        // Cập nhật trạng thái xuống đĩa và kết thúc hàm ngay lập tức
+        update_rental_status(slip);
+        return; 
+    }
+// 2. Trường hợp trả truyện bình thường 
+    long so_ngay_thue = date_to_days(slip.ngay_tra_thuc_te) - date_to_days(slip.ngay_muon);
+    if (so_ngay_thue < 1) {
+        so_ngay_thue = 1; // Thuê trả ngay trong ngày tính 1
+    }
+
+    // Tiền thuê = số ngày * 10% giá bìa
+    slip.tong_tien = so_ngay_thue * (TY_LE_THUE_THEO_NGAY * gia_bia);
+
+    // Xử lý phạt mượn lố qua ngày
+    long so_ngay_qua_han = date_to_days(slip.ngay_tra_thuc_te) - date_to_days(slip.ngay_tra_du_kien);
+    if (so_ngay_qua_han > 0) {
+        slip.tong_tien += (so_ngay_qua_han * PHI_PHAT_QUA_HAN_MOT_NGAY);
+    }
+
+    // (Thu tiền cọc hay trả lại tiền cọc sẽ do hàm/ui ở phần Thống Kê lo liệu)
+    
+    // Call hàm của Repo để ghi đè `seekp` nóng xuống đĩa 
+    update_rental_status(slip);
+}
+
