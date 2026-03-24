@@ -10,8 +10,8 @@
 - [x] Thiết lập `struct` ngày tháng trong `models/Date.h` (Không chứa các method `set`/`get`) **(~2% công việc)**
 
 ### 2. Tiện ích (Utils)
-- [ ] Khởi tạo và viết tiện ích `utils/InputHandler` (Validate chống lỗi nhập chữ vào ô số, chống trôi lệnh...) **(~8% công việc)**
-- [ ] Khởi tạo và viết tiện ích `utils/StringUtils.h` (Cắt khoảng trắng dư thừa, Format hiển thị tiền tệ VND...) **(~7% công việc)**
+- [x] Khởi tạo và viết tiện ích `utils/InputHandler` (Validate chống lỗi nhập chữ vào ô số, chống trôi lệnh...) **(~8% công việc)**
+- [x] Khởi tạo và viết tiện ích `utils/StringUtils.h` (Cắt khoảng trắng dư thừa, Format hiển thị tiền tệ VND...) **(~7% công việc)**
 
 ### 3. Xử lý File nhị phân (Repository)
 - [ ] Khởi tạo khung file `repository/ComicRepo.cpp` **(~2% công việc)**
