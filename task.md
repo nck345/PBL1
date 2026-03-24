@@ -23,9 +23,9 @@
 - [x] Viết hàm **Tìm kiếm Truyện** (Quét file `comics.dat` để lấy dữ liệu) **(~5% công việc)**
 
 ### 4. Giao diện (UI)
-- [ ] Khởi tạo tính năng UI bằng thư viện **FTXUI** vào dự án **(~5% công việc)**
-- [ ] Dùng Component `Table` của tài liệu FTXUI để in ấn màn hình theo chuẩn **(~12% công việc)**
-- [ ] Dùng Component của FTXUI dựng **Menu** màn hình con cho phần "Quản lý Truyện" **(~8% công việc)**
+- [x] Khởi tạo tính năng UI bằng thư viện **FTXUI** vào dự án **(~5% công việc)**
+- [x] Dùng Component `Table` của tài liệu FTXUI để in ấn màn hình theo chuẩn **(~12% công việc)**
+- [x] Dùng Component của FTXUI dựng **Menu** màn hình con cho phần "Quản lý Truyện" **(~8% công việc)**
 
 ### 5. Khởi chạy hệ thống (Core)
 - [ ] Viết sườn thực thi mã tại `main.cpp` **(~2% công việc)**
