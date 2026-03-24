@@ -5,9 +5,9 @@
 **Vai trò: Kỹ sư Dữ liệu Truyện & Nền tảng Core**
 
 ### 1. Thiết kế Cấu trúc (Models)
-- [ ] Thiết lập `struct` thuần túy (Tuyệt đối KHÔNG dùng Class hay khai báo hàm trong struct) trong `models/Comic.h` **(~3% công việc)**
-- [ ] Định nghĩa các thuộc tính của truyện với chuẩn `snake_case` (ví dụ: `id`, `comic_name`, `price`, `quantity`, `is_deleted` để đánh dấu xóa mềm) **(~3% công việc)**
-- [ ] Thiết lập `struct` ngày tháng trong `models/Date.h` (Không chứa các method `set`/`get`) **(~2% công việc)**
+- [x] Thiết lập `struct` thuần túy (Tuyệt đối KHÔNG dùng Class hay khai báo hàm trong struct) trong `models/Comic.h` **(~3% công việc)**
+- [x] Định nghĩa các thuộc tính của truyện với chuẩn `snake_case` (ví dụ: `id`, `comic_name`, `price`, `quantity`, `is_deleted` để đánh dấu xóa mềm) **(~3% công việc)**
+- [x] Thiết lập `struct` ngày tháng trong `models/Date.h` (Không chứa các method `set`/`get`) **(~2% công việc)**
 
 ### 2. Tiện ích (Utils)
 - [ ] Khởi tạo và viết tiện ích `utils/InputHandler` (Validate chống lỗi nhập chữ vào ô số, chống trôi lệnh...) **(~8% công việc)**
