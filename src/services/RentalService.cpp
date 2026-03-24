@@ -88,3 +88,32 @@ void compute_payment_bill(RentalSlip& slip, double gia_bia) {
     update_rental_status(slip);
 }
 
+// Xử lý trả khách hàng
+void process_return_comic(int id_phieu, Date ngay_tra_thuc_te, int trang_thai_tra, double gia_bia) {
+    // Để có dữ liệu phiếu, đọc file lướt qua xem tồn tại không
+    ifstream inFile("data/rentals.dat", ios::binary);
+    if (!inFile.is_open()) {
+        cerr << "Loi: Khong mo duoc file rentals.dat.\n";
+        return;
+    }
+
+    RentalSlip slip;
+    bool found = false;
+    while (inFile.read(reinterpret_cast<char*>(&slip), sizeof(RentalSlip))) {
+        if (slip.id_phieu == id_phieu && slip.trang_thai == 0) {
+            found = true;
+            break; // Tim thay phieu va phieu dọ con trong that thai dang muon
+        }
+    }
+    inFile.close();
+
+    if (found) {
+        slip.ngay_tra_thuc_te = ngay_tra_thuc_te; 
+        slip.trang_thai = trang_thai_tra; // 1: Đã Trả Hoàn, 2: Làm Mất Hư Hỏng
+        
+        // Cầu nối giao tiếp 
+        compute_payment_bill(slip, gia_bia);
+    } else {
+        cout << "Khong tim thay Phieu hoac sach nay khach da tra roi.\n";
+    }
+}
