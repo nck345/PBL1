@@ -192,3 +192,22 @@ rental_statistics compute_all_statistics(Date today, int target_month, int targe
     return stats;
 }
 
+void find_overdue_slips(RentalSlip overdue_list[], int &count, int max_size, Date today) {
+    ifstream file("data/rentals.dat", ios::binary);
+    count = 0;
+    if (!file.is_open()) return;
+
+    long today_days = date_to_days(today);
+    RentalSlip slip;
+    while (file.read(reinterpret_cast<char*>(&slip), sizeof(RentalSlip))) {
+        if (slip.trang_thai == 0) {
+            long due_days = date_to_days(slip.ngay_tra_du_kien);
+            if (today_days > due_days) {
+                if (count < max_size) {
+                    overdue_list[count++] = slip;
+                }
+            }
+        }
+    }
+    file.close();
+}
