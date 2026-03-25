@@ -5,27 +5,37 @@
 **Vai trò: Kỹ sư Dữ liệu Truyện & Nền tảng Core**
 
 ### 1. Thiết kế Cấu trúc (Models)
-- [x] Thiết lập `struct` thuần túy (Tuyệt đối KHÔNG dùng Class hay khai báo hàm trong struct) trong `models/Comic.h` **(~3% công việc)**
-- [x] Định nghĩa các thuộc tính của truyện với chuẩn `snake_case` (ví dụ: `id`, `comic_name`, `price`, `quantity`, `is_deleted` để đánh dấu xóa mềm) **(~3% công việc)**
-- [x] Thiết lập `struct` ngày tháng trong `models/Date.h` (Không chứa các method `set`/`get`) **(~2% công việc)**
+- [x] Thiết lập `struct` thuần túy trong `models/Comic.h` **(~3% công việc)**
+- [x] Định nghĩa các thuộc tính của truyện (`id`, `comic_name`, `price`, `quantity`, `is_deleted`) **(~3% công việc)**
+- [x] Thiết lập `struct` ngày tháng trong `models/Date.h` **(~2% công việc)**
+- [ ] Thiết lập `struct` khách hàng trong `models/Customer.h`: `id`, `name`, `phone`, `is_deleted` **(~3% công việc)**
 
 ### 2. Tiện ích (Utils)
-- [x] Khởi tạo và viết tiện ích `utils/InputHandler` (Validate chống lỗi nhập chữ vào ô số, chống trôi lệnh...) **(~8% công việc)**
-- [x] Khởi tạo và viết tiện ích `utils/StringUtils.h` (Cắt khoảng trắng dư thừa, Format hiển thị tiền tệ VND...) **(~7% công việc)**
+- [x] Khởi tạo và viết tiện ích `utils/InputHandler` (Validate chống lỗi nhập chữ, chống trôi lệnh...) **(~8% công việc)**
+- [x] Khởi tạo và viết tiện ích `utils/StringUtils.h` (Cắt khoảng trắng, Format tiền tệ...) **(~7% công việc)**
+- [ ] Viết hàm kiểm tra **chuỗi rỗng** và **số âm** phục vụ Validation chung **(~3% công việc)**
+- [ ] Viết hàm kiểm tra **tính hợp lệ của ngày tháng** (vd: chặn 31/02) **(~2% công việc)**
 
 ### 3. Xử lý File nhị phân (Repository)
 - [x] Khởi tạo khung file `repository/ComicRepo.cpp` **(~2% công việc)**
-- [x] Viết hàm **Đọc toàn bộ danh sách Truyện** (Load từ `comics.dat` ra mảng dữ liệu để phục vụ UI in bảng) **(~5% công việc)**
-- [x] Viết hàm đọc/ghi `metadata.dat` để lấy ID tự động tăng (Cấp ID độc nhất mỗi khi thêm truyện mới) **(~8% công việc)**
-- [x] Viết hàm **Thêm mới truyện** và cấu hình ghi dữ liệu xuống file `comics.dat` (kết hợp lấy ID tự sinh) **(~10% công việc)**
-- [x] Viết hàm **Sửa thông tin truyện** (Đọc, tìm kiếm, cập nhật và lưu lại vào file) **(~8% công việc)**
-- [x] Viết hàm **Xóa truyện** (Triển khai theo logic Soft Delete - đánh dấu trạng thái xóa chứ không xóa vật lý) **(~2% công việc)**
-- [x] Viết hàm **Tìm kiếm Truyện** (Quét file `comics.dat` để lấy dữ liệu) **(~5% công việc)**
+- [x] Viết hàm **Đọc toàn bộ danh sách Truyện** **(~5% công việc)**
+- [x] Viết hàm đọc/ghi `metadata.dat` để lấy ID tự động tăng **(~8% công việc)**
+- [x] Viết hàm **Thêm mới truyện** và cấu hình file `comics.dat` **(~10% công việc)**
+- [x] Viết hàm **Sửa thông tin truyện** **(~8% công việc)**
+- [x] Viết hàm **Xóa truyện** (Logic Soft Delete) **(~2% công việc)**
+- [x] Viết hàm **Tìm kiếm Truyện** **(~5% công việc)**
+- [ ] Khởi tạo `repository/CustomerRepo.cpp` và hàm lấy ID khách tự tăng **(~3% công việc)**
+- [ ] Viết các hàm **Lưu/Đọc/Sửa/Xóa (Soft Delete)** dữ liệu khách hàng **(~7% công việc)**
+- [ ] Viết hàm `is_comic_duplicate(...)` kiểm tra bộ đôi **Tên + Tác giả** **(~3% công việc)**
+- [ ] Viết hàm `is_customer_duplicate(...)` kiểm tra trùng **Số điện thoại** **(~2% công việc)**
 
 ### 4. Giao diện (UI)
-- [x] Khởi tạo tính năng UI bằng thư viện **FTXUI** vào dự án **(~5% công việc)**
-- [x] Dùng Component `Table` của tài liệu FTXUI để in ấn màn hình theo chuẩn **(~12% công việc)**
-- [x] Dùng Component của FTXUI dựng **Menu** màn hình con cho phần "Quản lý Truyện" **(~8% công việc)**
+- [x] Khởi tạo tính năng UI bằng thư viện **FTXUI** **(~5% công việc)**
+- [x] Dùng Component `Table` in ấn màn hình theo chuẩn **(~12% công việc)**
+- [x] Dùng Component dựng **Menu** quản lý truyện **(~8% công việc)**
+- [ ] Dựng **Menu** quản lý khách hàng bằng FTXUI **(~4% công việc)**
+- [ ] Hiển thị **Bảng danh sách khách hàng** dùng component Table **(~4% công việc)**
+- [ ] Xây dựng **Màn hình nhập liệu** và xử lý thêm/sửa khách hàng trong `CustomerUI.cpp` **(~7% công việc)**
 
 ### 5. Khởi chạy hệ thống (Core)
 - [x] Viết sườn thực thi mã tại `main.cpp` **(~2% công việc)**
@@ -51,6 +61,9 @@
 - [x] Viết hàm `void process_new_rental(...)`: Xử lý mượn. Bắt tham chiếu `gia_bia` truyện từ phân hệ Truyện (của Khiêm). Khởi tạo phiếu có `trang_thai = 0`, thiết lập thu `tien_coc = 100% gia_bia`. `ngay_tra_thuc_te = {0,0,0}` và `tong_tien = 0` sinh ID và chuyển cho hàm lưu file **(~10% công việc)**
 - [x] Viết hàm `void process_return_comic(...)`: Xử lý trả. Lấy ngày hôm nay cập nhật vào `ngay_tra_thuc_te`. Cập nhật `trang_thai = 1` (Đã trả) hoặc `2` (Mất/hỏng - Tịch thu cọc) **(~10% công việc)**
 - [x] Viết hàm `void compute_payment_bill(...)` lúc trả: Gọi `date_to_days` lấy `so_ngay_thue = ngay_tra_thuc_te - ngay_muon`. Tính `tong_tien = so_ngay_thue * (10% gia_bia)`. Cộng thêm phí phạt nếu lấy `ngay_tra_thuc_te > ngay_tra_du_kien`. Cuối cùng gọi ngược lại hàm ghi đè bằng `seekp()` **(~8% công việc)**
+- [ ] Tích hợp kiểm tra **ID truyện/khách hàng có tồn tại** trước khi mượn **(~3% công việc)**
+- [ ] Tích hợp kiểm tra **số lượng truyện > 0** và **trùng phiếu thuê** hoạt động **(~3% công việc)**
+- [ ] Tích hợp kiểm tra **logic ngày trả >= ngày mượn** **(~4% công việc)**
 
 ### 3. Thống kê & Báo cáo (Statistics)
 - [x] Khởi tạo hàm `double compute_daily_revenue();` ở tầng logic: Đọc luồng dữ liệu file `rentals.dat`. Lọc những phiếu có ngày được quy định trùng với ngày hôm nay hoặc tháng này. Khấu trừ `tien_coc` tuỳ vào `trang_thai` (VD: trạng thái `2` thì thu luôn cọc) và cộng dồn lại vào tổng doanh thu **(~10% công việc)**
