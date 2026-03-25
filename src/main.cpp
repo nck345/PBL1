@@ -5,6 +5,7 @@
 
 // Include UI headers
 #include "../include/ui/ComicUI.h"
+#include "../include/ui/RentalUI.h"
 
 // Include FTXUI headers for the main menu
 #include <ftxui/component/component.hpp>
@@ -43,17 +44,10 @@ int main() {
       render_comic_menu();
     } else if (selected == 1) {
       system("cls");
-      // 2. Quan ly Phieu Thue
-      std::cout << "\n[Tinh nang 'Quan ly Phieu Thue' dang duoc Nhu Y phat "
-                   "trien...]\n";
-      std::cout << "Nhan Enter de quay lai Menu Chinh...";
-      std::cin.get();
+      render_rental_menu();
     } else if (selected == 2) {
       system("cls");
-      // 3. Thong ke Doanh thu & Ton kho
-      std::cout << "\n[Tinh nang 'Thong ke' dang duoc Nhu Y phat trien...]\n";
-      std::cout << "Nhan Enter de quay lai Menu Chinh...";
-      std::cin.get();
+      render_statistics_screen();
     } else if (selected == 3) {
       system("cls");
       // 4. Thoat chuong trinh
