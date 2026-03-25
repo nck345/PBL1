@@ -61,8 +61,10 @@
 - [x] Viết hàm `void process_new_rental(...)`: Xử lý mượn. Bắt tham chiếu `gia_bia` truyện từ phân hệ Truyện (của Khiêm). Khởi tạo phiếu có `trang_thai = 0`, thiết lập thu `tien_coc = 100% gia_bia`. `ngay_tra_thuc_te = {0,0,0}` và `tong_tien = 0` sinh ID và chuyển cho hàm lưu file **(~10% công việc)**
 - [x] Viết hàm `void process_return_comic(...)`: Xử lý trả. Lấy ngày hôm nay cập nhật vào `ngay_tra_thuc_te`. Cập nhật `trang_thai = 1` (Đã trả) hoặc `2` (Mất/hỏng - Tịch thu cọc) **(~10% công việc)**
 - [x] Viết hàm `void compute_payment_bill(...)` lúc trả: Gọi `date_to_days` lấy `so_ngay_thue = ngay_tra_thuc_te - ngay_muon`. Tính `tong_tien = so_ngay_thue * (10% gia_bia)`. Cộng thêm phí phạt nếu lấy `ngay_tra_thuc_te > ngay_tra_du_kien`. Cuối cùng gọi ngược lại hàm ghi đè bằng `seekp()` **(~8% công việc)**
-- [ ] Tích hợp kiểm tra **ID truyện/khách hàng có tồn tại** trước khi mượn **(~3% công việc)**
-- [ ] Tích hợp kiểm tra **số lượng truyện > 0** và **trùng phiếu thuê** hoạt động **(~3% công việc)**
+- [x] Tích hợp kiểm tra **ID truyện có tồn tại** trước khi mượn **(~3% công việc)**
+- [x] Tích hợp kiểm tra **số lượng truyện > 0** **(~3% công việc)**
+- [ ] Tích hợp kiểm tra **Khách hàng** có tồn tại (Kiểm tra qua Số điện thoại) **(~3% công việc)**
+- [ ] Tích hợp kiểm tra **trùng phiếu thuê** hoạt động **(~3% công việc)**
 - [ ] Tích hợp kiểm tra **logic ngày trả >= ngày mượn** **(~4% công việc)**
 
 ### 3. Thống kê & Báo cáo (Statistics)
