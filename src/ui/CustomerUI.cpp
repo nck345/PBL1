@@ -173,7 +173,7 @@ void render_customer_menu() {
             get_string_input("Nhan Enter... \n"); continue;
         }
 
-        if (phone != string(c_to_edit.phone) && is_customer_duplicate(phone)) {
+        if (phone != std::string(c_to_edit.phone) && is_customer_duplicate(phone)) {
             std::cout << "Loi: So dien thoai nay da duoc su dung bi trung!\n";
             get_string_input("Nhan Enter... \n"); continue;
         }
