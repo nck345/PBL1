@@ -8,13 +8,13 @@
 - [x] Thiết lập `struct` thuần túy trong `models/Comic.h` **(~3% công việc)**
 - [x] Định nghĩa các thuộc tính của truyện (`id`, `comic_name`, `price`, `quantity`, `is_deleted`) **(~3% công việc)**
 - [x] Thiết lập `struct` ngày tháng trong `models/Date.h` **(~2% công việc)**
-- [ ] Thiết lập `struct` khách hàng trong `models/Customer.h`: `id`, `name`, `phone`, `is_deleted` **(~3% công việc)**
+- [x] Thiết lập `struct` khách hàng trong `models/Customer.h`: `id`, `name`, `phone`, `is_deleted` **(~3% công việc)**
 
 ### 2. Tiện ích (Utils)
 - [x] Khởi tạo và viết tiện ích `utils/InputHandler` (Validate chống lỗi nhập chữ, chống trôi lệnh...) **(~8% công việc)**
 - [x] Khởi tạo và viết tiện ích `utils/StringUtils.h` (Cắt khoảng trắng, Format tiền tệ...) **(~7% công việc)**
-- [ ] Viết hàm kiểm tra **chuỗi rỗng** và **số âm** phục vụ Validation chung **(~3% công việc)**
-- [ ] Viết hàm kiểm tra **tính hợp lệ của ngày tháng** (vd: chặn 31/02) **(~2% công việc)**
+- [x] Viết hàm kiểm tra **chuỗi rỗng** và **số âm** phục vụ Validation chung **(~3% công việc)**
+- [x] Viết hàm kiểm tra **tính hợp lệ của ngày tháng** (vd: chặn 31/02) **(~2% công việc)**
 
 ### 3. Xử lý File nhị phân (Repository)
 - [x] Khởi tạo khung file `repository/ComicRepo.cpp` **(~2% công việc)**
@@ -24,18 +24,18 @@
 - [x] Viết hàm **Sửa thông tin truyện** **(~8% công việc)**
 - [x] Viết hàm **Xóa truyện** (Logic Soft Delete) **(~2% công việc)**
 - [x] Viết hàm **Tìm kiếm Truyện** **(~5% công việc)**
-- [ ] Khởi tạo `repository/CustomerRepo.cpp` và hàm lấy ID khách tự tăng **(~3% công việc)**
-- [ ] Viết các hàm **Lưu/Đọc/Sửa/Xóa (Soft Delete)** dữ liệu khách hàng **(~7% công việc)**
-- [ ] Viết hàm `is_comic_duplicate(...)` kiểm tra bộ đôi **Tên + Tác giả** **(~3% công việc)**
-- [ ] Viết hàm `is_customer_duplicate(...)` kiểm tra trùng **Số điện thoại** **(~2% công việc)**
+- [x] Khởi tạo `repository/CustomerRepo.cpp` và hàm lấy ID khách tự tăng **(~3% công việc)**
+- [x] Viết các hàm **Lưu/Đọc/Sửa/Xóa (Soft Delete)** dữ liệu khách hàng **(~7% công việc)**
+- [x] Viết hàm `is_comic_duplicate(...)` kiểm tra bộ đôi **Tên + Tác giả** **(~3% công việc)**
+- [x] Viết hàm `is_customer_duplicate(...)` kiểm tra trùng **Số điện thoại** **(~2% công việc)**
 
 ### 4. Giao diện (UI)
 - [x] Khởi tạo tính năng UI bằng thư viện **FTXUI** **(~5% công việc)**
 - [x] Dùng Component `Table` in ấn màn hình theo chuẩn **(~12% công việc)**
 - [x] Dùng Component dựng **Menu** quản lý truyện **(~8% công việc)**
-- [ ] Dựng **Menu** quản lý khách hàng bằng FTXUI **(~4% công việc)**
-- [ ] Hiển thị **Bảng danh sách khách hàng** dùng component Table **(~4% công việc)**
-- [ ] Xây dựng **Màn hình nhập liệu** và xử lý thêm/sửa khách hàng trong `CustomerUI.cpp` **(~7% công việc)**
+- [x] Dựng **Menu** quản lý khách hàng bằng FTXUI **(~4% công việc)**
+- [x] Hiển thị **Bảng danh sách khách hàng** dùng component Table **(~4% công việc)**
+- [x] Xây dựng **Màn hình nhập liệu** và xử lý thêm/sửa khách hàng trong `CustomerUI.cpp` **(~7% công việc)**
 
 ### 5. Khởi chạy hệ thống (Core)
 - [x] Viết sườn thực thi mã tại `main.cpp` **(~2% công việc)**

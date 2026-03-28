@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <algorithm>
+#include <cctype>
 
 const char* COMICS_FILE = "data/comics.dat";
 const char* METADATA_FILE = "data/metadata.dat";
@@ -131,5 +132,26 @@ bool get_comic_by_id(int id, Comic& out_comic) {
         }
     }
     file.close();
+    return false;
+}
+
+bool is_comic_duplicate(const char* name, const char* author) {
+    std::vector<Comic> all_comics = read_all_comics();
+    std::string kw_name = name;
+    std::string kw_author = author;
+    std::transform(kw_name.begin(), kw_name.end(), kw_name.begin(), ::tolower);
+    std::transform(kw_author.begin(), kw_author.end(), kw_author.begin(), ::tolower);
+
+    for (const auto& c : all_comics) {
+        if (!c.is_deleted) {
+            std::string c_name = c.comic_name;
+            std::string c_author = c.author;
+            std::transform(c_name.begin(), c_name.end(), c_name.begin(), ::tolower);
+            std::transform(c_author.begin(), c_author.end(), c_author.begin(), ::tolower);
+            if (c_name == kw_name && c_author == kw_author) {
+                return true;
+            }
+        }
+    }
     return false;
 }

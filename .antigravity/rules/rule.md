@@ -23,6 +23,9 @@
 
 - **Đồng nhất thư viện UI:** 
   - Toàn bộ các module trong dự án phải dùng **chung một thư viện/framework UI** duy nhất là FTXUI.
+- **Quy tắc Thao tác không dùng ID (No Manual ID Input):**
+  - **Tuyệt đối cấm** việc lập trình giao diện bắt người dùng/nhân viên phải tự gõ các mã số ID (như ID Truyện, ID Khách hàng, ID Phiếu thuê...) bằng tay để thực hiện các chức năng như Sửa, Xóa, Cho thuê hoặc Trả sách.
+  - Phải ứng dụng cơ chế **Tìm kiếm** (ví dụ: tìm qua Tên truyện hoặc Số điện thoại) kết hợp với **Danh sách trực diện** (VD: Component Menu của FTXUI) để người dùng chọn. Trách nhiệm xử lý ID phải thuộc về hệ thống ngầm bên dưới.
 
 ## 4. Thao tác Cơ sở Dữ liệu (File Nhị phân)
 

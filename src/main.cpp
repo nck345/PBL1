@@ -6,6 +6,7 @@
 // Include UI headers
 #include "../include/ui/ComicUI.h"
 #include "../include/ui/RentalUI.h"
+#include "../include/ui/CustomerUI.h"
 
 // Include FTXUI headers for the main menu
 #include <ftxui/component/component.hpp>
@@ -18,18 +19,37 @@ int main() {
   auto screen = ScreenInteractive::TerminalOutput();
 
   std::vector<std::string> entries = {
-      "1. Quan ly Truyen", "2. Quan ly Phieu Thue",
-      "3. Thong ke Phieu & Doanh thu", "4. Thoat chuong trinh"};
+      "1. Quan ly Truyen", "2. Quan ly Khach hang", "3. Quan ly Phieu Thue",
+      "4. Thong ke Phieu & Doanh thu", "5. Thoat chuong trinh"};
   int selected = 0;
 
   MenuOption option;
   option.on_enter = screen.ExitLoopClosure();
 
   auto menu = Menu(&entries, &selected, option);
+  auto menu_with_event = CatchEvent(menu, [&](Event event) {
+      if (event == Event::Escape) {
+          selected = entries.size() - 1;
+          screen.ExitLoopClosure()();
+          return true;
+      }
+      if (event.is_character()) {
+          char c = event.character()[0];
+          if (c >= '1' && c <= '9') {
+              int index = c - '1';
+              if (index < (int)entries.size()) {
+                  selected = index;
+                  screen.ExitLoopClosure()();
+                  return true;
+              }
+          }
+      }
+      return false;
+  });
 
-  auto renderer = Renderer(menu, [&] {
+  auto renderer = Renderer(menu_with_event, [&] {
     return window(text(" HE THONG QUAN LY THUE TRUYEN (PBL1) "),
-                  menu->Render() | vscroll_indicator | frame) |
+                  menu_with_event->Render() | vscroll_indicator | frame) |
            bold;
   });
 
@@ -44,13 +64,19 @@ int main() {
       render_comic_menu();
     } else if (selected == 1) {
       system("cls");
-      render_rental_menu();
+      // 2. Quan ly Khach Hang
+      render_customer_menu();
     } else if (selected == 2) {
       system("cls");
-      render_statistics_screen();
+      // 3. Quan ly Phieu
+      render_rental_menu();
     } else if (selected == 3) {
       system("cls");
-      // 4. Thoat chuong trinh
+      // 4. Thong ke
+      render_statistics_screen();
+    } else if (selected == 4) {
+      system("cls");
+      // 5. Thoat chuong trinh
       std::cout << "\nDA THOAT CHUONG TRINH. TAM BIET!\n";
       break;
     }

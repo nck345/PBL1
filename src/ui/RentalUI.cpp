@@ -3,9 +3,7 @@
 #include "../../include/repository/ComicRepo.h"
 #include "../../include/services/RentalService.h"
 #include "../../include/utils/InputHandler.h"
-#include "../../include/utils/StringUtils.h"
-#include <cstdlib>
-#include <cstring>
+#include "../../include/utils/ValidationUtils.h"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -217,7 +215,57 @@ void render_return_comic_screen() {
 }
 
 void render_rental_menu() {
-  auto screen = ScreenInteractive::TerminalOutput();
+    auto screen = ScreenInteractive::TerminalOutput();
+
+    std::vector<std::string> entries = {
+        "1. Cho thue truyen moi",
+        "2. Tra truyen & Thanh toan",
+        "3. Tro ve"
+    };
+    int selected = 0;
+
+    MenuOption option;
+    option.on_enter = screen.ExitLoopClosure();
+
+    auto menu = Menu(&entries, &selected, option);
+    auto menu_with_event = CatchEvent(menu, [&](Event event) {
+        if (event == Event::Escape) {
+            selected = entries.size() - 1;
+            screen.ExitLoopClosure()();
+            return true;
+        }
+        if (event.is_character()) {
+            char c = event.character()[0];
+            if (c >= '1' && c <= '9') {
+                int index = c - '1';
+                if (index < (int)entries.size()) {
+                    selected = index;
+                    screen.ExitLoopClosure()();
+                    return true;
+                }
+            }
+        }
+        return false;
+    });
+
+    auto renderer = Renderer(menu_with_event, [&] {
+        return window(text(" QUAN LY PHIEU THUE "),
+                      menu_with_event->Render() | vscroll_indicator | frame) | bold;
+    });
+
+    while (true) {
+        screen.Loop(renderer);
+
+        if (selected == 0) {
+            render_new_rental_screen();
+        } else if (selected == 1) {
+            render_return_comic_screen();
+        } else if (selected == 2) {
+            system("cls");
+            break;
+        }
+    }
+}
 
   std::vector<std::string> entries = {
       "1. Cho thue truyen moi", "2. Tra truyen & Thanh toan", "3. Tro ve"};

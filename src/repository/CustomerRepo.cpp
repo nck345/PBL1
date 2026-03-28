@@ -1,121 +1,138 @@
 #include "../../include/repository/CustomerRepo.h"
-#include <fstream>
-#include <cstring>
 #include <iostream>
+#include <fstream>
+#include <algorithm>
 
 using namespace std;
 
-// Đường dẫn file lưu dữ liệu khách hàng
-static const char* CUSTOMERS_FILE = "data/customers.dat";
+const string CUSTOMER_FILE = "data/customers.dat";
+const string CUSTOMER_META = "data/customer_id.dat";
 
-// Lấy ID tiếp theo bằng cách đọc ID cuối cùng trong file
 int get_next_customer_id() {
-    ifstream file(CUSTOMERS_FILE, ios::binary | ios::ate);
-    if (!file.is_open() || file.tellg() == 0) {
-        return 1; // File rỗng hoặc chưa tồn tại -> bắt đầu từ 1
-    }
-
-    // Nhảy đến bản ghi cuối cùng
-    streamsize record_size = sizeof(Customer);
-    file.seekg(-record_size, ios::end);
-
-    Customer last;
-    file.read(reinterpret_cast<char*>(&last), sizeof(Customer));
-    file.close();
-
-    return last.id + 1;
+  int id = 1;
+  ifstream inFile(CUSTOMER_META, ios::binary);
+  if (inFile.is_open()) {
+    inFile.read(reinterpret_cast<char*>(&id), sizeof(int));
+    inFile.close();
+  }
+  int next_id = id + 1;
+  ofstream outFile(CUSTOMER_META, ios::binary);
+  if (outFile.is_open()) {
+    outFile.write(reinterpret_cast<const char*>(&next_id), sizeof(int));
+    outFile.close();
+  }
+  return id;
 }
 
-// Lưu khách hàng vào file (append binary)
-void save_customer(const Customer& customer) {
-    ofstream file(CUSTOMERS_FILE, ios::binary | ios::app);
-    if (!file.is_open()) {
-        cerr << "Loi: Khong mo duoc file customers.dat de ghi.\n";
-        return;
-    }
-    file.write(reinterpret_cast<const char*>(&customer), sizeof(Customer));
-    file.close();
-}
-
-// Đọc toàn bộ danh sách khách hàng
 vector<Customer> read_all_customers() {
-    vector<Customer> list;
-    ifstream file(CUSTOMERS_FILE, ios::binary);
-    if (!file.is_open()) return list;
+  vector<Customer> customers;
+  ifstream inFile(CUSTOMER_FILE, ios::binary);
+  if (!inFile.is_open()) {
+    return customers; 
+  }
 
-    Customer c;
-    while (file.read(reinterpret_cast<char*>(&c), sizeof(Customer))) {
-        if (!c.is_deleted) {
-            list.push_back(c);
-        }
-    }
-    file.close();
-    return list;
+  Customer c;
+  while (inFile.read(reinterpret_cast<char*>(&c), sizeof(Customer))) {
+    customers.push_back(c);
+  }
+
+  inFile.close();
+  return customers;
 }
 
-// Tìm khách hàng theo số điện thoại
-// Trả về true nếu tìm thấy và là khách chưa bị xóa, gán vào out_customer
-bool find_customer_by_phone(const char* phone, Customer& out_customer) {
-    ifstream file(CUSTOMERS_FILE, ios::binary);
-    if (!file.is_open()) return false;
-
-    Customer c;
-    while (file.read(reinterpret_cast<char*>(&c), sizeof(Customer))) {
-        if (!c.is_deleted && strncmp(c.phone, phone, sizeof(c.phone)) == 0) {
-            out_customer = c;
-            file.close();
-            return true;
-        }
-    }
-    file.close();
-    return false;
+void add_customer(Customer& customer) {
+  customer.id = get_next_customer_id();
+  ofstream outFile(CUSTOMER_FILE, ios::app | ios::binary);
+  if (outFile.is_open()) {
+    outFile.write(reinterpret_cast<const char*>(&customer), sizeof(Customer));
+    outFile.close();
+  } else {
+    cerr << "Khong the ghi file " << CUSTOMER_FILE << "!\n";
+  }
 }
 
-// Soft delete khách hàng theo ID (ghi đè seekp)
-bool delete_customer(int id) {
-    fstream file(CUSTOMERS_FILE, ios::in | ios::out | ios::binary);
-    if (!file.is_open()) return false;
-
-    Customer c;
-    streampos pos;
-    while (true) {
-        pos = file.tellg();
-        if (!file.read(reinterpret_cast<char*>(&c), sizeof(Customer))) break;
-        if (c.id == id) {
-            c.is_deleted = true;
-            file.seekp(pos);
-            file.write(reinterpret_cast<const char*>(&c), sizeof(Customer));
-            file.close();
-            return true;
-        }
-    }
-    file.close();
-    return false;
-}
-
-// Cập nhật thông tin khách hàng (ghi đè seekp)
 bool update_customer(const Customer& updated_customer) {
-    fstream file(CUSTOMERS_FILE, ios::in | ios::out | ios::binary);
-    if (!file.is_open()) return false;
+  fstream file(CUSTOMER_FILE, ios::in | ios::out | ios::binary);
+  if (!file.is_open()) return false;
 
-    Customer c;
-    streampos pos;
-    while (true) {
-        pos = file.tellg();
-        if (!file.read(reinterpret_cast<char*>(&c), sizeof(Customer))) break;
-        if (c.id == updated_customer.id) {
-            file.seekp(pos);
-            file.write(reinterpret_cast<const char*>(&updated_customer), sizeof(Customer));
-            file.close();
-            return true;
-        }
+  Customer c;
+  bool found = false;
+  streampos pos;
+  
+  while (file.read(reinterpret_cast<char*>(&c), sizeof(Customer))) {
+    if (c.id == updated_customer.id) {
+      found = true;
+      pos = file.tellg() - static_cast<streamoff>(sizeof(Customer));
+      break;
     }
+  }
+
+  if (found) {
+    file.seekp(pos);
+    file.write(reinterpret_cast<const char*>(&updated_customer), sizeof(Customer));
     file.close();
-    return false;
+    return true;
+  }
+
+  file.close();
+  return false;
 }
 
-// Kiểm tra trùng số điện thoại (dùng khi thêm mới khách hàng)
-bool is_customer_duplicate(const char* phone) {
-    Customer dummy;
-    return find_customer_by_phone(phone, dummy);
+bool delete_customer(int id) {
+  Customer c;
+  if (!get_customer_by_id(id, c)) return false;
+  
+  c.is_deleted = true;
+  return update_customer(c);
+}
+
+vector<Customer> search_customers_by_phone(const string& phone) {
+  vector<Customer> res;
+  vector<Customer> all = read_all_customers();
+  for (const auto& c : all) {
+    if (!c.is_deleted && string(c.phone).find(phone) != string::npos) {
+      res.push_back(c);
+    }
+  }
+  return res;
+}
+
+vector<Customer> search_customers_by_name(const string& name) {
+  vector<Customer> res;
+  vector<Customer> all = read_all_customers();
+  
+  string keyword = name;
+  transform(keyword.begin(), keyword.end(), keyword.begin(), ::tolower);
+
+  for (const auto& c : all) {
+    if (!c.is_deleted) {
+      string c_name = c.name;
+      transform(c_name.begin(), c_name.end(), c_name.begin(), ::tolower);
+      if (c_name.find(keyword) != string::npos) {
+        res.push_back(c);
+      }
+    }
+  }
+  return res;
+}
+
+bool get_customer_by_id(int id, Customer& out_customer) {
+  vector<Customer> all = read_all_customers();
+  for (const auto& c : all) {
+    if (c.id == id && !c.is_deleted) {
+      out_customer = c;
+      return true;
+    }
+  }
+  return false;
+}
+
+bool is_customer_duplicate(const string& phone) {
+  vector<Customer> all = read_all_customers();
+  for (const auto& c : all) {
+    if (!c.is_deleted && string(c.phone) == phone) {
+      return true;
+    }
+  }
+  return false;
 }

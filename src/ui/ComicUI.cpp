@@ -1,7 +1,7 @@
 #include "../../include/ui/ComicUI.h"
 #include "../../include/repository/ComicRepo.h"
 #include "../../include/utils/InputHandler.h"
-#include "../../include/utils/StringUtils.h"
+#include "../../include/utils/ValidationUtils.h"
 #include <cstring>
 #include <iostream>
 #include <string>
@@ -14,6 +14,67 @@
 #include <ftxui/dom/table.hpp>
 
 using namespace ftxui;
+
+int select_comic_ui(const std::string& title) {
+  std::vector<Comic> all_comics = read_all_comics();
+  std::vector<Comic> active_comics;
+  for (const auto& c : all_comics) {
+    if (!c.is_deleted) {
+      active_comics.push_back(c);
+    }
+  }
+
+  if (active_comics.empty()) {
+    std::cout << "Khong co truyen nao trong he thong!\n";
+    return -1;
+  }
+
+  auto screen = ScreenInteractive::TerminalOutput();
+  std::vector<std::string> entries;
+  for (size_t i = 0; i < active_comics.size(); ++i) {
+    std::string item = std::to_string(i + 1) + ". " + std::string(active_comics[i].comic_name) + " - " + active_comics[i].author + " (SL: " + std::to_string(active_comics[i].quantity) + ")";
+    entries.push_back(item);
+  }
+  entries.push_back(std::to_string(active_comics.size() + 1) + ". -> Huy thao tac");
+
+  int selected = 0;
+  MenuOption option;
+  option.on_enter = screen.ExitLoopClosure();
+
+  auto menu = Menu(&entries, &selected, option);
+  auto menu_with_event = CatchEvent(menu, [&](Event event) {
+      if (event == Event::Escape) {
+          selected = entries.size() - 1;
+          screen.ExitLoopClosure()();
+          return true;
+      }
+      if (event.is_character()) {
+          char c = event.character()[0];
+          if (c >= '1' && c <= '9') {
+              int index = c - '1';
+              if (index < (int)entries.size()) {
+                  selected = index;
+                  screen.ExitLoopClosure()();
+                  return true;
+              }
+          }
+      }
+      return false;
+  });
+
+  auto renderer = Renderer(menu_with_event, [&] {
+    return window(text(" " + title + " "),
+                  menu_with_event->Render() | vscroll_indicator | frame) | bold;
+  });
+
+  screen.Loop(renderer);
+  system("cls");
+
+  if (selected == entries.size() - 1) {
+    return -1;
+  }
+  return active_comics[selected].id;
+}
 
 void render_comic_table(const std::vector<Comic> &comics) {
   if (comics.empty()) {
@@ -70,9 +131,29 @@ void render_comic_menu() {
   option.on_enter = screen.ExitLoopClosure();
 
   auto menu = Menu(&entries, &selected, option);
-  auto renderer = Renderer(menu, [&] {
+  auto menu_with_event = CatchEvent(menu, [&](Event event) {
+      if (event == Event::Escape) {
+          selected = entries.size() - 1;
+          screen.ExitLoopClosure()();
+          return true;
+      }
+      if (event.is_character()) {
+          char c = event.character()[0];
+          if (c >= '1' && c <= '9') {
+              int index = c - '1';
+              if (index < (int)entries.size()) {
+                  selected = index;
+                  screen.ExitLoopClosure()();
+                  return true;
+              }
+          }
+      }
+      return false;
+  });
+
+  auto renderer = Renderer(menu_with_event, [&] {
     return window(text(" QUAN LY TRUYEN "),
-                  menu->Render() | vscroll_indicator | frame) |
+                  menu_with_event->Render() | vscroll_indicator | frame) |
            bold;
   });
 
@@ -91,9 +172,37 @@ void render_comic_menu() {
       Comic new_comic;
 
       std::string name = get_string_input("Nhap ten truyen: ");
+      if (name == "[ESC]") continue;
+      if (is_empty_string(name)) {
+          std::cout << "Loi: Ten khong duoc de trong!\n";
+          get_string_input("Nhan Enter... \n"); continue;
+      }
+
       std::string author = get_string_input("Nhap tac gia: ");
+      if (author == "[ESC]") continue;
+      if (is_empty_string(author)) {
+          std::cout << "Loi: Tac gia khong duoc de trong!\n";
+          get_string_input("Nhan Enter... \n"); continue;
+      }
+
+      if (is_comic_duplicate(name.c_str(), author.c_str())) {
+          std::cout << "Loi: Truyện có tên và tác giả này đã tồn tại trong hệ thống!\n";
+          get_string_input("Nhan Enter... \n"); continue;
+      }
+
       double price = get_double_input("Nhap gia: ");
+      if (price == -999999.0) continue;
+      if (is_negative(price)) {
+          std::cout << "Loi: Gia khong duoc nho hon 0!\n";
+          get_string_input("Nhan Enter... \n"); continue;
+      }
+
       int quantity = get_int_input("Nhap so luong: ");
+      if (quantity == -999999) continue;
+      if (is_negative(quantity)) {
+          std::cout << "Loi: So luong khong duoc nho hon 0!\n";
+          get_string_input("Nhan Enter... \n"); continue;
+      }
 
       strncpy(new_comic.comic_name, name.c_str(),
               sizeof(new_comic.comic_name) - 1);
@@ -111,15 +220,48 @@ void render_comic_menu() {
       get_string_input("Nhan Enter de tiep tuc...");
     } else if (selected == 2) {
       system("cls");
+      int id = select_comic_ui("CHON TRUYEN DE SUA");
+      if (id == -1) continue;
+
+      system("cls");
       std::cout << "\n--- SUA THONG TIN TRUYEN ---\n";
-      int id = get_int_input("Nhap ID truyen can sua: ");
       Comic comic_to_edit;
       if (get_comic_by_id(id, comic_to_edit)) {
         std::cout << "Dang sua truyen: " << comic_to_edit.comic_name << "\n";
         std::string name = get_string_input("Nhap ten truyen moi: ");
+        if (name == "[ESC]") continue;
+        if (is_empty_string(name)) {
+            std::cout << "Loi: Ten khong duoc de trong!\n";
+            get_string_input("Nhan Enter... \n"); continue;
+        }
+
         std::string author = get_string_input("Nhap tac gia moi: ");
+        if (author == "[ESC]") continue;
+        if (is_empty_string(author)) {
+            std::cout << "Loi: Tac gia khong duoc de trong!\n";
+            get_string_input("Nhan Enter... \n"); continue;
+        }
+
+        // Logic check trùng lặp khi edit (nếu thay đổi thành tên 1 truyện khác đã có)
+        if ((name != std::string(comic_to_edit.comic_name) || author != std::string(comic_to_edit.author)) 
+            && is_comic_duplicate(name.c_str(), author.c_str())) {
+            std::cout << "Loi: Truyện có tên và tác giả này đã tồn tại trong hệ thống!\n";
+            get_string_input("Nhan Enter... \n"); continue;
+        }
+
         double price = get_double_input("Nhap gia moi: ");
+        if (price == -999999.0) continue;
+        if (is_negative(price)) {
+            std::cout << "Loi: Gia khong duoc nho hon 0!\n";
+            get_string_input("Nhan Enter... \n"); continue;
+        }
+
         int quantity = get_int_input("Nhap so luong moi: ");
+        if (quantity == -999999) continue;
+        if (is_negative(quantity)) {
+            std::cout << "Loi: So luong khong duoc nho hon 0!\n";
+            get_string_input("Nhan Enter... \n"); continue;
+        }
 
         strncpy(comic_to_edit.comic_name, name.c_str(),
                 sizeof(comic_to_edit.comic_name) - 1);
@@ -143,19 +285,22 @@ void render_comic_menu() {
       get_string_input("Nhan Enter de tiep tuc...");
     } else if (selected == 3) {
       system("cls");
+      int id = select_comic_ui("CHON TRUYEN DE XOA");
+      if (id == -1) continue;
+
+      system("cls");
       std::cout << "\n--- XOA TRUYEN ---\n";
-      int id = get_int_input("Nhap ID truyen can xoa: ");
       if (delete_comic(id)) {
         std::cout << "Xoa truyen thanh cong!\n";
       } else {
-        std::cout << "Loi khi xoa truyen nguyen do file nhieu du lieu bi hong "
-                     "hoac ID khong ton tai!\n";
+        std::cout << "Loi khi xoa truyen nguyen do file nhieu du lieu bi hong!\n";
       }
       get_string_input("Nhan Enter de tiep tuc...");
     } else if (selected == 4) {
       system("cls");
       std::cout << "\n--- TIM KIEM TRUYEN ---\n";
       std::string kw = get_string_input("Nhap ten truyen can tim: ");
+      if (kw == "[ESC]") continue;
       std::vector<Comic> res = search_comics_by_name(kw);
       render_comic_table(res);
       get_string_input("Nhan Enter de tiep tuc...");
