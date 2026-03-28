@@ -36,8 +36,8 @@ void read_all_rental_slips() {
   RentalSlip slip;
   cout << "--- DANH SACH PHIEU THUE ---\n";
   while (file.read(reinterpret_cast<char *>(&slip), sizeof(RentalSlip))) {
-    cout << "Phieu ID: " << slip.id_phieu << " | Truyen ID: " << slip.id_truyen
-         << " | Khach ID: " << slip.id_khach_hang << " | Ngay thue: ";
+    cout << "Phieu ID: " << slip.id_phieu << " | Truyen: " << slip.ten_truyen
+         << " | Khach: " << slip.khach_hang << " | Ngay thue: ";
     print_date(slip.ngay_muon);
     cout << " | Ngay du kien tra: ";
     print_date(slip.ngay_tra_du_kien);

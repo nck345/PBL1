@@ -12,7 +12,7 @@
 long date_to_days(Date d);
 
 // Xử lý nghiệp vụ Mượn/Trả
-void process_new_rental(int id_truyen, int id_khach_hang, Date ngay_muon,
+void process_new_rental(const char* ten_truyen, const char* khach_hang, Date ngay_muon,
                         Date ngay_tra_du_kien, double gia_bia);
 void compute_payment_bill(RentalSlip &slip, double gia_bia);
 void process_return_comic(int id_phieu, Date ngay_tra_thuc_te,
