@@ -38,14 +38,22 @@ long date_to_days(Date d) {
     return total_days;
 }
 
+#include <cstring>
+
+// ... (vẫn giữ các hàm khác)
+
 // Xử lý mượn truyện
-void process_new_rental(int id_truyen, int id_khach_hang, Date ngay_muon, Date ngay_tra_du_kien, double gia_bia) {
-    // 1. Kiem tra ton kho va lay thong tin sach
-    Comic comic;
-    if (!get_comic_by_id(id_truyen, comic)) {
-        cout << "Loi: Khong tim thay truyen voi ID: " << id_truyen << "\n";
+void process_new_rental(const char* ten_truyen, const char* khach_hang, Date ngay_muon, Date ngay_tra_du_kien, double gia_bia) {
+    // 1. Kiem tra ton kho va lay thong tin sach theo ten
+    std::vector<Comic> results = search_comics_by_name(ten_truyen);
+    if (results.empty()) {
+        cout << "Loi: Khong tim thay truyen voi ten: " << ten_truyen << "\n";
         return;
     }
+    
+    // Giả sử lấy kết quả đầu tiên khớp hoàn toàn hoặc gần đúng nhất
+    Comic comic = results[0];
+    
     if (comic.is_deleted) {
         cout << "Loi: Truyen nay da bi xoa khoi he thong!\n";
         return;
@@ -64,20 +72,22 @@ void process_new_rental(int id_truyen, int id_khach_hang, Date ngay_muon, Date n
 
     // 3. Lap Phieu
     RentalSlip slip;
-    slip.id_phieu = get_next_rental_id(); // Lấy ID tự tăng từ đĩa (Repository)
-    slip.id_truyen = id_truyen;
-    slip.id_khach_hang = id_khach_hang;
+    slip.id_phieu = get_next_rental_id();
+    strncpy(slip.ten_truyen, comic.comic_name, sizeof(slip.ten_truyen) - 1);
+    slip.ten_truyen[sizeof(slip.ten_truyen) - 1] = '\0';
+    
+    strncpy(slip.khach_hang, khach_hang, sizeof(slip.khach_hang) - 1);
+    slip.khach_hang[sizeof(slip.khach_hang) - 1] = '\0';
+
     slip.ngay_muon = ngay_muon;
     slip.ngay_tra_du_kien = ngay_tra_du_kien;
-    slip.ngay_tra_thuc_te = {0, 0, 0}; // Gán mặt định chưa trả
+    slip.ngay_tra_thuc_te = {0, 0, 0};
     
-    // Bo qua tham so gia bia nap vao tu giao dien (neu co), dung gia bia chuan tu csdl
     gia_bia = comic.price;
-    slip.tien_coc = gia_bia; // 100% giá bìa - Thu hồi khi bắt đầu tạo phiếu
+    slip.tien_coc = gia_bia;
     slip.tong_tien = 0;
-    slip.trang_thai = 0;     // Đang thuê
+    slip.trang_thai = 0;
 
-    // Gọi Repository để lưu cấu trúc ghi liền xuống disk
     save_rental_slip(slip);
 }
 
@@ -138,7 +148,9 @@ void process_return_comic(int id_phieu, Date ngay_tra_thuc_te, int trang_thai_tr
         slip.trang_thai = trang_thai_tra; // 1: Đã Trả Hoàn, 2: Làm Mất Hư Hỏng
         
         Comic comic;
-        if (get_comic_by_id(slip.id_truyen, comic)) {
+        std::vector<Comic> comics = search_comics_by_name(slip.ten_truyen);
+        if (!comics.empty()) {
+            comic = comics[0];
             gia_bia = comic.price;
             
             // Neu tra nguyen ven (1), thi moi cong lai hang vao ton kho
