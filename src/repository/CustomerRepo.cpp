@@ -1,4 +1,4 @@
-#include "../../include/repository/CustomerRepo.h"
+﻿#include "../../include/repository/CustomerRepo.h"
 #include <iostream>
 #include <fstream>
 #include <algorithm>
@@ -131,6 +131,16 @@ bool is_customer_duplicate(const string& phone) {
   vector<Customer> all = read_all_customers();
   for (const auto& c : all) {
     if (!c.is_deleted && string(c.phone) == phone) {
+      return true;
+    }
+  }
+  return false;
+}
+bool find_customer_by_phone(const char* phone, Customer& out_customer) {
+  std::vector<Customer> all = read_all_customers();
+  for (const auto& c : all) {
+    if (!c.is_deleted && (std::string(c.phone) == phone || std::string(c.name) == phone)) {
+      out_customer = c;
       return true;
     }
   }

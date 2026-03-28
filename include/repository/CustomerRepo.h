@@ -22,4 +22,6 @@ bool get_customer_by_id(int id, Customer& out_customer);
 
 bool is_customer_duplicate(const std::string& phone);
 
+bool find_customer_by_phone(const char* phone, Customer& out_customer);
+
 #endif

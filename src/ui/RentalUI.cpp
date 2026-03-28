@@ -46,10 +46,30 @@ Comic select_comic_menu(const std::string &query) {
   MenuOption opt;
   opt.on_enter = screen.ExitLoopClosure();
   auto menu = Menu(&entries, &selected, opt);
-  auto renderer = Renderer(menu, [&] {
+  auto menu_with_event = CatchEvent(menu, [&](Event event) {
+      if (event == Event::Escape) {
+          selected = entries.size() - 1;
+          screen.ExitLoopClosure()();
+          return true;
+      }
+      if (event.is_character()) {
+          char c = event.character()[0];
+          if (c >= '1' && c <= '9') {
+              int index = c - '1';
+              if (index < (int)entries.size()) {
+                  selected = index;
+                  screen.ExitLoopClosure()();
+                  return true;
+              }
+          }
+      }
+      return false;
+  });
+
+  auto renderer = Renderer(menu_with_event, [&] {
     return window(text(" Tim thay " + std::to_string(results.size()) +
                        " truyen - Chon dung quyen: "),
-                  menu->Render() | vscroll_indicator | frame);
+                  menu_with_event->Render() | vscroll_indicator | frame);
   });
   screen.Loop(renderer);
 
@@ -84,9 +104,29 @@ std::string select_customer_menu(const std::string &query) {
   MenuOption opt;
   opt.on_enter = screen.ExitLoopClosure();
   auto menu = Menu(&entries, &selected, opt);
-  auto renderer = Renderer(menu, [&] {
+  auto menu_with_event = CatchEvent(menu, [&](Event event) {
+      if (event == Event::Escape) {
+          selected = entries.size() - 1; // [Quay lai]
+          screen.ExitLoopClosure()();
+          return true;
+      }
+      if (event.is_character()) {
+          char c = event.character()[0];
+          if (c >= '1' && c <= '9') {
+              int index = c - '1';
+              if (index < (int)entries.size()) {
+                  selected = index;
+                  screen.ExitLoopClosure()();
+                  return true;
+              }
+          }
+      }
+      return false;
+  });
+
+  auto renderer = Renderer(menu_with_event, [&] {
     return window(text(" Goi y khach hang cu (chon hoac nhap moi): "),
-                  menu->Render() | vscroll_indicator | frame);
+                  menu_with_event->Render() | vscroll_indicator | frame);
   });
   screen.Loop(renderer);
 
@@ -118,7 +158,16 @@ void render_new_rental_screen() {
       {input_truyen, input_khach, input_ngay_muon, input_ngay_tra,
        Container::Horizontal({submit_button, cancel_button})});
 
-  auto renderer = Renderer(container, [&] {
+  auto container_with_esc = CatchEvent(container, [&](Event event) {
+      if (event == Event::Escape) {
+          ten_truyen_str = ""; // Xoá data để thoát an toàn không trigger lưu
+          screen.ExitLoopClosure()();
+          return true;
+      }
+      return false;
+  });
+
+  auto renderer = Renderer(container_with_esc, [&] {
     return vbox({text(" THIET LAP PHIEU THUE ") | bold | center, separator(),
                  hbox(text(" Tên Truyện:      "), input_truyen->Render()),
                  hbox(text(" Khách hàng:      "), input_khach->Render()),
@@ -180,7 +229,16 @@ void render_return_comic_screen() {
       {input_phieu, input_ngay, input_tt,
        Container::Horizontal({submit_button, cancel_button})});
 
-  auto renderer = Renderer(container, [&] {
+  auto container_with_esc = CatchEvent(container, [&](Event event) {
+      if (event == Event::Escape) {
+          phieu_id_str = ""; // Xoá data để thoát an toàn
+          screen.ExitLoopClosure()();
+          return true;
+      }
+      return false;
+  });
+
+  auto renderer = Renderer(container_with_esc, [&] {
     return vbox({text(" TRA TRUYEN & THANH TOAN ") | bold | center, separator(),
                  hbox(text(" Phiếu ID:   "), input_phieu->Render()),
                  hbox(text(" Ngày trả:   "), input_ngay->Render()),
@@ -267,33 +325,6 @@ void render_rental_menu() {
     }
 }
 
-  std::vector<std::string> entries = {
-      "1. Cho thue truyen moi", "2. Tra truyen & Thanh toan", "3. Tro ve"};
-  int selected = 0;
-
-  MenuOption option;
-  option.on_enter = screen.ExitLoopClosure();
-
-  auto menu = Menu(&entries, &selected, option);
-  auto renderer = Renderer(menu, [&] {
-    return window(text(" QUAN LY PHIEU THUE "),
-                  menu->Render() | vscroll_indicator | frame) |
-           bold;
-  });
-
-  while (true) {
-    screen.Loop(renderer);
-
-    if (selected == 0) {
-      render_new_rental_screen();
-    } else if (selected == 1) {
-      render_return_comic_screen();
-    } else if (selected == 2) {
-      system("cls");
-      break;
-    }
-  }
-}
 
 void render_statistics_screen() {
   system("cls");
