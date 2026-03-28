@@ -15,6 +15,47 @@
 
 using namespace ftxui;
 
+int select_comic_ui(const std::string& title) {
+  std::vector<Comic> all_comics = read_all_comics();
+  std::vector<Comic> active_comics;
+  for (const auto& c : all_comics) {
+    if (!c.is_deleted) {
+      active_comics.push_back(c);
+    }
+  }
+
+  if (active_comics.empty()) {
+    std::cout << "Khong co truyen nao trong he thong!\n";
+    return -1;
+  }
+
+  auto screen = ScreenInteractive::TerminalOutput();
+  std::vector<std::string> entries;
+  for (const auto& c : active_comics) {
+    std::string item = std::string(c.comic_name) + " - " + c.author + " (SL: " + std::to_string(c.quantity) + ")";
+    entries.push_back(item);
+  }
+  entries.push_back("-> Huy thao tac");
+
+  int selected = 0;
+  MenuOption option;
+  option.on_enter = screen.ExitLoopClosure();
+
+  auto menu = Menu(&entries, &selected, option);
+  auto renderer = Renderer(menu, [&] {
+    return window(text(" " + title + " "),
+                  menu->Render() | vscroll_indicator | frame) | bold;
+  });
+
+  screen.Loop(renderer);
+  system("cls");
+
+  if (selected == entries.size() - 1) {
+    return -1;
+  }
+  return active_comics[selected].id;
+}
+
 void render_comic_table(const std::vector<Comic> &comics) {
   if (comics.empty()) {
     std::cout << "Khong co du lieu truyen.\n";
@@ -111,8 +152,11 @@ void render_comic_menu() {
       get_string_input("Nhan Enter de tiep tuc...");
     } else if (selected == 2) {
       system("cls");
+      int id = select_comic_ui("CHON TRUYEN DE SUA");
+      if (id == -1) continue;
+
+      system("cls");
       std::cout << "\n--- SUA THONG TIN TRUYEN ---\n";
-      int id = get_int_input("Nhap ID truyen can sua: ");
       Comic comic_to_edit;
       if (get_comic_by_id(id, comic_to_edit)) {
         std::cout << "Dang sua truyen: " << comic_to_edit.comic_name << "\n";
@@ -143,13 +187,15 @@ void render_comic_menu() {
       get_string_input("Nhan Enter de tiep tuc...");
     } else if (selected == 3) {
       system("cls");
+      int id = select_comic_ui("CHON TRUYEN DE XOA");
+      if (id == -1) continue;
+
+      system("cls");
       std::cout << "\n--- XOA TRUYEN ---\n";
-      int id = get_int_input("Nhap ID truyen can xoa: ");
       if (delete_comic(id)) {
         std::cout << "Xoa truyen thanh cong!\n";
       } else {
-        std::cout << "Loi khi xoa truyen nguyen do file nhieu du lieu bi hong "
-                     "hoac ID khong ton tai!\n";
+        std::cout << "Loi khi xoa truyen nguyen do file nhieu du lieu bi hong!\n";
       }
       get_string_input("Nhan Enter de tiep tuc...");
     } else if (selected == 4) {
