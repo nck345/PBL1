@@ -28,4 +28,7 @@ std::vector<Comic> search_comics_by_name(const std::string& name);
 // Retrieve a specific comic by ID
 bool get_comic_by_id(int id, Comic& out_comic);
 
+// Check if a comic name and author combination already exists
+bool is_comic_duplicate(const char* name, const char* author);
+
 #endif
