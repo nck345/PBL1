@@ -42,6 +42,15 @@ PBL1/
 
 ---
 
+## Các thư viện sử dụng trong dự án
+
+Dự án sử dụng các thư viện và công cụ hiện đại để tối ưu hóa trải nghiệm người dùng và tốc độ phát triển:
+
+*   **[FTXUI](https://github.com/ArthurSonzogni/FTXUI)**: Thư viện C++ mạnh mẽ để xây dựng giao diện người dùng trên Terminal (TUI). Hỗ trợ các thành phần tương tác như Menu, Button, Input, Table và các hiệu ứng đồ họa mượt mà.
+*   **GNU Make (mingw32-make)**: Hệ thống quản lý biên dịch thông minh (Incremental Build). Chỉ biên dịch lại những phần code có thay đổi, giúp tiết kiệm thời gian build (dưới 1 giây cho các lần sửa đổi nhỏ).
+
+---
+
 ## Đối với Thành viên trong nhóm (Team Setup)
 
 Dự án này đã được cấu hình tự động hoàn toàn trên VS Code thông qua thư mục `.vscode/` (chia sẻ chung cho cả đội). Để chạy được code mà không gặp bất kỳ lỗi gì, các thành viên chỉ cần làm đúng **1 lần duy nhất** theo các bước sau:

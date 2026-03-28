@@ -4,16 +4,13 @@
         {
             "label": "Build C++ Project",
             "type": "process",
-            "command": "powershell",
-            "args": [
-                "-ExecutionPolicy",
-                "Bypass",
-                "-NoProfile",
-                "-Command",
-                "$compiler = if (Test-Path 'C:\\msys64\\ucrt64\\bin\\g++.exe') { 'C:\\msys64\\ucrt64\\bin\\g++.exe' } else { 'g++' }; if ($compiler -ne 'g++') { $env:PATH += ';C:\\msys64\\ucrt64\\bin' }; $cppFiles = Get-ChildItem -Path '${workspaceFolder}\\src' -Filter *.cpp -Recurse | Select-Object -ExpandProperty FullName; if ($cppFiles) { Write-Host 'Compiling C++ files using' $compiler '...'; $cppArgs = @('-g', '-I${workspaceFolder}\\include') + $cppFiles + @('-o', '${workspaceFolder}\\bin\\main.exe', '-lftxui-component', '-lftxui-dom', '-lftxui-screen'); & $compiler @cppArgs; if ($?) { Write-Host 'Build successful!' -ForegroundColor Green } else { Write-Host 'Build failed with error code $LASTEXITCODE' -ForegroundColor Red; exit 1 } } else { Write-Host 'Khong tim thay file .cpp nao trong src/' -ForegroundColor Yellow }"
-            ],
+            "command": "C:\\msys64\\ucrt64\\bin\\mingw32-make.exe",
+            "args": [],
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "PATH": "C:\\msys64\\ucrt64\\bin;${env:PATH}"
+                }
             },
             "problemMatcher": [
                 "$gcc"
@@ -22,7 +19,7 @@
                 "kind": "build",
                 "isDefault": false
             },
-            "detail": "Biên dịch toàn bộ project C++"
+            "detail": "Biên dịch dự án sử dụng Makefile (Sửa lỗi PATH và DLL)"
         },
         {
             "type": "cppbuild",
