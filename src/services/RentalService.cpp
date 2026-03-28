@@ -69,6 +69,14 @@ void process_new_rental(const char* ten_truyen, const char* khach_hang, Date nga
         cout << "Loi: Khong the cap nhat so luong truyen vao kho!\n";
         return;
     }
+  // 4. Kiem tra trung phieu thue dang hoat dong
+  // Dieu kien: cung ten truyen + cung khach hang (customer.name) + trang_thai == 0
+  if (is_rental_duplicate(comic.comic_name, customer.name)) {
+    cout << "Loi: Khach hang \"" << customer.name << "\" dang co phieu thue cuon \""
+         << comic.comic_name << "\" chua tra!\n";
+    cout << "     Vui long tra truyen cu truoc khi thue lai.\n";
+    return;
+  }
 
     // 3. Lap Phieu
     RentalSlip slip;
