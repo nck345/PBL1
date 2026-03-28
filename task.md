@@ -42,6 +42,11 @@
 - [x] Thiết kế và lập trình Menu chính (Main Menu) với vòng lặp vô tận điều hướng **(~5% công việc)**
 - [x] Liên kết các phím bấm/lệnh nhập vào Menu để gọi các hàm tương ứng từ UI và Repository **(~5% công việc)**
 
+### 6. Nhiệm vụ bổ sung (Core & Algorithm Engineer)
+- [ ] **Xây dựng bộ thuật toán tổng quát (`utils/SortUtils.cpp`, `utils/SearchUtils.cpp`)**: Triển khai `quick_sort` và `binary_search` dùng chung cho toàn bộ dự án **(~15% công việc)**
+- [ ] **Ứng dụng thuật toán vào phân hệ Truyện**: Viết các hàm sắp xếp danh sách và tìm kiếm nhị phân cho Truyện (theo Tên, ID, Giá) **(~10% công việc)**
+- [ ] **Tối ưu hóa Pipeline cho Truyện**: Kết chuỗi `Lọc` -> `Sắp xếp` -> `Hiển thị` để dữ liệu luôn chuyên nghiệp **(~5% công việc)**
+
 ---
 
 ## 🕵️‍♂️ Nhiệm vụ của Như Ý
@@ -77,3 +82,8 @@
 - [x] Xây dựng màn hình **Cho thuê Truyện**: Ứng dụng chức năng `Input` của **FTXUI** để nhập ID Truyện, ID Khách hàng, sau đó gọi hàm `process_new_rental` từ tầng Service để xử lý **(~5% công việc)**
 - [x] Xây dựng màn hình **Trả Truyện & Thanh toán**: Dùng chức năng `Input` nhập ID Phiếu cần xử lý trả, gọi logic tính tiền tương ứng và hiển thị Bill tổng hợp ra Terminal **(~5% công việc)**
 - [x] Khai báo `void render_revenue_table(...)`: Ứng dụng Component (Table) của **FTXUI** để đổ danh sách Thống kê & Phiếu quá hạn hiển thị theo dòng cột. Set thuộc tính `.color(Color::Red)` cho sách quá hạn và mất hỏng nhằm sinh cảnh báo **(~5% công việc)**
+
+### 5. Nhiệm vụ bổ sung (Business Logic & Integration)
+- [ ] **Xây dựng các tiêu chí so sánh (Comparator)**: Khai báo logic so sánh riêng cho `RentalSlip` (theo ngày, tiền phạt...) để truyền vào thuật toán của Khiêm **(~10% công việc)**
+- [ ] **Xây dựng nâng cao cho Quản lý Phiếu**: Gọi hàm `quick_sort()` của Khiêm để xử lý hiển thị danh sách phiếu quá hạn theo ưu tiên đòi sách **(~10% công việc)**
+- [ ] **Xây dựng nâng cao cho Thống kê**: Tích hợp thuật toán sắp xếp của Khiêm vào báo cáo doanh thu để liệt kê từ cao xuống thấp **(~5% công việc)**
