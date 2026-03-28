@@ -28,13 +28,13 @@ void render_new_rental_screen() {
     system("cls");
     auto screen = ScreenInteractive::TerminalOutput();
 
-    std::string truyen_id_str;
-    std::string khach_id_str;
+    std::string ten_truyen_str;
+    std::string khach_info_str;
     std::string ngay_muon_str;
     std::string ngay_tra_str;
 
-    Component input_truyen = Input(&truyen_id_str, "nhập số...");
-    Component input_khach = Input(&khach_id_str, "nhập số...");
+    Component input_truyen = Input(&ten_truyen_str, "nhập tên truyện...");
+    Component input_khach = Input(&khach_info_str, "nhập tên hoặc SĐT...");
     Component input_ngay_muon = Input(&ngay_muon_str, "dd/mm/yyyy");
     Component input_ngay_tra = Input(&ngay_tra_str, "dd/mm/yyyy");
 
@@ -53,8 +53,8 @@ void render_new_rental_screen() {
         return vbox({
             text(" THIET LAP PHIEU THUE ") | bold | center,
             separator(),
-            hbox(text(" Truyện ID:      "), input_truyen->Render()),
-            hbox(text(" Khách ID:       "), input_khach->Render()),
+            hbox(text(" Tên Truyện:      "), input_truyen->Render()),
+            hbox(text(" Khách hàng:      "), input_khach->Render()),
             hbox(text(" Ngày mượn:      "), input_ngay_muon->Render()),
             hbox(text(" Hạn trả (dự kiến): "), input_ngay_tra->Render()),
             separator(),
@@ -64,17 +64,13 @@ void render_new_rental_screen() {
 
     screen.Loop(renderer);
 
-    if (!truyen_id_str.empty() && !khach_id_str.empty() && !ngay_muon_str.empty()) {
-        int t_id = 0, k_id = 0;
-        try { t_id = std::stoi(truyen_id_str); } catch (...) {}
-        try { k_id = std::stoi(khach_id_str); } catch (...) {}
-        
+    if (!ten_truyen_str.empty() && !khach_info_str.empty() && !ngay_muon_str.empty()) {
         Date d_muon = parse_date_string(ngay_muon_str);
         Date d_tra = parse_date_string(ngay_tra_str);
 
-        if (t_id > 0 && k_id > 0 && d_muon.year > 0) {
+        if (d_muon.year > 0) {
             system("cls");
-            process_new_rental(t_id, k_id, d_muon, d_tra, 0.0);
+            process_new_rental(ten_truyen_str.c_str(), khach_info_str.c_str(), d_muon, d_tra, 0.0);
             get_string_input("Nhan Enter de tiep tuc...");
         }
     }
@@ -200,8 +196,8 @@ void render_statistics_screen() {
 
         table_data.push_back({
             std::to_string(s.id_phieu),
-            std::to_string(s.id_truyen),
-            std::to_string(s.id_khach_hang),
+            std::string(s.ten_truyen),
+            std::string(s.khach_hang),
             ngay_m, ngay_d, ngay_t,
             format_currency(s.tien_coc),
             format_currency(s.tong_tien),
