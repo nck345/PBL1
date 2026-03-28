@@ -144,9 +144,29 @@ void render_rental_menu() {
     option.on_enter = screen.ExitLoopClosure();
 
     auto menu = Menu(&entries, &selected, option);
-    auto renderer = Renderer(menu, [&] {
+    auto menu_with_event = CatchEvent(menu, [&](Event event) {
+        if (event == Event::Escape) {
+            selected = entries.size() - 1;
+            screen.ExitLoopClosure()();
+            return true;
+        }
+        if (event.is_character()) {
+            char c = event.character()[0];
+            if (c >= '1' && c <= '9') {
+                int index = c - '1';
+                if (index < (int)entries.size()) {
+                    selected = index;
+                    screen.ExitLoopClosure()();
+                    return true;
+                }
+            }
+        }
+        return false;
+    });
+
+    auto renderer = Renderer(menu_with_event, [&] {
         return window(text(" QUAN LY PHIEU THUE "),
-                      menu->Render() | vscroll_indicator | frame) | bold;
+                      menu_with_event->Render() | vscroll_indicator | frame) | bold;
     });
 
     while (true) {

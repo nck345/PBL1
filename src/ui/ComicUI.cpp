@@ -31,20 +31,40 @@ int select_comic_ui(const std::string& title) {
 
   auto screen = ScreenInteractive::TerminalOutput();
   std::vector<std::string> entries;
-  for (const auto& c : active_comics) {
-    std::string item = std::string(c.comic_name) + " - " + c.author + " (SL: " + std::to_string(c.quantity) + ")";
+  for (size_t i = 0; i < active_comics.size(); ++i) {
+    std::string item = std::to_string(i + 1) + ". " + std::string(active_comics[i].comic_name) + " - " + active_comics[i].author + " (SL: " + std::to_string(active_comics[i].quantity) + ")";
     entries.push_back(item);
   }
-  entries.push_back("-> Huy thao tac");
+  entries.push_back(std::to_string(active_comics.size() + 1) + ". -> Huy thao tac");
 
   int selected = 0;
   MenuOption option;
   option.on_enter = screen.ExitLoopClosure();
 
   auto menu = Menu(&entries, &selected, option);
-  auto renderer = Renderer(menu, [&] {
+  auto menu_with_event = CatchEvent(menu, [&](Event event) {
+      if (event == Event::Escape) {
+          selected = entries.size() - 1;
+          screen.ExitLoopClosure()();
+          return true;
+      }
+      if (event.is_character()) {
+          char c = event.character()[0];
+          if (c >= '1' && c <= '9') {
+              int index = c - '1';
+              if (index < (int)entries.size()) {
+                  selected = index;
+                  screen.ExitLoopClosure()();
+                  return true;
+              }
+          }
+      }
+      return false;
+  });
+
+  auto renderer = Renderer(menu_with_event, [&] {
     return window(text(" " + title + " "),
-                  menu->Render() | vscroll_indicator | frame) | bold;
+                  menu_with_event->Render() | vscroll_indicator | frame) | bold;
   });
 
   screen.Loop(renderer);
@@ -111,9 +131,29 @@ void render_comic_menu() {
   option.on_enter = screen.ExitLoopClosure();
 
   auto menu = Menu(&entries, &selected, option);
-  auto renderer = Renderer(menu, [&] {
+  auto menu_with_event = CatchEvent(menu, [&](Event event) {
+      if (event == Event::Escape) {
+          selected = entries.size() - 1;
+          screen.ExitLoopClosure()();
+          return true;
+      }
+      if (event.is_character()) {
+          char c = event.character()[0];
+          if (c >= '1' && c <= '9') {
+              int index = c - '1';
+              if (index < (int)entries.size()) {
+                  selected = index;
+                  screen.ExitLoopClosure()();
+                  return true;
+              }
+          }
+      }
+      return false;
+  });
+
+  auto renderer = Renderer(menu_with_event, [&] {
     return window(text(" QUAN LY TRUYEN "),
-                  menu->Render() | vscroll_indicator | frame) |
+                  menu_with_event->Render() | vscroll_indicator | frame) |
            bold;
   });
 
@@ -132,12 +172,14 @@ void render_comic_menu() {
       Comic new_comic;
 
       std::string name = get_string_input("Nhap ten truyen: ");
+      if (name == "[ESC]") continue;
       if (is_empty_string(name)) {
           std::cout << "Loi: Ten khong duoc de trong!\n";
           get_string_input("Nhan Enter... \n"); continue;
       }
 
       std::string author = get_string_input("Nhap tac gia: ");
+      if (author == "[ESC]") continue;
       if (is_empty_string(author)) {
           std::cout << "Loi: Tac gia khong duoc de trong!\n";
           get_string_input("Nhan Enter... \n"); continue;
@@ -149,12 +191,14 @@ void render_comic_menu() {
       }
 
       double price = get_double_input("Nhap gia: ");
+      if (price == -999999.0) continue;
       if (is_negative(price)) {
           std::cout << "Loi: Gia khong duoc nho hon 0!\n";
           get_string_input("Nhan Enter... \n"); continue;
       }
 
       int quantity = get_int_input("Nhap so luong: ");
+      if (quantity == -999999) continue;
       if (is_negative(quantity)) {
           std::cout << "Loi: So luong khong duoc nho hon 0!\n";
           get_string_input("Nhan Enter... \n"); continue;
@@ -185,12 +229,14 @@ void render_comic_menu() {
       if (get_comic_by_id(id, comic_to_edit)) {
         std::cout << "Dang sua truyen: " << comic_to_edit.comic_name << "\n";
         std::string name = get_string_input("Nhap ten truyen moi: ");
+        if (name == "[ESC]") continue;
         if (is_empty_string(name)) {
             std::cout << "Loi: Ten khong duoc de trong!\n";
             get_string_input("Nhan Enter... \n"); continue;
         }
 
         std::string author = get_string_input("Nhap tac gia moi: ");
+        if (author == "[ESC]") continue;
         if (is_empty_string(author)) {
             std::cout << "Loi: Tac gia khong duoc de trong!\n";
             get_string_input("Nhan Enter... \n"); continue;
@@ -204,12 +250,14 @@ void render_comic_menu() {
         }
 
         double price = get_double_input("Nhap gia moi: ");
+        if (price == -999999.0) continue;
         if (is_negative(price)) {
             std::cout << "Loi: Gia khong duoc nho hon 0!\n";
             get_string_input("Nhan Enter... \n"); continue;
         }
 
         int quantity = get_int_input("Nhap so luong moi: ");
+        if (quantity == -999999) continue;
         if (is_negative(quantity)) {
             std::cout << "Loi: So luong khong duoc nho hon 0!\n";
             get_string_input("Nhan Enter... \n"); continue;
@@ -252,6 +300,7 @@ void render_comic_menu() {
       system("cls");
       std::cout << "\n--- TIM KIEM TRUYEN ---\n";
       std::string kw = get_string_input("Nhap ten truyen can tim: ");
+      if (kw == "[ESC]") continue;
       std::vector<Comic> res = search_comics_by_name(kw);
       render_comic_table(res);
       get_string_input("Nhan Enter de tiep tuc...");

@@ -52,6 +52,7 @@ void render_customer_table(const std::vector<Customer> &customers) {
 
 int select_customer_ui(const std::string& title) {
   std::string keyword = get_string_input("Nhap So dien thoai can tim: ");
+  if (keyword == "[ESC]") return -1;
   if (is_empty_string(keyword)) return -1;
 
   std::vector<Customer> found_list = search_customers_by_phone(keyword);
@@ -63,20 +64,40 @@ int select_customer_ui(const std::string& title) {
 
   auto screen = ScreenInteractive::TerminalOutput();
   std::vector<std::string> entries;
-  for (const auto& c : found_list) {
-    std::string item = std::string(c.name) + " - SDT: " + c.phone;
+  for (size_t i = 0; i < found_list.size(); ++i) {
+    std::string item = std::to_string(i + 1) + ". " + std::string(found_list[i].name) + " - SDT: " + found_list[i].phone;
     entries.push_back(item);
   }
-  entries.push_back("-> Huy thao tac");
+  entries.push_back(std::to_string(found_list.size() + 1) + ". -> Huy thao tac");
 
   int selected = 0;
   MenuOption option;
   option.on_enter = screen.ExitLoopClosure();
 
   auto menu = Menu(&entries, &selected, option);
-  auto renderer = Renderer(menu, [&] {
+  auto menu_with_event = CatchEvent(menu, [&](Event event) {
+      if (event == Event::Escape) {
+          selected = entries.size() - 1;
+          screen.ExitLoopClosure()();
+          return true;
+      }
+      if (event.is_character()) {
+          char c = event.character()[0];
+          if (c >= '1' && c <= '9') {
+              int index = c - '1';
+              if (index < (int)entries.size()) {
+                  selected = index;
+                  screen.ExitLoopClosure()();
+                  return true;
+              }
+          }
+      }
+      return false;
+  });
+
+  auto renderer = Renderer(menu_with_event, [&] {
     return window(text(" " + title + " "),
-                  menu->Render() | vscroll_indicator | frame) | bold;
+                  menu_with_event->Render() | vscroll_indicator | frame) | bold;
   });
 
   screen.Loop(renderer);
@@ -101,9 +122,29 @@ void render_customer_menu() {
   option.on_enter = screen.ExitLoopClosure();
 
   auto menu = Menu(&entries, &selected, option);
-  auto renderer = Renderer(menu, [&] {
+  auto menu_with_event = CatchEvent(menu, [&](Event event) {
+      if (event == Event::Escape) {
+          selected = entries.size() - 1;
+          screen.ExitLoopClosure()();
+          return true;
+      }
+      if (event.is_character()) {
+          char c = event.character()[0];
+          if (c >= '1' && c <= '9') {
+              int index = c - '1';
+              if (index < (int)entries.size()) {
+                  selected = index;
+                  screen.ExitLoopClosure()();
+                  return true;
+              }
+          }
+      }
+      return false;
+  });
+
+  auto renderer = Renderer(menu_with_event, [&] {
     return window(text(" QUAN LY KHACH HANG "),
-                  menu->Render() | vscroll_indicator | frame) |
+                  menu_with_event->Render() | vscroll_indicator | frame) |
            bold;
   });
 
@@ -122,12 +163,14 @@ void render_customer_menu() {
       Customer new_c;
 
       std::string name = get_string_input("Nhap ten Khach: ");
+      if (name == "[ESC]") continue;
       if (is_empty_string(name)) {
         std::cout << "Loi: Ten khong duoc de trong!\n";
         get_string_input("Nhan Enter de tiep tuc...");
         continue;
       }
       std::string phone = get_string_input("Nhap So dien thoai: ");
+      if (phone == "[ESC]") continue;
       if (is_empty_string(phone)) {
         std::cout << "Loi: SDT khong duoc de trong!\n";
         get_string_input("Nhan Enter de tiep tuc...");
@@ -163,11 +206,13 @@ void render_customer_menu() {
       if (get_customer_by_id(id, c_to_edit)) {
         std::cout << "Dang sua khach: " << c_to_edit.name << " (" << c_to_edit.phone << ")\n";
         std::string name = get_string_input("Nhap ten moi: ");
+        if (name == "[ESC]") continue;
         if (is_empty_string(name)) {
             std::cout << "Loi: Ten khong duoc de trong!\n";
             get_string_input("Nhan Enter... \n"); continue;
         }
         std::string phone = get_string_input("Nhap so dien thoai moi: ");
+        if (phone == "[ESC]") continue;
         if (is_empty_string(phone)) {
             std::cout << "Loi: SDT khong duoc de trong!\n";
             get_string_input("Nhan Enter... \n"); continue;
@@ -208,6 +253,7 @@ void render_customer_menu() {
       system("cls");
       std::cout << "\n--- TIM KIEM KHACH HANG ---\n";
       std::string kw = get_string_input("Nhap ten khach can tim: ");
+      if (kw == "[ESC]") continue;
       std::vector<Customer> res = search_customers_by_name(kw);
       render_customer_table(res);
       get_string_input("Nhan Enter de tiep tuc...");
