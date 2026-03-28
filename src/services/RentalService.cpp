@@ -62,6 +62,15 @@ void process_new_rental(const char* ten_truyen, const char* khach_hang, Date nga
         cout << "Loi: Truyen nay da het hang trong kho (khong the cho thue)!\n";
         return;
     }
+  // 3. Kiem tra logic ngay: ngay_tra_du_kien phai >= ngay_muon
+  if (date_to_days(ngay_tra_du_kien) < date_to_days(ngay_muon)) {
+    cout << "Loi: Ngay tra du kien (";
+    cout << ngay_tra_du_kien.day << "/" << ngay_tra_du_kien.month << "/" << ngay_tra_du_kien.year;
+    cout << ") khong the som hon ngay muon (";
+    cout << ngay_muon.day << "/" << ngay_muon.month << "/" << ngay_muon.year;
+    cout << ").\n";
+    return;
+  }
 
     // 2. Tien hanh tru so luong sach do xuat kho
     comic.quantity -= 1;
