@@ -63,9 +63,9 @@
 - [x] Viết hàm `void compute_payment_bill(...)` lúc trả: Gọi `date_to_days` lấy `so_ngay_thue = ngay_tra_thuc_te - ngay_muon`. Tính `tong_tien = so_ngay_thue * (10% gia_bia)`. Cộng thêm phí phạt nếu lấy `ngay_tra_thuc_te > ngay_tra_du_kien`. Cuối cùng gọi ngược lại hàm ghi đè bằng `seekp()` **(~8% công việc)**
 - [x] Tích hợp kiểm tra **ID truyện có tồn tại** trước khi mượn **(~3% công việc)**
 - [x] Tích hợp kiểm tra **số lượng truyện > 0** **(~3% công việc)**
-- [ ] Tích hợp kiểm tra **Khách hàng** có tồn tại (Kiểm tra qua Số điện thoại) **(~3% công việc)**
-- [ ] Tích hợp kiểm tra **trùng phiếu thuê** hoạt động **(~3% công việc)**
-- [ ] Tích hợp kiểm tra **logic ngày trả >= ngày mượn** **(~4% công việc)**
+- [x] Tích hợp kiểm tra **Khách hàng** có tồn tại (Kiểm tra qua Số điện thoại) **(~3% công việc)**
+- [x] Tích hợp kiểm tra **trùng phiếu thuê** hoạt động **(~3% công việc)**
+- [x] Tích hợp kiểm tra **logic ngày trả >= ngày mượn** **(~4% công việc)**
 
 ### 3. Thống kê & Báo cáo (Statistics)
 - [x] Khởi tạo hàm `double compute_daily_revenue();` ở tầng logic: Đọc luồng dữ liệu file `rentals.dat`. Lọc những phiếu có ngày được quy định trùng với ngày hôm nay hoặc tháng này. Khấu trừ `tien_coc` tuỳ vào `trang_thai` (VD: trạng thái `2` thì thu luôn cọc) và cộng dồn lại vào tổng doanh thu **(~10% công việc)**

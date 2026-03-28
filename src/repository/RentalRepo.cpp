@@ -1,6 +1,7 @@
 #include "../../include/repository/RentalRepo.h"
 #include <fstream>
 #include <iostream>
+#include <cstring>
 
 using namespace std;
 
@@ -36,8 +37,8 @@ void read_all_rental_slips() {
   RentalSlip slip;
   cout << "--- DANH SACH PHIEU THUE ---\n";
   while (file.read(reinterpret_cast<char *>(&slip), sizeof(RentalSlip))) {
-    cout << "Phieu ID: " << slip.id_phieu << " | Truyen ID: " << slip.id_truyen
-         << " | Khach ID: " << slip.id_khach_hang << " | Ngay thue: ";
+    cout << "Phieu ID: " << slip.id_phieu << " | Truyen: " << slip.ten_truyen
+         << " | Khach: " << slip.khach_hang << " | Ngay thue: ";
     print_date(slip.ngay_muon);
     cout << " | Ngay du kien tra: ";
     print_date(slip.ngay_tra_du_kien);
@@ -103,4 +104,26 @@ int get_next_rental_id() {
   inFile.close();
 
   return last_slip.id_phieu + 1;
+}
+
+// Kiểm tra trùng phiếu thuê đang hoạt động
+// Điều kiện trùng: cùng tên truyện + cùng khách hàng + trang_thai == 0 (đang thuê)
+bool is_rental_duplicate(const char* ten_truyen, const char* khach_hang) {
+  ifstream file("data/rentals.dat", ios::binary);
+  if (!file.is_open()) return false;
+
+  RentalSlip slip;
+  while (file.read(reinterpret_cast<char*>(&slip), sizeof(RentalSlip))) {
+    // Chỉ kiểm tra phiếu đang hoạt động (chưa trả / chưa ghi mất)
+    if (slip.trang_thai == 0) {
+      bool same_comic    = strncmp(slip.ten_truyen, ten_truyen, sizeof(slip.ten_truyen)) == 0;
+      bool same_customer = strncmp(slip.khach_hang, khach_hang, sizeof(slip.khach_hang)) == 0;
+      if (same_comic && same_customer) {
+        file.close();
+        return true; // Tồn tại phiếu trùng
+      }
+    }
+  }
+  file.close();
+  return false;
 }
