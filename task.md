@@ -43,9 +43,9 @@
 - [x] Liên kết các phím bấm/lệnh nhập vào Menu để gọi các hàm tương ứng từ UI và Repository **(~5% công việc)**
 
 ### 6. Nhiệm vụ bổ sung (Core & Algorithm Engineer)
-- [ ] **Xây dựng bộ thuật toán tổng quát (`utils/SortUtils.cpp`, `utils/SearchUtils.cpp`)**: Triển khai `quick_sort` và `binary_search` dùng chung cho toàn bộ dự án **(~15% công việc)**
-- [ ] **Ứng dụng thuật toán vào phân hệ Truyện**: Viết các hàm sắp xếp danh sách và tìm kiếm nhị phân cho Truyện (theo Tên, ID, Giá) **(~10% công việc)**
-- [ ] **Tối ưu hóa Pipeline cho Truyện**: Kết chuỗi `Lọc` -> `Sắp xếp` -> `Hiển thị` để dữ liệu luôn chuyên nghiệp **(~5% công việc)**
+- [x] **Xây dựng bộ thuật toán tổng quát (`utils/SortUtils.cpp`, `utils/SearchUtils.cpp`)**: Triển khai `quick_sort` và `binary_search` dùng chung cho toàn bộ dự án **(~15% công việc)**
+- [x] **Ứng dụng thuật toán vào phân hệ Truyện**: Viết các hàm sắp xếp danh sách và tìm kiếm nhị phân cho Truyện (theo Tên, ID, Giá) **(~10% công việc)**
+- [x] **Tối ưu hóa Pipeline cho Truyện**: Kết chuỗi `Lọc` -> `Sắp xếp` -> `Hiển thị` để dữ liệu luôn chuyên nghiệp **(~5% công việc)**
 
 ---
 
