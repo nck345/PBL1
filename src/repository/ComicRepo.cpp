@@ -155,3 +155,32 @@ bool is_comic_duplicate(const char* name, const char* author) {
     }
     return false;
 }
+
+bool compare_comic_by_id_asc(const Comic& a, const Comic& b) { return a.id < b.id; }
+bool compare_comic_by_id_desc(const Comic& a, const Comic& b) { return a.id > b.id; }
+bool compare_comic_by_name_asc(const Comic& a, const Comic& b) {
+    std::string name_a = a.comic_name;
+    std::string name_b = b.comic_name;
+    std::transform(name_a.begin(), name_a.end(), name_a.begin(), ::tolower);
+    std::transform(name_b.begin(), name_b.end(), name_b.begin(), ::tolower);
+    return name_a < name_b;
+}
+bool compare_comic_by_price_asc(const Comic& a, const Comic& b) { return a.price < b.price; }
+bool compare_comic_by_price_desc(const Comic& a, const Comic& b) { return a.price > b.price; }
+
+int search_cmp_comic_id(const Comic& c, const int& key) {
+    if (c.id == key) return 0;
+    return c.id < key ? -1 : 1;
+}
+int search_cmp_comic_name(const Comic& c, const std::string& key) {
+    std::string c_name = c.comic_name;
+    std::string k_name = key;
+    std::transform(c_name.begin(), c_name.end(), c_name.begin(), ::tolower);
+    std::transform(k_name.begin(), k_name.end(), k_name.begin(), ::tolower);
+    if (c_name == k_name) return 0;
+    return c_name < k_name ? -1 : 1;
+}
+int search_cmp_comic_price(const Comic& c, const double& key) {
+    if (c.price == key) return 0;
+    return c.price < key ? -1 : 1;
+}

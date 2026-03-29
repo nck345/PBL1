@@ -31,4 +31,16 @@ bool get_comic_by_id(int id, Comic& out_comic);
 // Check if a comic name and author combination already exists
 bool is_comic_duplicate(const char* name, const char* author);
 
+// Comparators for Sort
+bool compare_comic_by_id_asc(const Comic& a, const Comic& b);
+bool compare_comic_by_id_desc(const Comic& a, const Comic& b);
+bool compare_comic_by_name_asc(const Comic& a, const Comic& b);
+bool compare_comic_by_price_asc(const Comic& a, const Comic& b);
+bool compare_comic_by_price_desc(const Comic& a, const Comic& b);
+
+// Comparators for Binary Search
+int search_cmp_comic_id(const Comic& c, const int& key);
+int search_cmp_comic_name(const Comic& c, const std::string& key);
+int search_cmp_comic_price(const Comic& c, const double& key);
+
 #endif
