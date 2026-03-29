@@ -312,6 +312,7 @@ void render_rental_menu() {
     });
 
     while (true) {
+        system("cls");
         screen.Loop(renderer);
 
         if (selected == 0) {

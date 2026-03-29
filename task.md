@@ -46,6 +46,10 @@
 - [x] **Xây dựng bộ thuật toán tổng quát (`utils/SortUtils.cpp`, `utils/SearchUtils.cpp`)**: Triển khai `quick_sort` và `binary_search` dùng chung cho toàn bộ dự án **(~15% công việc)**
 - [x] **Ứng dụng thuật toán vào phân hệ Truyện**: Viết các hàm sắp xếp danh sách và tìm kiếm nhị phân cho Truyện (theo Tên, ID, Giá) **(~10% công việc)**
 - [x] **Tối ưu hóa Pipeline cho Truyện**: Kết chuỗi `Lọc` -> `Sắp xếp` -> `Hiển thị` để dữ liệu luôn chuyên nghiệp **(~5% công việc)**
+### 7. Cải tiến trải nghiệm nhập liệu (UX Refactor)
+- [x] Refactor `CustomerUI.cpp` để sử dụng `ftxui::Input` và `ftxui::Button` cho Form Thêm/Sửa.
+- [x] Refactor `ComicUI.cpp` để sử dụng `ftxui::Input` và `ftxui::Button` cho Form Quản lý Truyện.
+- [ ] Refactor UI cơ chế Filter + Sort ở phần quản lý truyện: Chuyển từ Menu dạng cuộn sang sử dụng các Component (Ví dụ: Radiobox, Dropdown) để cấu trúc thiết lập lọc/sắp xếp trực quan hơn.
 
 ---
 
@@ -87,3 +91,14 @@
 - [ ] **Xây dựng các tiêu chí so sánh (Comparator)**: Khai báo logic so sánh riêng cho `RentalSlip` (theo ngày, tiền phạt...) để truyền vào thuật toán của Khiêm **(~10% công việc)**
 - [ ] **Xây dựng nâng cao cho Quản lý Phiếu**: Gọi hàm `quick_sort()` của Khiêm để xử lý hiển thị danh sách phiếu quá hạn theo ưu tiên đòi sách **(~10% công việc)**
 - [ ] **Xây dựng nâng cao cho Thống kê**: Tích hợp thuật toán sắp xếp của Khiêm vào báo cáo doanh thu để liệt kê từ cao xuống thấp **(~5% công việc)**
+
+### 6. Cải tiến trải nghiệm nhập liệu (UX Refactor)
+- [ ] **Refactor màn hình Cho Thuê Truyện (`RentalUI.cpp`)**: 
+  - Thay thế nhập liệu `cin` bằng Form có các Component `ftxui::Input` (`ten_truyen`, `khach_info`, `ngay_muon`, `ngay_tra_du_kien`).
+  - Viết logic trên Nút [Xác nhận & Cho thuê] bằng `std::function`: bắt lỗi rỗng, ép kiểu `std::stoi`/hoặc tự bóc tách chuỗi Ngày Tháng năm an toàn (dùng `parse_date_string` và validate chặn lỗi).
+  - So sánh logic: báo lỗi đỏ text realtime nếu `ngày trả dự kiến < ngày mượn` trước khi lưu vào luồng xử lý sâu hơn.
+- [ ] **Refactor màn hình Trả Truyện & Thanh toán (`RentalUI.cpp`)**:
+  - Dùng Form `Container::Vertical` tạo 3 thanh Input: `phieu_id`, `ngay_tra_thuc_te`, `trang_thai_chuyen_doi`.
+  - Bắt lỗi nếu nhập Text vào ID thay vì số, thông báo lỗi đỏ tránh gián đoạn/sập chương trình. 
+  - Thêm Nút [Xác nhận & Thanh toán] gọi tới `process_return_comic`.
+

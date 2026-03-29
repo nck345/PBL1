@@ -54,6 +54,7 @@ int main() {
   });
 
   while (true) {
+    system("cls");
     // Run the FTXUI loop
     screen.Loop(renderer);
 

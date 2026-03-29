@@ -160,6 +160,7 @@ void render_comic_menu() {
   });
 
   while (true) {
+    system("cls");
     screen.Loop(renderer);
 
     if (selected == 0) {
@@ -207,121 +208,210 @@ void render_comic_menu() {
       }
     } else if (selected == 1) {
       system("cls");
-      std::cout << "\n--- THEM TRUYEN MOI ---\n";
-      Comic new_comic;
+      auto form_screen = ScreenInteractive::TerminalOutput();
+      
+      std::string name_str = "";
+      std::string author_str = "";
+      std::string price_str = "";
+      std::string quantity_str = "";
+      std::string error_msg = "";
+      bool is_saved = false;
 
-      std::string name = get_string_input("Nhap ten truyen: ");
-      if (name == "[ESC]") continue;
-      if (is_empty_string(name)) {
-          std::cout << "Loi: Ten khong duoc de trong!\n";
-          get_string_input("Nhan Enter... \n"); continue;
-      }
+      Component input_name = Input(&name_str, "Nhap ten truyen...");
+      Component input_author = Input(&author_str, "Nhap tac gia...");
+      Component input_price = Input(&price_str, "Nhap gia...");
+      Component input_quantity = Input(&quantity_str, "Nhap so luong...");
 
-      std::string author = get_string_input("Nhap tac gia: ");
-      if (author == "[ESC]") continue;
-      if (is_empty_string(author)) {
-          std::cout << "Loi: Tac gia khong duoc de trong!\n";
-          get_string_input("Nhan Enter... \n"); continue;
-      }
+      auto submit_button = Button("Xac nhan & Luu", [&] {
+        if (is_empty_string(name_str)) {
+            error_msg = "Loi: Ten khong duoc de trong!"; is_saved = false; return;
+        }
+        if (is_empty_string(author_str)) {
+            error_msg = "Loi: Tac gia khong duoc de trong!"; is_saved = false; return;
+        }
+        if (is_comic_duplicate(name_str.c_str(), author_str.c_str())) {
+            error_msg = "Loi: Truyen co ten va tac gia nay da ton tai!"; is_saved = false; return;
+        }
 
-      if (is_comic_duplicate(name.c_str(), author.c_str())) {
-          std::cout << "Loi: Truyện có tên và tác giả này đã tồn tại trong hệ thống!\n";
-          get_string_input("Nhan Enter... \n"); continue;
-      }
+        double price = 0.0;
+        try {
+            size_t pos;
+            price = std::stod(price_str, &pos);
+            if (pos != price_str.length()) throw std::invalid_argument("Invalid");
+        } catch (...) {
+            error_msg = "Loi: Gia phai la mot so thuc hop le!"; is_saved = false; return;
+        }
+        if (is_negative(price)) {
+            error_msg = "Loi: Gia khong duoc nho hon 0!"; is_saved = false; return;
+        }
 
-      double price = get_double_input("Nhap gia: ");
-      if (price == -999999.0) continue;
-      if (is_negative(price)) {
-          std::cout << "Loi: Gia khong duoc nho hon 0!\n";
-          get_string_input("Nhan Enter... \n"); continue;
-      }
+        int quantity = 0;
+        try {
+            size_t pos;
+            quantity = std::stoi(quantity_str, &pos);
+            if (pos != quantity_str.length()) throw std::invalid_argument("Invalid");
+        } catch (...) {
+            error_msg = "Loi: So luong phai la mot so nguyen hop le!"; is_saved = false; return;
+        }
+        if (is_negative(quantity)) {
+            error_msg = "Loi: So luong khong duoc nho hon 0!"; is_saved = false; return;
+        }
 
-      int quantity = get_int_input("Nhap so luong: ");
-      if (quantity == -999999) continue;
-      if (is_negative(quantity)) {
-          std::cout << "Loi: So luong khong duoc nho hon 0!\n";
-          get_string_input("Nhan Enter... \n"); continue;
-      }
+        Comic new_comic;
+        strncpy(new_comic.comic_name, name_str.c_str(), sizeof(new_comic.comic_name) - 1);
+        new_comic.comic_name[sizeof(new_comic.comic_name) - 1] = '\0';
+        strncpy(new_comic.author, author_str.c_str(), sizeof(new_comic.author) - 1);
+        new_comic.author[sizeof(new_comic.author) - 1] = '\0';
+        new_comic.price = price;
+        new_comic.quantity = quantity;
+        new_comic.is_deleted = false;
 
-      strncpy(new_comic.comic_name, name.c_str(),
-              sizeof(new_comic.comic_name) - 1);
-      new_comic.comic_name[sizeof(new_comic.comic_name) - 1] = '\0';
+        add_comic(new_comic);
+        is_saved = true;
+        error_msg = "Them truyen thanh cong! Nhan Huy hoac ESC de thoat.";
+      }, ButtonOption::Animated());
 
-      strncpy(new_comic.author, author.c_str(), sizeof(new_comic.author) - 1);
-      new_comic.author[sizeof(new_comic.author) - 1] = '\0';
+      auto cancel_button = Button("Huy & Tro ve", [&] {
+        form_screen.ExitLoopClosure()();
+      }, ButtonOption::Animated());
 
-      new_comic.price = price;
-      new_comic.quantity = quantity;
-      new_comic.is_deleted = false;
+      auto container = Container::Vertical({
+        input_name, input_author, input_price, input_quantity,
+        Container::Horizontal({submit_button, cancel_button})
+      });
 
-      add_comic(new_comic);
-      std::cout << "Them truyen thanh cong!\n";
-      get_string_input("Nhan Enter de tiep tuc...");
+      auto container_with_event = CatchEvent(container, [&](Event event) {
+        if (event == Event::Escape) { form_screen.ExitLoopClosure()(); return true; }
+        return false;
+      });
+
+      auto renderer = Renderer(container_with_event, [&] {
+        return vbox({
+            text("--- THEM TRUYEN MOI ---") | bold | center,
+            separator(),
+            hbox(text(" Ten truyen:  "), input_name->Render()),
+            hbox(text(" Tac gia:     "), input_author->Render()),
+            hbox(text(" Gia (VND):   "), input_price->Render()),
+            hbox(text(" So luong:    "), input_quantity->Render()),
+            separator(),
+            text(error_msg) | color(is_saved ? Color::Green : Color::Red) | center,
+            separator(),
+            hbox(submit_button->Render(), text("   "), cancel_button->Render()) | center
+        }) | border;
+      });
+
+      form_screen.Loop(renderer);
+
     } else if (selected == 2) {
       system("cls");
       int id = select_comic_ui("CHON TRUYEN DE SUA");
       if (id == -1) continue;
 
       system("cls");
-      std::cout << "\n--- SUA THONG TIN TRUYEN ---\n";
       Comic comic_to_edit;
       if (get_comic_by_id(id, comic_to_edit)) {
-        std::cout << "Dang sua truyen: " << comic_to_edit.comic_name << "\n";
-        std::string name = get_string_input("Nhap ten truyen moi: ");
-        if (name == "[ESC]") continue;
-        if (is_empty_string(name)) {
-            std::cout << "Loi: Ten khong duoc de trong!\n";
-            get_string_input("Nhan Enter... \n"); continue;
-        }
+        auto form_screen = ScreenInteractive::TerminalOutput();
+        
+        std::string name_str = comic_to_edit.comic_name;
+        std::string author_str = comic_to_edit.author;
+        std::string price_str = std::to_string((int)comic_to_edit.price); // Avoid huge precision
+        std::string quantity_str = std::to_string(comic_to_edit.quantity);
+        std::string orig_name = comic_to_edit.comic_name;
+        std::string orig_author = comic_to_edit.author;
+        std::string error_msg = "";
+        bool is_saved = false;
 
-        std::string author = get_string_input("Nhap tac gia moi: ");
-        if (author == "[ESC]") continue;
-        if (is_empty_string(author)) {
-            std::cout << "Loi: Tac gia khong duoc de trong!\n";
-            get_string_input("Nhan Enter... \n"); continue;
-        }
+        Component input_name = Input(&name_str, "Nhap ten truyen...");
+        Component input_author = Input(&author_str, "Nhap tac gia...");
+        Component input_price = Input(&price_str, "Nhap gia...");
+        Component input_quantity = Input(&quantity_str, "Nhap so luong...");
 
-        // Logic check trùng lặp khi edit (nếu thay đổi thành tên 1 truyện khác đã có)
-        if ((name != std::string(comic_to_edit.comic_name) || author != std::string(comic_to_edit.author)) 
-            && is_comic_duplicate(name.c_str(), author.c_str())) {
-            std::cout << "Loi: Truyện có tên và tác giả này đã tồn tại trong hệ thống!\n";
-            get_string_input("Nhan Enter... \n"); continue;
-        }
+        auto submit_button = Button("Cap nhat", [&] {
+          if (is_empty_string(name_str)) {
+              error_msg = "Loi: Ten khong duoc de trong!"; is_saved = false; return;
+          }
+          if (is_empty_string(author_str)) {
+              error_msg = "Loi: Tac gia khong duoc de trong!"; is_saved = false; return;
+          }
+          if ((name_str != orig_name || author_str != orig_author) && is_comic_duplicate(name_str.c_str(), author_str.c_str())) {
+              error_msg = "Loi: Truyen co ten va tac gia nay da ton tai!"; is_saved = false; return;
+          }
 
-        double price = get_double_input("Nhap gia moi: ");
-        if (price == -999999.0) continue;
-        if (is_negative(price)) {
-            std::cout << "Loi: Gia khong duoc nho hon 0!\n";
-            get_string_input("Nhan Enter... \n"); continue;
-        }
+          double price = 0.0;
+          try {
+              size_t pos;
+              price = std::stod(price_str, &pos);
+              if (pos != price_str.length()) throw std::invalid_argument("Invalid");
+          } catch (...) {
+              error_msg = "Loi: Gia phai la mot so thuc hop le!"; is_saved = false; return;
+          }
+          if (is_negative(price)) {
+              error_msg = "Loi: Gia khong duoc nho hon 0!"; is_saved = false; return;
+          }
 
-        int quantity = get_int_input("Nhap so luong moi: ");
-        if (quantity == -999999) continue;
-        if (is_negative(quantity)) {
-            std::cout << "Loi: So luong khong duoc nho hon 0!\n";
-            get_string_input("Nhan Enter... \n"); continue;
-        }
+          int quantity = 0;
+          try {
+              size_t pos;
+              quantity = std::stoi(quantity_str, &pos);
+              if (pos != quantity_str.length()) throw std::invalid_argument("Invalid");
+          } catch (...) {
+              error_msg = "Loi: So luong phai la mot so nguyen hop le!"; is_saved = false; return;
+          }
+          if (is_negative(quantity)) {
+              error_msg = "Loi: So luong khong duoc nho hon 0!"; is_saved = false; return;
+          }
 
-        strncpy(comic_to_edit.comic_name, name.c_str(),
-                sizeof(comic_to_edit.comic_name) - 1);
-        comic_to_edit.comic_name[sizeof(comic_to_edit.comic_name) - 1] = '\0';
+          strncpy(comic_to_edit.comic_name, name_str.c_str(), sizeof(comic_to_edit.comic_name) - 1);
+          comic_to_edit.comic_name[sizeof(comic_to_edit.comic_name) - 1] = '\0';
+          strncpy(comic_to_edit.author, author_str.c_str(), sizeof(comic_to_edit.author) - 1);
+          comic_to_edit.author[sizeof(comic_to_edit.author) - 1] = '\0';
+          comic_to_edit.price = price;
+          comic_to_edit.quantity = quantity;
 
-        strncpy(comic_to_edit.author, author.c_str(),
-                sizeof(comic_to_edit.author) - 1);
-        comic_to_edit.author[sizeof(comic_to_edit.author) - 1] = '\0';
+          if (update_comic(comic_to_edit)) {
+              is_saved = true;
+              error_msg = "Cap nhat thanh cong! Nhan Huy hoac ESC de thoat.";
+          } else {
+              error_msg = "Loi he thong khi cap nhat!"; is_saved = false;
+          }
+        }, ButtonOption::Animated());
 
-        comic_to_edit.price = price;
-        comic_to_edit.quantity = quantity;
+        auto cancel_button = Button("Huy & Tro ve", [&] {
+          form_screen.ExitLoopClosure()();
+        }, ButtonOption::Animated());
 
-        if (update_comic(comic_to_edit)) {
-          std::cout << "Sua truyen thanh cong!\n";
-        } else {
-          std::cout << "Loi khi sua truyen!\n";
-        }
+        auto container = Container::Vertical({
+          input_name, input_author, input_price, input_quantity,
+          Container::Horizontal({submit_button, cancel_button})
+        });
+
+        auto container_with_event = CatchEvent(container, [&](Event event) {
+          if (event == Event::Escape) { form_screen.ExitLoopClosure()(); return true; }
+          return false;
+        });
+
+        auto renderer = Renderer(container_with_event, [&] {
+          return vbox({
+              text("--- SUA THONG TIN TRUYEN ---") | bold | center,
+              separator(),
+              text(" Dang sua: " + orig_name) | center,
+              separator(),
+              hbox(text(" Ten moi:     "), input_name->Render()),
+              hbox(text(" Tac gia:     "), input_author->Render()),
+              hbox(text(" Gia (VND):   "), input_price->Render()),
+              hbox(text(" So luong:    "), input_quantity->Render()),
+              separator(),
+              text(error_msg) | color(is_saved ? Color::Green : Color::Red) | center,
+              separator(),
+              hbox(submit_button->Render(), text("   "), cancel_button->Render()) | center
+          }) | border;
+        });
+
+        form_screen.Loop(renderer);
       } else {
         std::cout << "Khong tim thay truyen thuoc ID nay!\n";
+        get_string_input("Nhan Enter de tiep tuc...");
       }
-      get_string_input("Nhan Enter de tiep tuc...");
     } else if (selected == 3) {
       system("cls");
       int id = select_comic_ui("CHON TRUYEN DE XOA");
