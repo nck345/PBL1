@@ -46,6 +46,7 @@
 - [x] **Xây dựng bộ thuật toán tổng quát (`utils/SortUtils.cpp`, `utils/SearchUtils.cpp`)**: Triển khai `quick_sort` và `binary_search` dùng chung cho toàn bộ dự án **(~15% công việc)**
 - [x] **Ứng dụng thuật toán vào phân hệ Truyện**: Viết các hàm sắp xếp danh sách và tìm kiếm nhị phân cho Truyện (theo Tên, ID, Giá) **(~10% công việc)**
 - [x] **Tối ưu hóa Pipeline cho Truyện**: Kết chuỗi `Lọc` -> `Sắp xếp` -> `Hiển thị` để dữ liệu luôn chuyên nghiệp **(~5% công việc)**
+- [ ] **Mở rộng thuộc tính Truyện**: Thêm trường `type` (thể loại) vào `struct Comic` và cập nhật đồng bộ toàn bộ logic xử lý (Đọc/Ghi file, Tìm kiếm, Sắp xếp) và Giao diện (Form Thêm/Sửa, Bảng hiển thị).
 ### 7. Cải tiến trải nghiệm nhập liệu (UX Refactor)
 - [x] Refactor `CustomerUI.cpp` để sử dụng `ftxui::Input` và `ftxui::Button` cho Form Thêm/Sửa.
 - [x] Refactor `ComicUI.cpp` để sử dụng `ftxui::Input` và `ftxui::Button` cho Form Quản lý Truyện.
