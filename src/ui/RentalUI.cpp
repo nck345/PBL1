@@ -31,7 +31,7 @@ Date parse_date_string(const std::string &date_str) {
 // Trả về Comic được chọn. Nếu không tìm thấy hoặc thoát, id = 0.
 Comic select_comic_menu(const std::string &query) {
   std::vector<Comic> results = search_comics_by_name(query);
-  if (results.empty()) return {0, "", "", 0, 0, false};
+  if (results.empty()) return {0, "", "", "", 0, 0, false};
   if (results.size() == 1) return results[0];
 
   auto screen = ScreenInteractive::TerminalOutput();
@@ -75,7 +75,7 @@ Comic select_comic_menu(const std::string &query) {
 
   if (selected >= 0 && selected < (int)results.size())
     return results[selected];
-  return {0, "", "", 0, 0, false}; // Nguoi dung thoat
+  return {0, "", "", "", 0, 0, false}; // Nguoi dung thoat
 }
 
 // Hàm gợi ý khách hàng dựa trên lịch sử phiếu thuê đã có.
@@ -148,10 +148,17 @@ void render_new_rental_screen() {
   Component input_khach = Input(&khach_info_str, "nhập tên hoặc SĐT...");
   Component input_ngay_muon = Input(&ngay_muon_str, "dd/mm/yyyy");
   Component input_ngay_tra = Input(&ngay_tra_str, "dd/mm/yyyy");
+  bool should_submit = false;
 
-  auto submit_button = Button("Xác nhận & Cho thuê", screen.ExitLoopClosure(),
+  auto submit_button = Button("Xác nhận & Cho thuê", [&] {
+                                should_submit = true;
+                                screen.ExitLoopClosure()();
+                              },
                               ButtonOption::Animated());
-  auto cancel_button = Button("Hủy & Trở về", screen.ExitLoopClosure(),
+  auto cancel_button = Button("Hủy & Trở về", [&] {
+                                should_submit = false;
+                                screen.ExitLoopClosure()();
+                              },
                               ButtonOption::Animated());
 
   auto container = Container::Vertical(
@@ -160,9 +167,28 @@ void render_new_rental_screen() {
 
   auto container_with_esc = CatchEvent(container, [&](Event event) {
       if (event == Event::Escape) {
-          ten_truyen_str = ""; // Xoá data để thoát an toàn không trigger lưu
+          should_submit = false;
           screen.ExitLoopClosure()();
           return true;
+      }
+      if (event == Event::Return) {
+          if (input_truyen->Focused()) {
+              input_khach->TakeFocus();
+              return true;
+          }
+          if (input_khach->Focused()) {
+              input_ngay_muon->TakeFocus();
+              return true;
+          }
+          if (input_ngay_muon->Focused()) {
+              input_ngay_tra->TakeFocus();
+              return true;
+          }
+          if (input_ngay_tra->Focused()) {
+              should_submit = true;
+              screen.ExitLoopClosure()();
+              return true;
+          }
       }
       return false;
   });
@@ -182,7 +208,7 @@ void render_new_rental_screen() {
 
   screen.Loop(renderer);
 
-  if (!ten_truyen_str.empty() && !khach_info_str.empty() &&
+  if (should_submit && !ten_truyen_str.empty() && !khach_info_str.empty() &&
       !ngay_muon_str.empty()) {
     Date d_muon = parse_date_string(ngay_muon_str);
     Date d_tra = parse_date_string(ngay_tra_str);
@@ -215,14 +241,21 @@ void render_return_comic_screen() {
   std::string phieu_id_str;
   std::string ngay_tra_str;
   std::string trang_thai_str; // 1: tra binh thuong, 2: mat hong
+  bool should_submit = false;
 
   Component input_phieu = Input(&phieu_id_str, "nhập số...");
   Component input_ngay = Input(&ngay_tra_str, "dd/mm/yyyy");
   Component input_tt = Input(&trang_thai_str, "1: Bình thường, 2: Mất/Hỏng");
 
-  auto submit_button = Button("Xác nhận & Thanh toán", screen.ExitLoopClosure(),
+  auto submit_button = Button("Xác nhận & Thanh toán", [&] {
+                                should_submit = true;
+                                screen.ExitLoopClosure()();
+                              },
                               ButtonOption::Animated());
-  auto cancel_button = Button("Hủy & Trở về", screen.ExitLoopClosure(),
+  auto cancel_button = Button("Hủy & Trở về", [&] {
+                                should_submit = false;
+                                screen.ExitLoopClosure()();
+                              },
                               ButtonOption::Animated());
 
   auto container = Container::Vertical(
@@ -231,9 +264,24 @@ void render_return_comic_screen() {
 
   auto container_with_esc = CatchEvent(container, [&](Event event) {
       if (event == Event::Escape) {
-          phieu_id_str = ""; // Xoá data để thoát an toàn
+          should_submit = false;
           screen.ExitLoopClosure()();
           return true;
+      }
+      if (event == Event::Return) {
+          if (input_phieu->Focused()) {
+              input_ngay->TakeFocus();
+              return true;
+          }
+          if (input_ngay->Focused()) {
+              input_tt->TakeFocus();
+              return true;
+          }
+          if (input_tt->Focused()) {
+              should_submit = true;
+              screen.ExitLoopClosure()();
+              return true;
+          }
       }
       return false;
   });
@@ -251,7 +299,7 @@ void render_return_comic_screen() {
 
   screen.Loop(renderer);
 
-  if (!phieu_id_str.empty() && !ngay_tra_str.empty() &&
+  if (should_submit && !phieu_id_str.empty() && !ngay_tra_str.empty() &&
       !trang_thai_str.empty()) {
     int p_id = 0, tt = 1;
     try {

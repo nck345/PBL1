@@ -356,7 +356,7 @@ void render_comic_menu() {
       Component input_price = Input(&price_str, "Nhap gia...");
       Component input_quantity = Input(&quantity_str, "Nhap so luong...");
 
-      auto submit_button = Button("Xac nhan & Luu", [&] {
+      auto submit_action = [&] {
         if (is_empty_string(name_str)) {
             error_msg = "Loi: Ten khong duoc de trong!"; is_saved = false; return;
         }
@@ -405,7 +405,9 @@ void render_comic_menu() {
         add_comic(new_comic);
         is_saved = true;
         error_msg = "Them truyen thanh cong! Nhan Huy hoac ESC de thoat.";
-      }, ButtonOption::Animated());
+      };
+
+      auto submit_button = Button("Xac nhan & Luu", submit_action, ButtonOption::Animated());
 
       auto cancel_button = Button("Huy & Tro ve", [&] {
         form_screen.ExitLoopClosure()();
@@ -418,6 +420,28 @@ void render_comic_menu() {
 
       auto container_with_event = CatchEvent(container, [&](Event event) {
         if (event == Event::Escape) { form_screen.ExitLoopClosure()(); return true; }
+        if (event == Event::Return) {
+          if (input_name->Focused()) {
+            input_author->TakeFocus();
+            return true;
+          }
+          if (input_author->Focused()) {
+            input_type->TakeFocus();
+            return true;
+          }
+          if (input_type->Focused()) {
+            input_price->TakeFocus();
+            return true;
+          }
+          if (input_price->Focused()) {
+            input_quantity->TakeFocus();
+            return true;
+          }
+          if (input_quantity->Focused()) {
+            submit_action();
+            return true;
+          }
+        }
         return false;
       });
 
@@ -466,7 +490,7 @@ void render_comic_menu() {
         Component input_price = Input(&price_str, "Nhap gia...");
         Component input_quantity = Input(&quantity_str, "Nhap so luong...");
 
-        auto submit_button = Button("Cap nhat", [&] {
+        auto submit_action = [&] {
           if (is_empty_string(name_str)) {
               error_msg = "Loi: Ten khong duoc de trong!"; is_saved = false; return;
           }
@@ -517,7 +541,9 @@ void render_comic_menu() {
           } else {
               error_msg = "Loi he thong khi cap nhat!"; is_saved = false;
           }
-        }, ButtonOption::Animated());
+        };
+
+        auto submit_button = Button("Cap nhat", submit_action, ButtonOption::Animated());
 
         auto cancel_button = Button("Huy & Tro ve", [&] {
           form_screen.ExitLoopClosure()();
@@ -530,6 +556,28 @@ void render_comic_menu() {
 
         auto container_with_event = CatchEvent(container, [&](Event event) {
           if (event == Event::Escape) { form_screen.ExitLoopClosure()(); return true; }
+          if (event == Event::Return) {
+            if (input_name->Focused()) {
+              input_author->TakeFocus();
+              return true;
+            }
+            if (input_author->Focused()) {
+              input_type->TakeFocus();
+              return true;
+            }
+            if (input_type->Focused()) {
+              input_price->TakeFocus();
+              return true;
+            }
+            if (input_price->Focused()) {
+              input_quantity->TakeFocus();
+              return true;
+            }
+            if (input_quantity->Focused()) {
+              submit_action();
+              return true;
+            }
+          }
           return false;
         });
 

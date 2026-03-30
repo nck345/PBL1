@@ -103,7 +103,7 @@ int select_customer_ui(const std::string& title) {
   screen.Loop(renderer);
   system("cls");
 
-  if (selected == entries.size() - 1) {
+  if (static_cast<size_t>(selected) == entries.size() - 1) {
     return -1;
   }
   return found_list[selected].id;
@@ -170,7 +170,7 @@ void render_customer_menu() {
       Component input_name = Input(&name_str, "Nhap ten khach hang...");
       Component input_phone = Input(&phone_str, "Nhap so dien thoai...");
 
-      auto submit_button = Button("Xac nhan & Luu", [&] {
+      auto submit_action = [&] {
         if (is_empty_string(name_str)) {
           error_msg = "Loi: Ten khong duoc de trong!";
           is_saved = false;
@@ -197,7 +197,9 @@ void render_customer_menu() {
         add_customer(new_c);
         is_saved = true;
         error_msg = "Them khach hang thanh cong! Nhan Huy hoac ESC de thoat.";
-      }, ButtonOption::Animated());
+      };
+
+      auto submit_button = Button("Xac nhan & Luu", submit_action, ButtonOption::Animated());
 
       auto cancel_button = Button("Huy & Tro ve", [&] {
         form_screen.ExitLoopClosure()();
@@ -213,6 +215,16 @@ void render_customer_menu() {
         if (event == Event::Escape) {
           form_screen.ExitLoopClosure()();
           return true;
+        }
+        if (event == Event::Return) {
+          if (input_name->Focused()) {
+            input_phone->TakeFocus();
+            return true;
+          }
+          if (input_phone->Focused()) {
+            submit_action();
+            return true;
+          }
         }
         return false;
       });
@@ -251,7 +263,7 @@ void render_customer_menu() {
         Component input_name = Input(&name_str, "Nhap ten moi...");
         Component input_phone = Input(&phone_str, "Nhap so dien thoai moi...");
 
-        auto submit_button = Button("Cap nhat", [&] {
+        auto submit_action = [&] {
           if (is_empty_string(name_str)) {
             error_msg = "Loi: Ten khong duoc de trong!";
             is_saved = false;
@@ -280,7 +292,9 @@ void render_customer_menu() {
             error_msg = "Loi he thong khi cap nhat!";
             is_saved = false;
           }
-        }, ButtonOption::Animated());
+        };
+
+        auto submit_button = Button("Cap nhat", submit_action, ButtonOption::Animated());
 
         auto cancel_button = Button("Huy & Tro ve", [&] {
           form_screen.ExitLoopClosure()();
@@ -296,6 +310,16 @@ void render_customer_menu() {
           if (event == Event::Escape) {
             form_screen.ExitLoopClosure()();
             return true;
+          }
+          if (event == Event::Return) {
+            if (input_name->Focused()) {
+              input_phone->TakeFocus();
+              return true;
+            }
+            if (input_phone->Focused()) {
+              submit_action();
+              return true;
+            }
           }
           return false;
         });
