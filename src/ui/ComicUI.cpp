@@ -71,6 +71,67 @@ std::vector<std::string> get_unique_comic_types(const std::vector<Comic>& comics
   return unique_types;
 }
 
+std::vector<std::string> get_predefined_comic_types() {
+  return {
+      "Action",       "Adventure",   "Comedy",      "Drama",
+      "Fantasy",      "Horror",      "Mystery",     "Romance",
+      "Sci-Fi",       "Slice of Life", "Sports",    "Supernatural",
+      "Historical",   "School Life", "Shounen",     "Seinen",
+      "Shoujo",       "Josei",
+  };
+}
+
+std::vector<std::string> build_type_options(const std::vector<Comic>& active_comics) {
+  std::vector<std::string> options = get_predefined_comic_types();
+  std::vector<std::string> dynamic_types = get_unique_comic_types(active_comics);
+
+  for (const auto& type_value : dynamic_types) {
+    bool existed = false;
+    std::string lowered = to_lower_text(type_value);
+    for (const auto& option : options) {
+      if (to_lower_text(option) == lowered) {
+        existed = true;
+        break;
+      }
+    }
+    if (!existed) {
+      options.push_back(type_value);
+    }
+  }
+
+  std::sort(options.begin(), options.end(), [](const std::string& a, const std::string& b) {
+    return to_lower_text(a) < to_lower_text(b);
+  });
+  return options;
+}
+
+void refresh_type_suggestions(const std::vector<std::string>& type_options,
+                              const std::string& query,
+                              std::vector<std::string>& filtered_options,
+                              int& selected_index) {
+  filtered_options.clear();
+  std::string keyword = to_lower_text(trim(query));
+
+  for (const auto& type_value : type_options) {
+    std::string lowered = to_lower_text(type_value);
+    if (keyword.empty() || lowered.find(keyword) != std::string::npos) {
+      filtered_options.push_back(type_value);
+    }
+  }
+
+  if (filtered_options.empty()) {
+    filtered_options.push_back("[Khong tim thay the loai]");
+  }
+
+  if (selected_index < 0 || selected_index >= static_cast<int>(filtered_options.size())) {
+    selected_index = 0;
+  }
+}
+
+bool is_valid_type_suggestion(const std::string& value) {
+  return value != "[Khong tim thay the loai]";
+}
+
 int select_comic_ui(const std::string& title) {
   std::vector<Comic> active_comics = get_active_comics();
 
@@ -345,14 +406,27 @@ void render_comic_menu() {
       std::string name_str = "";
       std::string author_str = "";
       std::string type_str = "";
+      std::string type_query_str = "";
       std::string price_str = "";
       std::string quantity_str = "";
       std::string error_msg = "";
       bool is_saved = false;
 
+      std::vector<std::string> type_options = build_type_options(get_active_comics());
+      std::vector<std::string> filtered_type_options;
+      int selected_type_option = 0;
+      refresh_type_suggestions(type_options, type_query_str, filtered_type_options, selected_type_option);
+
       Component input_name = Input(&name_str, "Nhap ten truyen...");
       Component input_author = Input(&author_str, "Nhap tac gia...");
-      Component input_type = Input(&type_str, "Nhap the loai...");
+      Component input_type_query = Input(&type_query_str, "Go de tim the loai...");
+      Component type_menu_raw = Menu(&filtered_type_options, &selected_type_option);
+      Component type_menu = CatchEvent(type_menu_raw, [&](Event event) {
+        if (event.is_mouse() && event.mouse().motion == Mouse::Moved) {
+          return true;
+        }
+        return false;
+      });
       Component input_price = Input(&price_str, "Nhap gia...");
       Component input_quantity = Input(&quantity_str, "Nhap so luong...");
 
@@ -362,6 +436,13 @@ void render_comic_menu() {
         }
         if (is_empty_string(author_str)) {
             error_msg = "Loi: Tac gia khong duoc de trong!"; is_saved = false; return;
+        }
+        if (is_empty_string(type_str) && !filtered_type_options.empty() &&
+            is_valid_type_suggestion(filtered_type_options[selected_type_option])) {
+            type_str = filtered_type_options[selected_type_option];
+        }
+        if (is_empty_string(type_str) && !is_empty_string(type_query_str)) {
+            type_str = trim(type_query_str);
         }
         if (is_empty_string(type_str)) {
             error_msg = "Loi: The loai khong duoc de trong!"; is_saved = false; return;
@@ -414,7 +495,7 @@ void render_comic_menu() {
       }, ButtonOption::Animated());
 
       auto container = Container::Vertical({
-        input_name, input_author, input_type, input_price, input_quantity,
+        input_name, input_author, input_type_query, type_menu, input_price, input_quantity,
         Container::Horizontal({submit_button, cancel_button})
       });
 
@@ -426,11 +507,23 @@ void render_comic_menu() {
             return true;
           }
           if (input_author->Focused()) {
-            input_type->TakeFocus();
+            input_type_query->TakeFocus();
             return true;
           }
-          if (input_type->Focused()) {
-            input_price->TakeFocus();
+          if (input_type_query->Focused()) {
+            type_menu->TakeFocus();
+            return true;
+          }
+          if (type_menu->Focused()) {
+            if (!filtered_type_options.empty() &&
+                is_valid_type_suggestion(filtered_type_options[selected_type_option])) {
+              type_str = filtered_type_options[selected_type_option];
+              error_msg = "Da chon the loai: " + type_str;
+              input_price->TakeFocus();
+            } else {
+              error_msg = "Khong co the loai phu hop, vui long doi tu khoa tim kiem.";
+            }
+            is_saved = false;
             return true;
           }
           if (input_price->Focused()) {
@@ -446,12 +539,16 @@ void render_comic_menu() {
       });
 
       auto renderer = Renderer(container_with_event, [&] {
+        refresh_type_suggestions(type_options, type_query_str, filtered_type_options, selected_type_option);
         return vbox({
             text("--- THEM TRUYEN MOI ---") | bold | center,
             separator(),
             hbox(text(" Ten truyen:  "), input_name->Render()),
             hbox(text(" Tac gia:     "), input_author->Render()),
-            hbox(text(" The loai:    "), input_type->Render()),
+            hbox(text(" Tim the loai:"), input_type_query->Render()),
+            text(" Goi y the loai (Enter de chon):"),
+            type_menu->Render() | frame,
+            text(" The loai da chon: " + (is_empty_string(type_str) ? std::string("[chua chon]") : type_str)),
             hbox(text(" Gia (VND):   "), input_price->Render()),
             hbox(text(" So luong:    "), input_quantity->Render()),
             separator(),
@@ -476,6 +573,7 @@ void render_comic_menu() {
         std::string name_str = comic_to_edit.comic_name;
         std::string author_str = comic_to_edit.author;
         std::string type_str = comic_to_edit.type;
+        std::string type_query_str = comic_to_edit.type;
         std::string price_str = std::to_string((int)comic_to_edit.price); // Avoid huge precision
         std::string quantity_str = std::to_string(comic_to_edit.quantity);
         std::string orig_name = comic_to_edit.comic_name;
@@ -484,9 +582,27 @@ void render_comic_menu() {
         std::string error_msg = "";
         bool is_saved = false;
 
+        std::vector<std::string> type_options = build_type_options(get_active_comics());
+        std::vector<std::string> filtered_type_options;
+        int selected_type_option = 0;
+        refresh_type_suggestions(type_options, type_query_str, filtered_type_options, selected_type_option);
+        for (int i = 0; i < static_cast<int>(filtered_type_options.size()); ++i) {
+          if (to_lower_text(filtered_type_options[i]) == to_lower_text(type_str)) {
+            selected_type_option = i;
+            break;
+          }
+        }
+
         Component input_name = Input(&name_str, "Nhap ten truyen...");
         Component input_author = Input(&author_str, "Nhap tac gia...");
-        Component input_type = Input(&type_str, "Nhap the loai...");
+        Component input_type_query = Input(&type_query_str, "Go de tim the loai...");
+        Component type_menu_raw = Menu(&filtered_type_options, &selected_type_option);
+        Component type_menu = CatchEvent(type_menu_raw, [&](Event event) {
+          if (event.is_mouse() && event.mouse().motion == Mouse::Moved) {
+            return true;
+          }
+          return false;
+        });
         Component input_price = Input(&price_str, "Nhap gia...");
         Component input_quantity = Input(&quantity_str, "Nhap so luong...");
 
@@ -496,6 +612,13 @@ void render_comic_menu() {
           }
           if (is_empty_string(author_str)) {
               error_msg = "Loi: Tac gia khong duoc de trong!"; is_saved = false; return;
+          }
+          if (is_empty_string(type_str) && !filtered_type_options.empty() &&
+              is_valid_type_suggestion(filtered_type_options[selected_type_option])) {
+              type_str = filtered_type_options[selected_type_option];
+          }
+          if (is_empty_string(type_str) && !is_empty_string(type_query_str)) {
+              type_str = trim(type_query_str);
           }
           if (is_empty_string(type_str)) {
               error_msg = "Loi: The loai khong duoc de trong!"; is_saved = false; return;
@@ -550,7 +673,7 @@ void render_comic_menu() {
         }, ButtonOption::Animated());
 
         auto container = Container::Vertical({
-          input_name, input_author, input_type, input_price, input_quantity,
+          input_name, input_author, input_type_query, type_menu, input_price, input_quantity,
           Container::Horizontal({submit_button, cancel_button})
         });
 
@@ -562,11 +685,23 @@ void render_comic_menu() {
               return true;
             }
             if (input_author->Focused()) {
-              input_type->TakeFocus();
+              input_type_query->TakeFocus();
               return true;
             }
-            if (input_type->Focused()) {
-              input_price->TakeFocus();
+            if (input_type_query->Focused()) {
+              type_menu->TakeFocus();
+              return true;
+            }
+            if (type_menu->Focused()) {
+              if (!filtered_type_options.empty() &&
+                  is_valid_type_suggestion(filtered_type_options[selected_type_option])) {
+                type_str = filtered_type_options[selected_type_option];
+                error_msg = "Da chon the loai: " + type_str;
+                input_price->TakeFocus();
+              } else {
+                error_msg = "Khong co the loai phu hop, vui long doi tu khoa tim kiem.";
+              }
+              is_saved = false;
               return true;
             }
             if (input_price->Focused()) {
@@ -582,6 +717,7 @@ void render_comic_menu() {
         });
 
         auto renderer = Renderer(container_with_event, [&] {
+          refresh_type_suggestions(type_options, type_query_str, filtered_type_options, selected_type_option);
           return vbox({
               text("--- SUA THONG TIN TRUYEN ---") | bold | center,
               separator(),
@@ -589,7 +725,10 @@ void render_comic_menu() {
               separator(),
               hbox(text(" Ten moi:     "), input_name->Render()),
               hbox(text(" Tac gia:     "), input_author->Render()),
-              hbox(text(" The loai:    "), input_type->Render()),
+              hbox(text(" Tim the loai:"), input_type_query->Render()),
+              text(" Goi y the loai (Enter de chon):"),
+              type_menu->Render() | frame,
+              text(" The loai da chon: " + (is_empty_string(type_str) ? std::string("[chua chon]") : type_str)),
               hbox(text(" Gia (VND):   "), input_price->Render()),
               hbox(text(" So luong:    "), input_quantity->Render()),
               separator(),
