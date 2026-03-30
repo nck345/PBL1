@@ -24,17 +24,19 @@ bool delete_comic(int id);
 
 // Search for comics by name (case-insensitive)
 std::vector<Comic> search_comics_by_name(const std::string& name);
+std::vector<Comic> search_comics_by_type(const std::string& type_keyword);
 
 // Retrieve a specific comic by ID
 bool get_comic_by_id(int id, Comic& out_comic);
 
 // Check if a comic name and author combination already exists
-bool is_comic_duplicate(const char* name, const char* author);
+bool is_comic_duplicate(const char* name, const char* author, const char* type);
 
 // Comparators for Sort
 bool compare_comic_by_id_asc(const Comic& a, const Comic& b);
 bool compare_comic_by_id_desc(const Comic& a, const Comic& b);
 bool compare_comic_by_name_asc(const Comic& a, const Comic& b);
+bool compare_comic_by_type_asc(const Comic& a, const Comic& b);
 bool compare_comic_by_price_asc(const Comic& a, const Comic& b);
 bool compare_comic_by_price_desc(const Comic& a, const Comic& b);
 

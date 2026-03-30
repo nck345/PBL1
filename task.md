@@ -26,7 +26,7 @@
 - [x] Viết hàm **Tìm kiếm Truyện** **(~5% công việc)**
 - [x] Khởi tạo `repository/CustomerRepo.cpp` và hàm lấy ID khách tự tăng **(~3% công việc)**
 - [x] Viết các hàm **Lưu/Đọc/Sửa/Xóa (Soft Delete)** dữ liệu khách hàng **(~7% công việc)**
-- [x] Viết hàm `is_comic_duplicate(...)` kiểm tra bộ đôi **Tên + Tác giả** **(~3% công việc)**
+- [x] Viết hàm `is_comic_duplicate(...)` kiểm tra bộ ba **Tên + Tác giả + Thể loại** **(~3% công việc)**
 - [x] Viết hàm `is_customer_duplicate(...)` kiểm tra trùng **Số điện thoại** **(~2% công việc)**
 
 ### 4. Giao diện (UI)
@@ -46,11 +46,11 @@
 - [x] **Xây dựng bộ thuật toán tổng quát (`utils/SortUtils.cpp`, `utils/SearchUtils.cpp`)**: Triển khai `quick_sort` và `binary_search` dùng chung cho toàn bộ dự án **(~15% công việc)**
 - [x] **Ứng dụng thuật toán vào phân hệ Truyện**: Viết các hàm sắp xếp danh sách và tìm kiếm nhị phân cho Truyện (theo Tên, ID, Giá) **(~10% công việc)**
 - [x] **Tối ưu hóa Pipeline cho Truyện**: Kết chuỗi `Lọc` -> `Sắp xếp` -> `Hiển thị` để dữ liệu luôn chuyên nghiệp **(~5% công việc)**
-- [ ] **Mở rộng thuộc tính Truyện**: Thêm trường `type` (thể loại) vào `struct Comic` và cập nhật đồng bộ toàn bộ logic xử lý (Đọc/Ghi file, Tìm kiếm, Sắp xếp) và Giao diện (Form Thêm/Sửa, Bảng hiển thị).
+- [x] **Mở rộng thuộc tính Truyện**: Thêm trường `type` (thể loại) vào `struct Comic` và cập nhật đồng bộ toàn bộ logic xử lý (Đọc/Ghi file, Tìm kiếm, Sắp xếp) và Giao diện (Form Thêm/Sửa, Bảng hiển thị).
 ### 7. Cải tiến trải nghiệm nhập liệu (UX Refactor)
 - [x] Refactor `CustomerUI.cpp` để sử dụng `ftxui::Input` và `ftxui::Button` cho Form Thêm/Sửa.
 - [x] Refactor `ComicUI.cpp` để sử dụng `ftxui::Input` và `ftxui::Button` cho Form Quản lý Truyện.
-- [ ] Refactor UI cơ chế Filter + Sort ở phần quản lý truyện: Chuyển từ Menu dạng cuộn sang sử dụng các Component (Ví dụ: Radiobox, Dropdown) để cấu trúc thiết lập lọc/sắp xếp trực quan hơn.
+- [x] Refactor UI cơ chế Filter + Sort ở phần quản lý truyện: Chuyển từ Menu dạng cuộn sang sử dụng các Component (Ví dụ: Radiobox, Dropdown) để cấu trúc thiết lập lọc/sắp xếp trực quan hơn.
 
 ---
 
