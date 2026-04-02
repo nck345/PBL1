@@ -231,13 +231,38 @@ void render_comic_table(const std::vector<Comic> &comics) {
   std::cout << "\n";
 }
 
+Element build_comic_table_element(const std::vector<Comic>& comics) {
+  if (comics.empty()) {
+    return text("Khong co du lieu truyen.") | center;
+  }
+
+  std::vector<std::vector<std::string>> table_data;
+  table_data.push_back({"ID", "Ten Truyen", "Tac Gia", "The Loai", "Gia", "Ton"});
+
+  for (const auto &comic : comics) {
+    if (!comic.is_deleted) {
+      table_data.push_back({std::to_string(comic.id), comic.comic_name,
+                            comic.author, comic.type, format_currency(comic.price),
+                            std::to_string(comic.quantity)});
+    }
+  }
+
+  auto table = Table(table_data);
+  table.SelectAll().Border(LIGHT);
+  table.SelectRow(0).Decorate(bold);
+  table.SelectRow(0).SeparatorVertical(LIGHT);
+  table.SelectRow(0).Border(DOUBLE);
+
+  return table.Render();
+}
+
 void render_comic_menu() {
   auto screen = ScreenInteractive::TerminalOutput();
 
   std::vector<std::string> entries = {
       "1. Xem danh sach truyen", "2. Them truyen moi",
       "3. Sua thong tin truyen", "4. Xoa truyen",
-      "5. Tim kiem truyen",      "6. Tro ve"};
+      "5. Tro ve"};
   int selected = 0;
 
   MenuOption option;
@@ -283,122 +308,191 @@ void render_comic_menu() {
         continue;
       }
 
-      auto screen_filter = ScreenInteractive::TerminalOutput();
-      std::vector<std::string> type_options = {"Tat ca"};
-      std::vector<std::string> unique_types = get_unique_comic_types(active_comics);
-      type_options.insert(type_options.end(), unique_types.begin(), unique_types.end());
-      int selected_type = 0;
-
-      std::vector<std::string> stock_options = {
-          "Tat ca", "Con hang", "Het hang"};
+      auto form_screen = ScreenInteractive::Fullscreen();
+      
+      std::string search_name = "";
+      std::string search_type = "";
+      
+      std::vector<std::string> stock_options = {"Tat ca", "Con hang", "Het hang"};
       int selected_stock = 0;
 
-      std::vector<std::string> sort_entries = {
-          "Nguon goc",
-          "ID (Tang dan)",
-          "ID (Giam dan)",
-          "Ten (A-Z)",
-          "Gia (Tang dan)",
-          "Gia (Giam dan)",
-          "The loai (A-Z)",
+      std::vector<std::string> sort_options = {"-", "Tang dan", "Giam dan"};
+      std::vector<std::string> sort_options_az = {"-", "A -> Z", "Z -> A"};
+      
+      int sort_id_opt = 0;
+      int sort_name_opt = 0;
+      int sort_price_opt = 0;
+      int sort_type_opt = 0;
+
+      int prev_sort_id = 0;
+      int prev_sort_name = 0;
+      int prev_sort_price = 0;
+      int prev_sort_type = 0;
+      int last_clicked_sort = 0; // 0: None, 1: ID, 2: Name, 3: Price, 4: Type
+
+      auto check_toggle_changes = [&] {
+         if (sort_id_opt != prev_sort_id) { last_clicked_sort = 1; prev_sort_id = sort_id_opt; }
+         if (sort_name_opt != prev_sort_name) { last_clicked_sort = 2; prev_sort_name = sort_name_opt; }
+         if (sort_price_opt != prev_sort_price) { last_clicked_sort = 3; prev_sort_price = sort_price_opt; }
+         if (sort_type_opt != prev_sort_type) { last_clicked_sort = 4; prev_sort_type = sort_type_opt; }
       };
-      int selected_sort = 0;
-      bool should_apply = false;
 
-      Component type_dropdown = Dropdown(&type_options, &selected_type);
+      std::vector<std::string> type_options = build_type_options(active_comics);
+      std::vector<std::string> filtered_type_options;
+      int selected_type_option = 0;
+
+      std::vector<Comic> filtered_comics = active_comics;
+
+      auto apply_filter_sort = [&] {
+        filtered_comics.clear();
+        std::string s_name = to_lower_text(trim(search_name));
+        std::string s_type = "";
+        
+        if (!is_empty_string(search_type)) {
+           s_type = to_lower_text(trim(search_type));
+        } else if (!filtered_type_options.empty() && 
+            is_valid_type_suggestion(filtered_type_options[selected_type_option])) {
+           s_type = to_lower_text(filtered_type_options[selected_type_option]);
+        }
+
+        for (const auto& comic : active_comics) {
+          bool name_ok = s_name.empty() || to_lower_text(comic.comic_name).find(s_name) != std::string::npos;
+          bool type_ok = s_type.empty() || to_lower_text(comic.type).find(s_type) != std::string::npos;
+          bool stock_ok = true;
+          if (selected_stock == 1) stock_ok = comic.quantity > 0;
+          if (selected_stock == 2) stock_ok = comic.quantity <= 0;
+
+          if (name_ok && type_ok && stock_ok) {
+            filtered_comics.push_back(comic);
+          }
+        }
+
+        if (last_clicked_sort == 1) { // ID
+          if (sort_id_opt == 1) quick_sort(filtered_comics, compare_comic_by_id_asc);
+          else if (sort_id_opt == 2) quick_sort(filtered_comics, compare_comic_by_id_desc);
+        } else if (last_clicked_sort == 2) { // Name
+          if (sort_name_opt == 1) quick_sort(filtered_comics, compare_comic_by_name_asc);
+          else if (sort_name_opt == 2) quick_sort(filtered_comics, compare_comic_by_name_desc);
+        } else if (last_clicked_sort == 3) { // Price
+          if (sort_price_opt == 1) quick_sort(filtered_comics, compare_comic_by_price_asc);
+          else if (sort_price_opt == 2) quick_sort(filtered_comics, compare_comic_by_price_desc);
+        } else if (last_clicked_sort == 4) { // Type
+          if (sort_type_opt == 1) quick_sort(filtered_comics, compare_comic_by_type_asc);
+          else if (sort_type_opt == 2) quick_sort(filtered_comics, compare_comic_by_type_desc);
+        }
+      };
+
+      Component input_search_name = Input(&search_name, "Tim theo ten...");
+      Component input_search_type = Input(&search_type, "Go de tim the loai...");
+      
       Component stock_radiobox = Radiobox(&stock_options, &selected_stock);
-      Component sort_radiobox = Radiobox(&sort_entries, &selected_sort);
-      Component apply_button = Button("Ap dung", [&] {
-        should_apply = true;
-        screen_filter.ExitLoopClosure()();
-      }, ButtonOption::Animated());
-      Component back_button = Button("Tro ve", [&] {
-        should_apply = false;
-        screen_filter.ExitLoopClosure()();
-      }, ButtonOption::Animated());
-
-      auto controls = Container::Vertical({
-          type_dropdown,
-          stock_radiobox,
-          sort_radiobox,
-          Container::Horizontal({apply_button, back_button}),
-      });
-
-      auto controls_with_event = CatchEvent(controls, [&](Event event) {
-        if (event == Event::Escape) {
-          should_apply = false;
-          screen_filter.ExitLoopClosure()();
-          return true;
+      
+      auto type_menu_raw = Menu(&filtered_type_options, &selected_type_option);
+      auto type_menu = CatchEvent(type_menu_raw, [&](Event event) {
+        if (event.is_mouse() && event.mouse().motion == Mouse::Moved) return true;
+        if (event == Event::Return) {
+           if (!filtered_type_options.empty() && is_valid_type_suggestion(filtered_type_options[selected_type_option])) {
+               search_type = filtered_type_options[selected_type_option];
+           }
+           stock_radiobox->TakeFocus();
+           return true; 
         }
         return false;
       });
 
-      auto filter_renderer = Renderer(controls_with_event, [&] {
-        return vbox({
-                   text("--- LOC & SAP XEP DANH SACH TRUYEN ---") | bold | center,
-                   separator(),
-                   text("The loai:") | bold,
-                   type_dropdown->Render(),
-                   separator(),
-                   text("Trang thai ton kho:") | bold,
-                   stock_radiobox->Render(),
-                   separator(),
-                   text("Tieu chi sap xep:") | bold,
-                   sort_radiobox->Render(),
-                   separator(),
-                   hbox({apply_button->Render(), text("   "), back_button->Render()}) | center,
-               }) |
-               border;
+      auto toggle_id_comp = Toggle(&sort_options, &sort_id_opt);
+      auto toggle_name_comp = Toggle(&sort_options_az, &sort_name_opt);
+      auto toggle_price_comp = Toggle(&sort_options, &sort_price_opt);
+      auto toggle_type_comp = Toggle(&sort_options_az, &sort_type_opt);
+
+      Component exit_button = Button("Tro Ve", [&] { form_screen.ExitLoopClosure()(); }, ButtonOption::Animated());
+
+      auto controls = Container::Vertical({
+          input_search_name,
+          input_search_type,
+          type_menu,
+          stock_radiobox,
+          toggle_id_comp,
+          toggle_name_comp,
+          toggle_price_comp,
+          toggle_type_comp,
+          exit_button
       });
 
-      screen_filter.Loop(filter_renderer);
-
-      if (!should_apply) {
-        continue;
-      }
-
-      std::vector<Comic> filtered_comics;
-      std::string selected_type_value =
-          selected_type > 0 ? type_options[selected_type] : "Tat ca";
-      std::string selected_type_value_lower = to_lower_text(selected_type_value);
-
-      for (const auto& comic : active_comics) {
-        bool type_ok = true;
-        bool stock_ok = true;
-
-        if (selected_type > 0) {
-          type_ok = to_lower_text(comic.type) == selected_type_value_lower;
+      auto controls_with_event = CatchEvent(controls, [&](Event event) {
+        if (event == Event::Escape) {
+          form_screen.ExitLoopClosure()();
+          return true;
         }
-
-        if (selected_stock == 1) {
-          stock_ok = comic.quantity > 0;
-        } else if (selected_stock == 2) {
-          stock_ok = comic.quantity <= 0;
+        if (event == Event::Return) {
+          if (input_search_name->Focused()) {
+            input_search_type->TakeFocus();
+            return true;
+          }
+          if (input_search_type->Focused()) {
+            type_menu->TakeFocus();
+            return true;
+          }
+          if (stock_radiobox->Focused()) {
+            toggle_id_comp->TakeFocus();
+            return true;
+          }
+          if (toggle_id_comp->Focused()) {
+            toggle_name_comp->TakeFocus();
+            return true;
+          }
+          if (toggle_name_comp->Focused()) {
+            toggle_price_comp->TakeFocus();
+            return true;
+          }
+          if (toggle_price_comp->Focused()) {
+            toggle_type_comp->TakeFocus();
+            return true;
+          }
+          if (toggle_type_comp->Focused()) {
+            exit_button->TakeFocus();
+            return true;
+          }
         }
+        return false;
+      });
 
-        if (type_ok && stock_ok) {
-          filtered_comics.push_back(comic);
-        }
-      }
+      auto renderer = Renderer(controls_with_event, [&] {
+        refresh_type_suggestions(type_options, search_type, filtered_type_options, selected_type_option);
+        check_toggle_changes();
+        apply_filter_sort();
 
-      if (selected_sort == 1) {
-        quick_sort(filtered_comics, compare_comic_by_id_asc);
-      } else if (selected_sort == 2) {
-        quick_sort(filtered_comics, compare_comic_by_id_desc);
-      } else if (selected_sort == 3) {
-        quick_sort(filtered_comics, compare_comic_by_name_asc);
-      } else if (selected_sort == 4) {
-        quick_sort(filtered_comics, compare_comic_by_price_asc);
-      } else if (selected_sort == 5) {
-        quick_sort(filtered_comics, compare_comic_by_price_desc);
-      } else if (selected_sort == 6) {
-        quick_sort(filtered_comics, compare_comic_by_type_asc);
-      }
+        auto filter_panel = vbox({
+            text("--- BỘ LỌC TÌM KIẾM ---") | bold,
+            separator(),
+            hbox(text(" Tên truyện: "), input_search_name->Render()),
+            hbox(text(" Thể loại: "), input_search_type->Render()),
+            text(" Gợi ý (Enter de chon):"), type_menu->Render() | size(HEIGHT, EQUAL, 5) | frame | border, 
+            separator(),
+            text(" Tồn kho:") | bold,
+            stock_radiobox->Render(),
+            separator(),
+            text("--- SẮP XẾP ---") | bold,
+            hbox(text(" ID:       "), toggle_id_comp->Render()),
+            hbox(text(" Tên:      "), toggle_name_comp->Render()),
+            hbox(text(" Giá:      "), toggle_price_comp->Render()),
+            hbox(text(" Thể loại: "), toggle_type_comp->Render()),
+            separator(),
+            exit_button->Render() | center,
+        }) | border | size(WIDTH, GREATER_THAN, 45);
 
-      system("cls");
-      std::cout << "\n--- DANH SACH TRUYEN ---\n";
-      render_comic_table(filtered_comics);
-      get_string_input("Nhan Enter de tiep tuc...");
+        auto table_panel = window(
+            text(" DANH SÁCH TRUYỆN (" + std::to_string(filtered_comics.size()) + ")") | bold | center,
+            build_comic_table_element(filtered_comics) | vscroll_indicator | frame
+        ) | flex;
+
+        return hbox({
+            filter_panel,
+            table_panel
+        });
+      });
+
+      form_screen.Loop(renderer);
     } else if (selected == 1) {
       system("cls");
       auto form_screen = ScreenInteractive::TerminalOutput();
@@ -763,79 +857,6 @@ void render_comic_menu() {
       }
       get_string_input("Nhan Enter de tiep tuc...");
     } else if (selected == 4) {
-      system("cls");
-      std::vector<std::string> search_entries = {
-          "1. Tim theo Ten (Tuyet doi, Binary Search)",
-          "2. Tim theo Tieu de - Tu khoa (Tuong doi, Linear Search)",
-          "3. Tim theo ID (Tuyet doi, Binary Search)",
-          "4. Tim theo The loai - Tu khoa (Linear Search)",
-          "5. Tro ve"
-      };
-      int search_selected = 0;
-      MenuOption search_option;
-      auto screen_search = ScreenInteractive::TerminalOutput();
-      search_option.on_enter = screen_search.ExitLoopClosure();
-      auto search_menu = Menu(&search_entries, &search_selected, search_option);
-      auto search_menu_with_event = CatchEvent(search_menu, [&](Event event) {
-          if (event == Event::Escape) { search_selected = 4; screen_search.ExitLoopClosure()(); return true; }
-          if (event.is_character() && event.character()[0] >= '1' && event.character()[0] <= '5') {
-              search_selected = event.character()[0] - '1'; screen_search.ExitLoopClosure()(); return true;
-          }
-          return false;
-      });
-      auto search_renderer = Renderer(search_menu_with_event, [&] {
-        return window(text(" CHON KIEU TIM KIEM TRUYEN "), search_menu_with_event->Render() | vscroll_indicator | frame) | bold;
-      });
-      screen_search.Loop(search_renderer);
-
-      if (search_selected != 4) {
-          system("cls");
-          std::cout << "\n--- TIM KIEM TRUYEN ---\n";
-          
-          if (search_selected == 1) { // Tu khoa
-              std::string kw = get_string_input("Nhap tu khoa can tim: ");
-              if (kw != "[ESC]") {
-                  std::vector<Comic> res = search_comics_by_name(kw);
-                  render_comic_table(res);
-              }
-          } else if (search_selected == 3) {
-              std::string kw = get_string_input("Nhap the loai can tim: ");
-              if (kw != "[ESC]") {
-                  std::vector<Comic> res = search_comics_by_type(kw);
-                  render_comic_table(res);
-              }
-          } else {
-              std::vector<Comic> active_comics = get_active_comics();
-
-              if (search_selected == 0) { // Exact Name
-                  std::string kw = get_string_input("Nhap chinh xac ten truyen: ");
-                  if (kw != "[ESC]") {
-                      quick_sort(active_comics, compare_comic_by_name_asc);
-                      int idx = binary_search_idx<Comic, std::string>(active_comics, kw, search_cmp_comic_name);
-                      if (idx != -1) {
-                          std::vector<Comic> res = { active_comics[idx] };
-                          render_comic_table(res);
-                      } else {
-                          std::cout << "Khong tim thay truyen thuoc ten nay (Binary Search).\n";
-                      }
-                  }
-              } else if (search_selected == 2) { // ID
-                  int id_kw = get_int_input("Nhap ID can tim: ");
-                  if (id_kw != -999999) {
-                      quick_sort(active_comics, compare_comic_by_id_asc);
-                      int idx = binary_search_idx<Comic, int>(active_comics, id_kw, search_cmp_comic_id);
-                      if (idx != -1) {
-                          std::vector<Comic> res = { active_comics[idx] };
-                          render_comic_table(res);
-                      } else {
-                          std::cout << "Khong tim thay truyen thuoc ID nay (Binary Search).\n";
-                      }
-                  }
-              }
-          }
-          get_string_input("Nhan Enter de tiep tuc...");
-      }
-    } else if (selected == 5) {
       system("cls");
       break;
     }

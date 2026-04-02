@@ -36,7 +36,9 @@ bool is_comic_duplicate(const char* name, const char* author, const char* type);
 bool compare_comic_by_id_asc(const Comic& a, const Comic& b);
 bool compare_comic_by_id_desc(const Comic& a, const Comic& b);
 bool compare_comic_by_name_asc(const Comic& a, const Comic& b);
+bool compare_comic_by_name_desc(const Comic& a, const Comic& b);
 bool compare_comic_by_type_asc(const Comic& a, const Comic& b);
+bool compare_comic_by_type_desc(const Comic& a, const Comic& b);
 bool compare_comic_by_price_asc(const Comic& a, const Comic& b);
 bool compare_comic_by_price_desc(const Comic& a, const Comic& b);
 

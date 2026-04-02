@@ -185,10 +185,20 @@ bool compare_comic_by_name_asc(const Comic& a, const Comic& b) {
     std::string name_b = to_lower_copy(b.comic_name);
     return name_a < name_b;
 }
+bool compare_comic_by_name_desc(const Comic& a, const Comic& b) {
+    std::string name_a = to_lower_copy(a.comic_name);
+    std::string name_b = to_lower_copy(b.comic_name);
+    return name_a > name_b;
+}
 bool compare_comic_by_type_asc(const Comic& a, const Comic& b) {
     std::string type_a = to_lower_copy(a.type);
     std::string type_b = to_lower_copy(b.type);
     return type_a < type_b;
+}
+bool compare_comic_by_type_desc(const Comic& a, const Comic& b) {
+    std::string type_a = to_lower_copy(a.type);
+    std::string type_b = to_lower_copy(b.type);
+    return type_a > type_b;
 }
 bool compare_comic_by_price_asc(const Comic& a, const Comic& b) { return a.price < b.price; }
 bool compare_comic_by_price_desc(const Comic& a, const Comic& b) { return a.price > b.price; }
