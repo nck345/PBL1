@@ -532,6 +532,9 @@ void render_comic_menu() {
           }
           if (input_quantity->Focused()) {
             submit_action();
+            if (is_saved) {
+              form_screen.ExitLoopClosure()();
+            }
             return true;
           }
         }
@@ -710,6 +713,9 @@ void render_comic_menu() {
             }
             if (input_quantity->Focused()) {
               submit_action();
+              if (is_saved) {
+                form_screen.ExitLoopClosure()();
+              }
               return true;
             }
           }

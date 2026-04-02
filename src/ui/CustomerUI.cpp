@@ -223,6 +223,9 @@ void render_customer_menu() {
           }
           if (input_phone->Focused()) {
             submit_action();
+            if (is_saved) {
+              form_screen.ExitLoopClosure()();
+            }
             return true;
           }
         }
@@ -318,6 +321,9 @@ void render_customer_menu() {
             }
             if (input_phone->Focused()) {
               submit_action();
+              if (is_saved) {
+                form_screen.ExitLoopClosure()();
+              }
               return true;
             }
           }
