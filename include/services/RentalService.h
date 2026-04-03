@@ -19,6 +19,9 @@ void process_return_comic(int id_phieu, Date ngay_tra_thuc_te,
                           int trang_thai_tra, double gia_bia);
 
 // Thong ke & Bao cao
+bool compare_revenue_desc(const RentalSlip& a, const RentalSlip& b);
+bool compare_overdue_priority_desc(const RentalSlip& a, const RentalSlip& b);
+
 typedef struct {
   double daily_revenue;
   double monthly_revenue;
