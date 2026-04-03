@@ -4,6 +4,7 @@
 #include "../../include/services/RentalService.h"
 #include "../../include/utils/InputHandler.h"
 #include "../../include/utils/ValidationUtils.h"
+#include "../../include/utils/SortUtils.h"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -378,23 +379,40 @@ void render_rental_menu() {
 void render_statistics_screen() {
   system("cls");
   std::vector<RentalSlip> slips = get_all_rental_slips();
+    system("cls");
+    std::vector<RentalSlip> slips = get_all_rental_slips();
 
   if (slips.empty()) {
     std::cout << "Khong co du lieu thong ke.\n";
     get_string_input("Nhan Enter de tiep tuc...");
     return;
   }
+    if (slips.empty()) {
+        std::cout << "Khong co du lieu thong ke.\n";
+        get_string_input("Nhan Enter de tiep tuc...");
+        return;
+    }
 
   std::vector<std::vector<std::string>> table_data;
   table_data.push_back({"ID", "Truyen", "Khach", "Ngay Muon", "Du Kien",
                         "Thuc Te", "Tien Coc", "Tong Tien", "Trang Thai"});
+    Date today_test = {24, 3, 2026};
 
   std::vector<int> warning_rows;
+    // --- Task 5: Sort main list by revenue (descending) ---
+    quick_sort(slips, compare_revenue_desc);
 
   int row_idx = 1;
   // Can hardcode today for project presentation or make a prompt. Let's assume
   // today is when the presentation happens (e.g 24/3/2026)
   Date today_test = {24, 3, 2026};
+    std::vector<std::vector<std::string>> main_table_data;
+    main_table_data.push_back({"ID", "Truyen", "Khach", "Ngay Muon", "Han Tra", "Thuc Te", "Coc", "Tong", "Trang Thai"});
+    for (const auto &s : slips) {
+        std::string ngay_m = std::to_string(s.ngay_muon.day) + "/" + std::to_string(s.ngay_muon.month);
+        std::string ngay_d = std::to_string(s.ngay_tra_du_kien.day) + "/" + std::to_string(s.ngay_tra_du_kien.month);
+        std::string ngay_t = (s.ngay_tra_thuc_te.year > 0) ? (std::to_string(s.ngay_tra_thuc_te.day) + "/" + std::to_string(s.ngay_tra_thuc_te.month)) : "N/A";
+        std::string tt = (s.trang_thai == 1) ? "Da Tra" : (s.trang_thai == 2) ? "Mat/Hong" : "Dang Thue";
 
   for (const auto &s : slips) {
     std::string ngay_m = std::to_string(s.ngay_muon.day) + "/" +
@@ -422,6 +440,10 @@ void render_statistics_screen() {
         (s.trang_thai == 0 &&
          date_to_days(today_test) > date_to_days(s.ngay_tra_du_kien))) {
       warning_rows.push_back(row_idx);
+        main_table_data.push_back({
+            std::to_string(s.id_phieu), s.ten_truyen, s.khach_hang, ngay_m, ngay_d, ngay_t,
+            format_currency(s.tien_coc), format_currency(s.tong_tien), tt
+        });
     }
 
     table_data.push_back({std::to_string(s.id_phieu), std::string(s.ten_truyen),
