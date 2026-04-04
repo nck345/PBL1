@@ -221,6 +221,14 @@ void process_return_comic(int id_phieu, Date ngay_tra_thuc_te,
 }
 
 // Thong ke & Bao cao
+bool compare_revenue_desc(const RentalSlip& a, const RentalSlip& b) {
+    return a.tong_tien > b.tong_tien;
+}
+
+bool compare_overdue_priority_desc(const RentalSlip& a, const RentalSlip& b) {
+    return date_to_days(a.ngay_tra_du_kien) < date_to_days(b.ngay_tra_du_kien);
+}
+
 rental_statistics compute_all_statistics(Date today, int target_month,
                                          int target_year) {
   rental_statistics stats = {0.0, 0.0, 0, 0};

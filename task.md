@@ -89,16 +89,16 @@
 - [x] Khai báo `void render_revenue_table(...)`: Ứng dụng Component (Table) của **FTXUI** để đổ danh sách Thống kê & Phiếu quá hạn hiển thị theo dòng cột. Set thuộc tính `.color(Color::Red)` cho sách quá hạn và mất hỏng nhằm sinh cảnh báo **(~5% công việc)**
 
 ### 5. Nhiệm vụ bổ sung (Business Logic & Integration)
-- [ ] **Xây dựng các tiêu chí so sánh (Comparator)**: Khai báo logic so sánh riêng cho `RentalSlip` (theo ngày, tiền phạt...) để truyền vào thuật toán của Khiêm **(~10% công việc)**
-- [ ] **Xây dựng nâng cao cho Quản lý Phiếu**: Gọi hàm `quick_sort()` của Khiêm để xử lý hiển thị danh sách phiếu quá hạn theo ưu tiên đòi sách **(~10% công việc)**
-- [ ] **Xây dựng nâng cao cho Thống kê**: Tích hợp thuật toán sắp xếp của Khiêm vào báo cáo doanh thu để liệt kê từ cao xuống thấp **(~5% công việc)**
+- [x] **Xây dựng các tiêu chí so sánh (Comparator)**: Khai báo logic so sánh riêng cho `RentalSlip` (theo ngày, tiền phạt...) để truyền vào thuật toán của Khiêm **(~10% công việc)**
+- [x] **Xây dựng nâng cao cho Quản lý Phiếu**: Gọi hàm `quick_sort()` của Khiêm để xử lý hiển thị danh sách phiếu quá hạn theo ưu tiên đòi sách **(~10% công việc)**
+- [x] **Xây dựng nâng cao cho Thống kê**: Tích hợp thuật toán sắp xếp của Khiêm vào báo cáo doanh thu để liệt kê từ cao xuống thấp **(~5% công việc)**
 
 ### 6. Cải tiến trải nghiệm nhập liệu (UX Refactor)
-- [ ] **Refactor màn hình Cho Thuê Truyện (`RentalUI.cpp`)**: 
+- [x] **Refactor màn hình Cho Thuê Truyện (`RentalUI.cpp`)**: 
   - Thay thế nhập liệu `cin` bằng Form có các Component `ftxui::Input` (`ten_truyen`, `khach_info`, `ngay_muon`, `ngay_tra_du_kien`).
   - Viết logic trên Nút [Xác nhận & Cho thuê] bằng `std::function`: bắt lỗi rỗng, ép kiểu `std::stoi`/hoặc tự bóc tách chuỗi Ngày Tháng năm an toàn (dùng `parse_date_string` và validate chặn lỗi).
   - So sánh logic: báo lỗi đỏ text realtime nếu `ngày trả dự kiến < ngày mượn` trước khi lưu vào luồng xử lý sâu hơn.
-- [ ] **Refactor màn hình Trả Truyện & Thanh toán (`RentalUI.cpp`)**:
+- [x] **Refactor màn hình Trả Truyện & Thanh toán (`RentalUI.cpp`)**:
   - Dùng Form `Container::Vertical` tạo 3 thanh Input: `phieu_id`, `ngay_tra_thuc_te`, `trang_thai_chuyen_doi`.
   - Bắt lỗi nếu nhập Text vào ID thay vì số, thông báo lỗi đỏ tránh gián đoạn/sập chương trình. 
   - Thêm Nút [Xác nhận & Thanh toán] gọi tới `process_return_comic`.
