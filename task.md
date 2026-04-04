@@ -50,6 +50,7 @@
 - [ ] **Sửa lại UI quản lý phiếu thuê tương tự phần quản lý truyện**: Render danh sách phiếu thuê liên tục (reactive) để tìm kiếm và chọn phiếu thuê trực quan hơn.
 - [ ] **Thêm tính năng xem toàn bộ danh sách phiếu thuê**: Giao diện dạng bảng, hỗ trợ cuộn và lọc như bên quản lý truyện.
 - [ ] **Xây dựng bộ Validation cho Số điện thoại**: Kiểm tra định dạng (độ dài, ký tự số, đầu số hợp lệ) và tích hợp vào toàn bộ hệ thống (Thêm/Sửa Khách hàng, Cho thuê).
+- [ ] **Cải tiến nhập liệu Ngày/Tháng/Năm**: Tách form nhập ngày tháng năm thành 3 ô nhập liệu riêng biệt (`Ngày`, `Tháng`, `Năm`) thay vì yêu cầu người dùng nhập chung một chuỗi có dấu phân cách `/`.
 
 ### 7. Cải tiến trải nghiệm nhập liệu (UX Refactor)
 - [x] Refactor `CustomerUI.cpp` để sử dụng `ftxui::Input` và `ftxui::Button` cho Form Thêm/Sửa.
