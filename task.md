@@ -25,7 +25,7 @@
 - [x] Viết hàm **Xóa truyện** (Logic Soft Delete) **(~2% công việc)**
 - [x] Viết hàm **Tìm kiếm Truyện** **(~5% công việc)**
 - [x] Khởi tạo `repository/CustomerRepo.cpp` và hàm lấy ID khách tự tăng **(~3% công việc)**
-- [x] Viết các hàm **Lưu/Đọc/Sửa/Xóa (Soft Delete)** dữ liệu khách hàng **(~7% công việc)**
+- [x] Viết các hàm **Lưu/Đọc/Sửa/Xóa (Soft Delete)** dữ liệu khách hàng **(~7% công việc)**Hoàn thành task5 (tích hợp quicksort()), task6 (cải thiện giao diện nhập liệu)
 - [x] Viết hàm `is_comic_duplicate(...)` kiểm tra bộ ba **Tên + Tác giả + Thể loại** **(~3% công việc)**
 - [x] Viết hàm `is_customer_duplicate(...)` kiểm tra trùng **Số điện thoại** **(~2% công việc)**
 
@@ -47,6 +47,10 @@
 - [x] **Ứng dụng thuật toán vào phân hệ Truyện**: Viết các hàm sắp xếp danh sách và tìm kiếm nhị phân cho Truyện (theo Tên, ID, Giá) **(~10% công việc)**
 - [x] **Tối ưu hóa Pipeline cho Truyện**: Kết chuỗi `Lọc` -> `Sắp xếp` -> `Hiển thị` để dữ liệu luôn chuyên nghiệp **(~5% công việc)**
 - [x] **Mở rộng thuộc tính Truyện**: Thêm trường `type` (thể loại) vào `struct Comic` và cập nhật đồng bộ toàn bộ logic xử lý (Đọc/Ghi file, Tìm kiếm, Sắp xếp) và Giao diện (Form Thêm/Sửa, Bảng hiển thị).
+- [ ] **Sửa lại UI quản lý phiếu thuê tương tự phần quản lý truyện**: Render danh sách phiếu thuê liên tục (reactive) để tìm kiếm và chọn phiếu thuê trực quan hơn.
+- [ ] **Thêm tính năng xem toàn bộ danh sách phiếu thuê**: Giao diện dạng bảng, hỗ trợ cuộn và lọc như bên quản lý truyện.
+- [ ] **Xây dựng bộ Validation cho Số điện thoại**: Kiểm tra định dạng (độ dài, ký tự số, đầu số hợp lệ) và tích hợp vào toàn bộ hệ thống (Thêm/Sửa Khách hàng, Cho thuê).
+
 ### 7. Cải tiến trải nghiệm nhập liệu (UX Refactor)
 - [x] Refactor `CustomerUI.cpp` để sử dụng `ftxui::Input` và `ftxui::Button` cho Form Thêm/Sửa.
 - [x] Refactor `ComicUI.cpp` để sử dụng `ftxui::Input` và `ftxui::Button` cho Form Quản lý Truyện.
@@ -92,6 +96,9 @@
 - [x] **Xây dựng các tiêu chí so sánh (Comparator)**: Khai báo logic so sánh riêng cho `RentalSlip` (theo ngày, tiền phạt...) để truyền vào thuật toán của Khiêm **(~10% công việc)**
 - [x] **Xây dựng nâng cao cho Quản lý Phiếu**: Gọi hàm `quick_sort()` của Khiêm để xử lý hiển thị danh sách phiếu quá hạn theo ưu tiên đòi sách **(~10% công việc)**
 - [x] **Xây dựng nâng cao cho Thống kê**: Tích hợp thuật toán sắp xếp của Khiêm vào báo cáo doanh thu để liệt kê từ cao xuống thấp **(~5% công việc)**
+- [ ] **Cập nhật Logic Doanh thu Ngày**: Tự động hiển thị doanh thu ngày hiện tại nếu các ô nhập liệu ngày/tháng/năm để trống; thêm 3 ô nhập liệu (Ngày, Tháng, Năm) để xem doanh thu cụ thể.
+- [ ] **Thêm Thống kê Doanh thu Tháng**: Hiển thị doanh thu tháng hiện tại mặc định; thêm 4 ô nhập liệu (2 nhóm Tháng-Năm) để xem doanh thu trải dài giữa hai mốc thời gian.
+- [ ] **Trực quan hóa dữ liệu (Charts)**: Sử dụng các thành phần vẽ của **FTXUI** để vẽ đồ thị (Line/Bar chart) thể hiện biến động doanh thu theo thời gian.
 
 ### 6. Cải tiến trải nghiệm nhập liệu (UX Refactor)
 - [x] **Refactor màn hình Cho Thuê Truyện (`RentalUI.cpp`)**: 
