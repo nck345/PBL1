@@ -142,29 +142,37 @@ void render_new_rental_screen() {
 
   std::string ten_truyen_str;
   std::string khach_info_str;
-  std::string ngay_muon_str;
-  std::string ngay_tra_str;
+  std::string ngay_muon_d, ngay_muon_m, ngay_muon_y;
+  std::string ngay_tra_d, ngay_tra_m, ngay_tra_y;
   std::string error_msg = "";
 
   Component input_truyen = Input(&ten_truyen_str, "nhập tên truyện...");
   Component input_khach = Input(&khach_info_str, "nhập tên hoặc SĐT...");
-  Component input_ngay_muon = Input(&ngay_muon_str, "dd/mm/yyyy");
-  Component input_ngay_tra = Input(&ngay_tra_str, "dd/mm/yyyy");
+  Component input_nm_d = Input(&ngay_muon_d, "DD");
+  Component input_nm_m = Input(&ngay_muon_m, "MM");
+  Component input_nm_y = Input(&ngay_muon_y, "YYYY");
+  Component input_nt_d = Input(&ngay_tra_d, "DD");
+  Component input_nt_m = Input(&ngay_tra_m, "MM");
+  Component input_nt_y = Input(&ngay_tra_y, "YYYY");
   bool should_submit = false;
 
   auto submit_button = Button("Xác nhận & Cho thuê", [&] {
-      if (ten_truyen_str.empty() || khach_info_str.empty() || ngay_muon_str.empty() || ngay_tra_str.empty()) {
+      if (ten_truyen_str.empty() || khach_info_str.empty() || ngay_muon_d.empty() || ngay_muon_m.empty() || ngay_muon_y.empty() || ngay_tra_d.empty() || ngay_tra_m.empty() || ngay_tra_y.empty()) {
           error_msg = "Lỗi: Không được để trống thông tin!";
           return;
       }
-      Date d_muon = parse_date_string(ngay_muon_str);
-      Date d_tra = parse_date_string(ngay_tra_str);
-      if (d_muon.year == 0 || d_tra.year == 0) {
-          error_msg = "Lỗi: Định dạng ngày không hợp lệ (nhập dd/mm/yyyy)!";
-          return;
-      }
-      if (date_to_days(d_tra) < date_to_days(d_muon)) {
-          error_msg = "Lỗi: Ngày trả dự kiến < ngày mượn!";
+      try {
+          int md = std::stoi(ngay_muon_d); int mm = std::stoi(ngay_muon_m); int my = std::stoi(ngay_muon_y);
+          int td = std::stoi(ngay_tra_d); int tm = std::stoi(ngay_tra_m); int ty = std::stoi(ngay_tra_y);
+          if (!is_valid_date(md, mm, my) || !is_valid_date(td, tm, ty)) throw std::invalid_argument("invalid");
+          Date d_muon = {md, mm, my};
+          Date d_tra = {td, tm, ty};
+          if (date_to_days(d_tra) < date_to_days(d_muon)) {
+              error_msg = "Lỗi: Ngày trả dự kiến < ngày mượn!";
+              return;
+          }
+      } catch (...) {
+          error_msg = "Lỗi: Ngày tháng năm mượn/trả không hợp lệ!";
           return;
       }
       error_msg = "";
@@ -177,9 +185,12 @@ void render_new_rental_screen() {
       screen.ExitLoopClosure()();
   }, ButtonOption::Animated());
 
-  auto container = Container::Vertical(
-      {input_truyen, input_khach, input_ngay_muon, input_ngay_tra,
-       Container::Horizontal({submit_button, cancel_button})});
+  auto container = Container::Vertical({
+       input_truyen, input_khach,
+       input_nm_d, input_nm_m, input_nm_y,
+       input_nt_d, input_nt_m, input_nt_y,
+       Container::Horizontal({submit_button, cancel_button})
+  });
 
   auto container_with_esc = CatchEvent(container, [&](Event event) {
       if (event == Event::Escape) {
@@ -188,31 +199,30 @@ void render_new_rental_screen() {
           return true;
       }
       if (event == Event::Return) {
-          if (input_truyen->Focused()) {
-              input_khach->TakeFocus();
-              return true;
-          }
-          if (input_khach->Focused()) {
-              input_ngay_muon->TakeFocus();
-              return true;
-          }
-          if (input_ngay_muon->Focused()) {
-              input_ngay_tra->TakeFocus();
-              return true;
-          }
-          if (input_ngay_tra->Focused()) {
-              if (ten_truyen_str.empty() || khach_info_str.empty() || ngay_muon_str.empty() || ngay_tra_str.empty()) {
+          if (input_truyen->Focused()) { input_khach->TakeFocus(); return true; }
+          if (input_khach->Focused()) { input_nm_d->TakeFocus(); return true; }
+          if (input_nm_d->Focused()) { input_nm_m->TakeFocus(); return true; }
+          if (input_nm_m->Focused()) { input_nm_y->TakeFocus(); return true; }
+          if (input_nm_y->Focused()) { input_nt_d->TakeFocus(); return true; }
+          if (input_nt_d->Focused()) { input_nt_m->TakeFocus(); return true; }
+          if (input_nt_m->Focused()) { input_nt_y->TakeFocus(); return true; }
+          if (input_nt_y->Focused()) {
+              if (ten_truyen_str.empty() || khach_info_str.empty() || ngay_muon_d.empty() || ngay_muon_m.empty() || ngay_muon_y.empty() || ngay_tra_d.empty() || ngay_tra_m.empty() || ngay_tra_y.empty()) {
                   error_msg = "Lỗi: Không được để trống thông tin!";
                   return true;
               }
-              Date d_muon = parse_date_string(ngay_muon_str);
-              Date d_tra = parse_date_string(ngay_tra_str);
-              if (d_muon.year == 0 || d_tra.year == 0) {
-                  error_msg = "Lỗi: Định dạng ngày không hợp lệ (nhập dd/mm/yyyy)!";
-                  return true;
-              }
-              if (date_to_days(d_tra) < date_to_days(d_muon)) {
-                  error_msg = "Lỗi: Ngày trả dự kiến < ngày mượn!";
+              try {
+                  int md = std::stoi(ngay_muon_d); int mm = std::stoi(ngay_muon_m); int my = std::stoi(ngay_muon_y);
+                  int td = std::stoi(ngay_tra_d); int tm = std::stoi(ngay_tra_m); int ty = std::stoi(ngay_tra_y);
+                  if (!is_valid_date(md, mm, my) || !is_valid_date(td, tm, ty)) throw std::invalid_argument("invalid");
+                  Date d_muon = {md, mm, my};
+                  Date d_tra = {td, tm, ty};
+                  if (date_to_days(d_tra) < date_to_days(d_muon)) {
+                      error_msg = "Lỗi: Ngày trả dự kiến < ngày mượn!";
+                      return true;
+                  }
+              } catch (...) {
+                  error_msg = "Lỗi: Ngày tháng năm mượn/trả không hợp lệ!";
                   return true;
               }
               should_submit = true;
@@ -227,8 +237,8 @@ void render_new_rental_screen() {
     return vbox({text(" THIẾT LẬP PHIẾU THUÊ ") | bold | center, separator(),
                  hbox(text(" Tên Truyện:      "), input_truyen->Render()),
                  hbox(text(" Khách hàng:      "), input_khach->Render()),
-                 hbox(text(" Ngày mượn:      "), input_ngay_muon->Render()),
-                 hbox(text(" Hạn trả (dự kiến): "), input_ngay_tra->Render()),
+                 hbox(text(" Ngày mượn:      "), input_nm_d->Render(), text("/"), input_nm_m->Render(), text("/"), input_nm_y->Render()),
+                 hbox(text(" Hạn trả (dự kiến): "), input_nt_d->Render(), text("/"), input_nt_m->Render(), text("/"), input_nt_y->Render()),
                  separator(),
                  error_msg.empty() ? text("") : text(error_msg) | color(Color::Red) | center,
                  hbox(submit_button->Render(), text("   "),
@@ -240,8 +250,10 @@ void render_new_rental_screen() {
   screen.Loop(renderer);
 
   if (should_submit) {
-    Date d_muon = parse_date_string(ngay_muon_str);
-    Date d_tra = parse_date_string(ngay_tra_str);
+    int md = std::stoi(ngay_muon_d); int mm = std::stoi(ngay_muon_m); int my = std::stoi(ngay_muon_y);
+    int td = std::stoi(ngay_tra_d); int tm = std::stoi(ngay_tra_m); int ty = std::stoi(ngay_tra_y);
+    Date d_muon = {md, mm, my};
+    Date d_tra = {td, tm, ty};
 
     system("cls");
     // Buoc 1: Chon chinh xac quyen truyen
@@ -261,32 +273,106 @@ void render_new_rental_screen() {
   }
 }
 
+int select_rental_slip_ui(const std::string& title) {
+  std::string keyword = get_string_input("Nhap Ten Khach/SDT hoac Bo Trong de Xem tat ca Dang Thue: ");
+  if (keyword == "[ESC]") return -1;
+  std::string kw_lower = keyword;
+  for (auto& c : kw_lower) c = std::tolower(c);
+
+  std::vector<RentalSlip> slips = get_all_rental_slips();
+  std::vector<RentalSlip> active_slips;
+  for (const auto& s : slips) {
+    if (s.trang_thai == 0) { // Dang thue
+      std::string kh_lower = s.khach_hang;
+      for (auto& c : kh_lower) c = std::tolower(c);
+      std::string ten_lower = s.ten_truyen;
+      for (auto& c : ten_lower) c = std::tolower(c);
+      if (kw_lower.empty() || kh_lower.find(kw_lower) != std::string::npos || ten_lower.find(kw_lower) != std::string::npos) {
+        active_slips.push_back(s);
+      }
+    }
+  }
+
+  if (active_slips.empty()) {
+    std::cout << "Khong tim thay phieu dang thue nao phu hop!\n";
+    get_string_input("Nhan Enter de thu lai...");
+    return -1;
+  }
+
+  auto screen = ScreenInteractive::TerminalOutput();
+  std::vector<std::string> entries;
+  for (size_t i = 0; i < active_slips.size(); ++i) {
+    const auto& s = active_slips[i];
+    std::string item = std::to_string(s.id_phieu) + ". " + s.khach_hang + " muon [" + s.ten_truyen + "] ngay " +
+                       std::to_string(s.ngay_muon.day) + "/" + std::to_string(s.ngay_muon.month) + "/" + std::to_string(s.ngay_muon.year);
+    entries.push_back(item);
+  }
+  entries.push_back("[Huy thao tac]");
+
+  int selected = 0;
+  MenuOption option;
+  option.on_enter = screen.ExitLoopClosure();
+
+  auto menu = Menu(&entries, &selected, option);
+  auto menu_with_event = CatchEvent(menu, [&](Event event) {
+      if (event == Event::Escape) {
+          selected = entries.size() - 1;
+          screen.ExitLoopClosure()();
+          return true;
+      }
+      if (event.is_character()) {
+          char c = event.character()[0];
+          if (c >= '1' && c <= '9') {
+              int index = c - '1';
+              if (index < (int)entries.size()) {
+                  selected = index;
+                  screen.ExitLoopClosure()();
+                  return true;
+              }
+          }
+      }
+      return false;
+  });
+
+  auto renderer = Renderer(menu_with_event, [&] {
+    return window(text(" " + title + " "),
+                  menu_with_event->Render() | vscroll_indicator | frame) | bold;
+  });
+
+  screen.Loop(renderer);
+  system("cls");
+
+  if (selected >= 0 && selected < (int)active_slips.size()) {
+    return active_slips[selected].id_phieu;
+  }
+  return -1;
+}
+
 void render_return_comic_screen() {
+  system("cls");
+  int p_id = select_rental_slip_ui("CHON PHIEU THUE DE TRA");
+  if (p_id == -1) return;
+
   system("cls");
   auto screen = ScreenInteractive::TerminalOutput();
 
-  std::string phieu_id_str;
-  std::string ngay_tra_str;
+  std::string p_id_str = std::to_string(p_id);
+  std::string ngay_tra_d, ngay_tra_m, ngay_tra_y;
   std::string trang_thai_str; // 1: tra binh thuong, 2: mat hong
   std::string error_msg = "";
   bool should_submit = false;
 
-  Component input_phieu = Input(&phieu_id_str, "nhập số ID...");
-  Component input_ngay = Input(&ngay_tra_str, "dd/mm/yyyy");
+  Component input_nt_d = Input(&ngay_tra_d, "DD");
+  Component input_nt_m = Input(&ngay_tra_m, "MM");
+  Component input_nt_y = Input(&ngay_tra_y, "YYYY");
   Component input_tt = Input(&trang_thai_str, "1: Bình thường, 2: Mất/Hỏng");
 
   auto submit_button = Button("Xác nhận & Thanh toán", [&] {
-      if (phieu_id_str.empty() || ngay_tra_str.empty() || trang_thai_str.empty()) {
+      if (ngay_tra_d.empty() || ngay_tra_m.empty() || ngay_tra_y.empty() || trang_thai_str.empty()) {
           error_msg = "Lỗi: Không được để trống thông tin!";
           return;
       }
-      try {
-          int id = std::stoi(phieu_id_str);
-          if (id <= 0) throw std::invalid_argument("<=0");
-      } catch (...) {
-          error_msg = "Lỗi: ID Phiếu phải là một số nguyên dương!";
-          return;
-      }
+
       try {
           int tt = std::stoi(trang_thai_str);
           if (tt != 1 && tt != 2) throw std::invalid_argument("not 1 or 2");
@@ -294,9 +380,11 @@ void render_return_comic_screen() {
           error_msg = "Lỗi: Trạng thái chỉ được nhập 1 hoặc 2!";
           return;
       }
-      Date d_tra = parse_date_string(ngay_tra_str);
-      if (d_tra.year == 0) {
-          error_msg = "Lỗi: Định dạng ngày trả không hợp lệ (nhập dd/mm/yyyy)!";
+      try {
+          int td = std::stoi(ngay_tra_d); int tm = std::stoi(ngay_tra_m); int ty = std::stoi(ngay_tra_y);
+          if (!is_valid_date(td, tm, ty)) throw std::invalid_argument("invalid");
+      } catch (...) {
+          error_msg = "Lỗi: Định dạng ngày trả không hợp lệ!";
           return;
       }
       error_msg = "";
@@ -310,7 +398,7 @@ void render_return_comic_screen() {
   }, ButtonOption::Animated());
 
   auto container = Container::Vertical(
-      {input_phieu, input_ngay, input_tt,
+      {input_nt_d, input_nt_m, input_nt_y, input_tt,
        Container::Horizontal({submit_button, cancel_button})});
 
   auto container_with_esc = CatchEvent(container, [&](Event event) {
@@ -320,24 +408,12 @@ void render_return_comic_screen() {
           return true;
       }
       if (event == Event::Return) {
-          if (input_phieu->Focused()) {
-              input_ngay->TakeFocus();
-              return true;
-          }
-          if (input_ngay->Focused()) {
-              input_tt->TakeFocus();
-              return true;
-          }
+          if (input_nt_d->Focused()) { input_nt_m->TakeFocus(); return true; }
+          if (input_nt_m->Focused()) { input_nt_y->TakeFocus(); return true; }
+          if (input_nt_y->Focused()) { input_tt->TakeFocus(); return true; }
           if (input_tt->Focused()) {
-              if (phieu_id_str.empty() || ngay_tra_str.empty() || trang_thai_str.empty()) {
+              if (ngay_tra_d.empty() || ngay_tra_m.empty() || ngay_tra_y.empty() || trang_thai_str.empty()) {
                   error_msg = "Lỗi: Không được để trống thông tin!";
-                  return true;
-              }
-              try {
-                  int id = std::stoi(phieu_id_str);
-                  if (id <= 0) throw std::invalid_argument("<=0");
-              } catch (...) {
-                  error_msg = "Lỗi: ID Phiếu phải là một số nguyên dương!";
                   return true;
               }
               try {
@@ -347,8 +423,10 @@ void render_return_comic_screen() {
                   error_msg = "Lỗi: Trạng thái chỉ được nhập 1 hoặc 2!";
                   return true;
               }
-              Date d_tra = parse_date_string(ngay_tra_str);
-              if (d_tra.year == 0) {
+              try {
+                  int td = std::stoi(ngay_tra_d); int tm = std::stoi(ngay_tra_m); int ty = std::stoi(ngay_tra_y);
+                  if (!is_valid_date(td, tm, ty)) throw std::invalid_argument("invalid");
+              } catch (...) {
                   error_msg = "Lỗi: Định dạng ngày trả không hợp lệ!";
                   return true;
               }
@@ -362,8 +440,8 @@ void render_return_comic_screen() {
 
   auto renderer = Renderer(container_with_esc, [&] {
     return vbox({text(" TRẢ TRUYỆN & THANH TOÁN ") | bold | center, separator(),
-                 hbox(text(" Phiếu ID:   "), input_phieu->Render()),
-                 hbox(text(" Ngày trả:   "), input_ngay->Render()),
+                 hbox(text(" Phiếu ID:   "), text(p_id_str) | bold),
+                 hbox(text(" Ngày trả:   "), input_nt_d->Render(), text("/"), input_nt_m->Render(), text("/"), input_nt_y->Render()),
                  hbox(text(" Tình trạng: "), input_tt->Render()), separator(),
                  error_msg.empty() ? text("") : text(error_msg) | color(Color::Red) | center,
                  hbox(submit_button->Render(), text("   "),
@@ -375,9 +453,9 @@ void render_return_comic_screen() {
   screen.Loop(renderer);
 
   if (should_submit) {
-    int p_id = std::stoi(phieu_id_str);
     int tt = std::stoi(trang_thai_str);
-    Date d_tra = parse_date_string(ngay_tra_str);
+    int td = std::stoi(ngay_tra_d); int tm = std::stoi(ngay_tra_m); int ty = std::stoi(ngay_tra_y);
+    Date d_tra = {td, tm, ty};
 
     system("cls");
     process_return_comic(p_id, d_tra, tt, 0.0);
@@ -385,19 +463,36 @@ void render_return_comic_screen() {
   }
 }
 
+Element build_rental_table_element(const std::vector<RentalSlip>& slips) {
+  if (slips.empty()) {
+    return text("Khong co du lieu phiếu thuê.") | center;
+  }
+  std::vector<std::vector<std::string>> table_data;
+  table_data.push_back({"ID", "Khach Hang", "Ten Truyen", "Ngay Muon", "Trang Thai"});
+  for (const auto &s : slips) {
+    std::string nm = std::to_string(s.ngay_muon.day) + "/" + std::to_string(s.ngay_muon.month) + "/" + std::to_string(s.ngay_muon.year);
+    std::string tt = (s.trang_thai == 0) ? "Dang thue" : (s.trang_thai == 1) ? "Da tra" : (s.trang_thai == 2) ? "Mat/Hong" : "Qua han";
+    table_data.push_back({std::to_string(s.id_phieu), s.khach_hang, s.ten_truyen, nm, tt});
+  }
+  auto table = Table(table_data);
+  table.SelectAll().Border(LIGHT);
+  table.SelectRow(0).Decorate(bold);
+  table.SelectRow(0).SeparatorVertical(LIGHT);
+  table.SelectRow(0).Border(DOUBLE);
+  return table.Render();
+}
+
 void render_rental_menu() {
     auto screen = ScreenInteractive::TerminalOutput();
-
     std::vector<std::string> entries = {
-        "1. Cho thue truyen moi",
-        "2. Tra truyen & Thanh toan",
-        "3. Tro ve"
+        "1. Xem danh sach phieu thue",
+        "2. Cho thue truyen moi",
+        "3. Tra truyen & Thanh toan",
+        "4. Tro ve"
     };
     int selected = 0;
-
     MenuOption option;
     option.on_enter = screen.ExitLoopClosure();
-
     auto menu = Menu(&entries, &selected, option);
     auto menu_with_event = CatchEvent(menu, [&](Event event) {
         if (event == Event::Escape) {
@@ -429,10 +524,81 @@ void render_rental_menu() {
         screen.Loop(renderer);
 
         if (selected == 0) {
-            render_new_rental_screen();
+            system("cls");
+            std::vector<RentalSlip> all_slips = get_all_rental_slips();
+            if (all_slips.empty()) {
+                std::cout << "Khong co phieu thue nao trong he thong!\n";
+                get_string_input("Nhan Enter de tiep tuc...");
+                continue;
+            }
+
+            auto form_screen = ScreenInteractive::Fullscreen();
+            std::string search_kw = "";
+            std::vector<std::string> status_options = {"Tat ca", "Dang thue", "Da tra/Khac"};
+            int selected_status = 0;
+            std::vector<RentalSlip> filtered_slips = all_slips;
+
+            auto apply_filter = [&] {
+                filtered_slips.clear();
+                std::string kw = search_kw;
+                for(auto&c : kw) c = std::tolower(c);
+                for (const auto& s : all_slips) {
+                    std::string tn = s.ten_truyen; for(auto&c : tn) c = std::tolower(c);
+                    std::string tk = s.khach_hang; for(auto&c : tk) c = std::tolower(c);
+                    bool match_kw = kw.empty() || tn.find(kw) != std::string::npos || tk.find(kw) != std::string::npos || std::to_string(s.id_phieu) == kw;
+                    bool match_status = true;
+                    if (selected_status == 1) match_status = (s.trang_thai == 0);
+                    if (selected_status == 2) match_status = (s.trang_thai != 0);
+
+                    if (match_kw && match_status) {
+                        filtered_slips.push_back(s);
+                    }
+                }
+            };
+
+            Component input_search = Input(&search_kw, "ID, SDT, hoac ten truyen...");
+            Component status_radiobox = Radiobox(&status_options, &selected_status);
+            Component exit_button = Button("Tro Ve", [&] { form_screen.ExitLoopClosure()(); }, ButtonOption::Animated());
+
+            auto controls = Container::Vertical({
+                input_search, status_radiobox, exit_button
+            });
+
+            auto controls_with_event = CatchEvent(controls, [&](Event event) {
+                if (event == Event::Escape) {
+                    form_screen.ExitLoopClosure()();
+                    return true;
+                }
+                return false;
+            });
+
+            auto ui_renderer = Renderer(controls_with_event, [&] {
+                apply_filter();
+                auto filter_panel = vbox({
+                    text("--- BỘ LỌC === ") | bold,
+                    separator(),
+                    hbox(text(" Tim kiem: "), input_search->Render()),
+                    separator(),
+                    text(" Trang thai: ") | bold,
+                    status_radiobox->Render(),
+                    separator(),
+                    exit_button->Render() | center
+                }) | border | size(WIDTH, GREATER_THAN, 30);
+
+                auto table_panel = window(
+                    text(" DANH SACH PHIEU (" + std::to_string(filtered_slips.size()) + ")") | bold | center,
+                    build_rental_table_element(filtered_slips) | vscroll_indicator | frame
+                ) | flex;
+
+                return hbox({filter_panel, table_panel});
+            });
+
+            form_screen.Loop(ui_renderer);
         } else if (selected == 1) {
-            render_return_comic_screen();
+            render_new_rental_screen();
         } else if (selected == 2) {
+            render_return_comic_screen();
+        } else if (selected == 3) {
             system("cls");
             break;
         }

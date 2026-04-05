@@ -47,10 +47,10 @@
 - [x] **Ứng dụng thuật toán vào phân hệ Truyện**: Viết các hàm sắp xếp danh sách và tìm kiếm nhị phân cho Truyện (theo Tên, ID, Giá) **(~10% công việc)**
 - [x] **Tối ưu hóa Pipeline cho Truyện**: Kết chuỗi `Lọc` -> `Sắp xếp` -> `Hiển thị` để dữ liệu luôn chuyên nghiệp **(~5% công việc)**
 - [x] **Mở rộng thuộc tính Truyện**: Thêm trường `type` (thể loại) vào `struct Comic` và cập nhật đồng bộ toàn bộ logic xử lý (Đọc/Ghi file, Tìm kiếm, Sắp xếp) và Giao diện (Form Thêm/Sửa, Bảng hiển thị).
-- [ ] **Sửa lại UI quản lý phiếu thuê tương tự phần quản lý truyện**: Render danh sách phiếu thuê liên tục (reactive) để tìm kiếm và chọn phiếu thuê trực quan hơn.
-- [ ] **Thêm tính năng xem toàn bộ danh sách phiếu thuê**: Giao diện dạng bảng, hỗ trợ cuộn và lọc như bên quản lý truyện.
-- [ ] **Xây dựng bộ Validation cho Số điện thoại**: Kiểm tra định dạng (độ dài, ký tự số, đầu số hợp lệ) và tích hợp vào toàn bộ hệ thống (Thêm/Sửa Khách hàng, Cho thuê).
-- [ ] **Cải tiến nhập liệu Ngày/Tháng/Năm**: Tách form nhập ngày tháng năm thành 3 ô nhập liệu riêng biệt (`Ngày`, `Tháng`, `Năm`) thay vì yêu cầu người dùng nhập chung một chuỗi có dấu phân cách `/`.
+- [x] **Sửa lại UI quản lý phiếu thuê tương tự phần quản lý truyện**: Render danh sách phiếu thuê liên tục (reactive) để tìm kiếm và chọn phiếu thuê trực quan hơn.
+- [x] **Thêm tính năng xem toàn bộ danh sách phiếu thuê**: Giao diện dạng bảng, hỗ trợ cuộn và lọc như bên quản lý truyện.
+- [x] **Xây dựng bộ Validation cho Số điện thoại**: Kiểm tra định dạng (độ dài, ký tự số, đầu số hợp lệ) và tích hợp vào toàn bộ hệ thống (Thêm/Sửa Khách hàng, Cho thuê).
+- [x] **Cải tiến nhập liệu Ngày/Tháng/Năm**: Tách form nhập ngày tháng năm thành 3 ô nhập liệu riêng biệt (`Ngày`, `Tháng`, `Năm`) thay vì yêu cầu người dùng nhập chung một chuỗi có dấu phân cách `/`.
 
 ### 7. Cải tiến trải nghiệm nhập liệu (UX Refactor)
 - [x] Refactor `CustomerUI.cpp` để sử dụng `ftxui::Input` và `ftxui::Button` cho Form Thêm/Sửa.
