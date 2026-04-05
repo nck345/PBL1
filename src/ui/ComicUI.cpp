@@ -350,9 +350,6 @@ void render_comic_menu() {
         
         if (!is_empty_string(search_type)) {
            s_type = to_lower_text(trim(search_type));
-        } else if (!filtered_type_options.empty() && 
-            is_valid_type_suggestion(filtered_type_options[selected_type_option])) {
-           s_type = to_lower_text(filtered_type_options[selected_type_option]);
         }
 
         for (const auto& comic : active_comics) {
