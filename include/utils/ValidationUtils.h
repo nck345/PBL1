@@ -13,5 +13,6 @@ bool is_empty_string(const std::string& str);
 bool is_negative(double val);
 bool is_valid_date(int day, int month, int year);
 bool is_valid_date_struct(Date d);
+bool is_valid_phone_number(const std::string& phone);
 
 #endif

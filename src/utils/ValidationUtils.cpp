@@ -64,3 +64,12 @@ bool is_valid_date(int day, int month, int year) {
 bool is_valid_date_struct(Date d) {
     return is_valid_date(d.day, d.month, d.year);
 }
+
+bool is_valid_phone_number(const std::string& phone) {
+    if (phone.length() != 10) return false;
+    if (phone[0] != '0') return false;
+    for (char c : phone) {
+        if (!std::isdigit(c)) return false;
+    }
+    return true;
+}
