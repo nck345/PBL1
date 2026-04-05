@@ -181,6 +181,11 @@ void render_customer_menu() {
           is_saved = false;
           return;
         }
+        if (!is_valid_phone_number(phone_str)) {
+          error_msg = "Loi: SDT khong hop le (10 so, bat dau tu 0)!";
+          is_saved = false;
+          return;
+        }
         if (is_customer_duplicate(phone_str)) {
           error_msg = "Loi: So dien thoai da ton tai trong he thong!";
           is_saved = false;
@@ -274,6 +279,11 @@ void render_customer_menu() {
           }
           if (is_empty_string(phone_str)) {
             error_msg = "Loi: SDT khong duoc de trong!";
+            is_saved = false;
+            return;
+          }
+          if (!is_valid_phone_number(phone_str)) {
+            error_msg = "Loi: SDT khong hop le (10 so, bat dau tu 0)!";
             is_saved = false;
             return;
           }
