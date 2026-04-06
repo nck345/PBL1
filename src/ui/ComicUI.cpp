@@ -247,30 +247,8 @@ int select_comic_ui(const std::string& title) {
           form_screen.ExitLoopClosure()();
       }
   };
-  comic_menu_opt.entries_option.transform = [&](const EntryState& state) {
-      if (state.index >= (int)filtered_comics.size()) return text("");
-      auto& c = filtered_comics[state.index];
-      
-      int w_id = 5;
-      int w_name = 30;
-      int w_author = 20;
-      int w_type = 15;
-      int w_price = 15;
-      int w_qty = 5;
-
-      auto row = hbox({
-          text(std::to_string(c.id)) | size(WIDTH, EQUAL, w_id), text(" \xe2\x94\x82 "),
-          text(truncate_text(c.comic_name, w_name)) | size(WIDTH, EQUAL, w_name), text(" \xe2\x94\x82 "),
-          text(truncate_text(c.author, w_author)) | size(WIDTH, EQUAL, w_author), text(" \xe2\x94\x82 "),
-          text(truncate_text(c.type, w_type)) | size(WIDTH, EQUAL, w_type), text(" \xe2\x94\x82 "),
-          text(format_currency(c.price)) | size(WIDTH, EQUAL, w_price), text(" \xe2\x94\x82 "),
-          text(std::to_string(c.quantity)) | size(WIDTH, EQUAL, w_qty),
-          filler()
-      });
-      if (state.focused) { row = row | inverted; }
-      if (state.active) { row = row | bold; }
-      return row;
-  };
+  // Empty transform to save CPU, actual drawing is done by the Table inside the active Renderer
+  comic_menu_opt.entries_option.transform = [](const EntryState& state) { return text(""); };
   Component comic_menu = Menu(&dummy_entries, &selected_comic_index, comic_menu_opt);
 
   Component exit_button = Button("Huy & Tro Ve (ESC)", [&] {
@@ -333,30 +311,38 @@ int select_comic_ui(const std::string& title) {
     dummy_entries.resize(filtered_comics.size(), "");
     if (selected_comic_index >= (int)filtered_comics.size()) selected_comic_index = std::max(0, (int)filtered_comics.size() - 1);
 
-    int w_id = 5;
-    int w_name = 30;
-    int w_author = 20;
-    int w_type = 15;
-    int w_price = 15;
-    int w_qty = 5;
-
-    auto header = hbox({
-        text("ID") | size(WIDTH, EQUAL, w_id), text(" \xe2\x94\x82 "),
-        text(truncate_text("Ten Truyen", w_name)) | size(WIDTH, EQUAL, w_name), text(" \xe2\x94\x82 "),
-        text(truncate_text("Tac Gia", w_author)) | size(WIDTH, EQUAL, w_author), text(" \xe2\x94\x82 "),
-        text(truncate_text("The Loai", w_type)) | size(WIDTH, EQUAL, w_type), text(" \xe2\x94\x82 "),
-        text("Gia") | size(WIDTH, EQUAL, w_price), text(" \xe2\x94\x82 "),
-        text("Ton") | size(WIDTH, EQUAL, w_qty),
-        filler()
-    }) | bold;
+    Element table_element;
+    if (filtered_comics.empty()) {
+        table_element = text("Khong co du lieu phu hop.") | center;
+    } else {
+        std::vector<std::vector<std::string>> table_data;
+        table_data.push_back({"ID", "Ten Truyen", "Tac Gia", "The Loai", "Gia", "Ton"});
+        for (const auto& c : filtered_comics) {
+            table_data.push_back({
+                std::to_string(c.id), truncate_text(c.comic_name, 25),
+                truncate_text(c.author, 15), truncate_text(c.type, 15),
+                format_currency(c.price), std::to_string(c.quantity)
+            });
+        }
+        
+        auto table = Table(table_data);
+        table.SelectAll().Border(LIGHT);
+        table.SelectRow(0).Decorate(bold);
+        table.SelectAll().SeparatorVertical(LIGHT);
+        table.SelectRow(0).Border(DOUBLE);
+        
+        int row_index = selected_comic_index + 1;
+        if (comic_menu->Focused()) {
+            table.SelectRow(row_index).Decorate(inverted);
+        } else {
+            table.SelectRow(row_index).Decorate(bold);
+        }
+        table_element = table.Render();
+    }
 
     auto table_panel = window(
         text(" DANH SÁCH (" + std::to_string(filtered_comics.size()) + ") - BẤM ENTER ĐỂ CHỌN ") | bold | center,
-        vbox({
-            header,
-            separatorLight(),
-            comic_menu->Render() | vscroll_indicator | frame | flex
-        }) | border
+        table_element | vscroll_indicator | frame | flex
     ) | flex;
 
     return window(text(" " + title + " ") | bold | center, hbox({ filter_panel, table_panel }));

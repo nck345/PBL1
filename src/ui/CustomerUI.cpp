@@ -86,24 +86,7 @@ int select_customer_ui(const std::string& title) {
      }
   };
   
-  customer_menu_opt.entries_option.transform = [&](const EntryState& state) {
-      if (state.index >= (int)filtered_list.size()) return text("");
-      auto& c = filtered_list[state.index];
-      
-      int w_id = 5;
-      int w_name = 30;
-      int w_phone = 15;
-
-      auto row = hbox({
-          text(std::to_string(c.id)) | size(WIDTH, EQUAL, w_id), text(" \xe2\x94\x82 "),
-          text(truncate_text(c.name, w_name)) | size(WIDTH, EQUAL, w_name), text(" \xe2\x94\x82 "),
-          text(truncate_text(c.phone, w_phone)) | size(WIDTH, EQUAL, w_phone),
-          filler()
-      });
-      if (state.focused) { row = row | inverted; }
-      if (state.active) { row = row | bold; }
-      return row;
-  };
+  customer_menu_opt.entries_option.transform = [](const EntryState& state) { return text(""); };
   Component customer_menu = Menu(&dummy_entries, &selected_customer_index, customer_menu_opt);
 
   Component exit_button = Button("Huy & Tro Ve (ESC)", [&] { 
@@ -144,24 +127,37 @@ int select_customer_ui(const std::string& title) {
      dummy_entries.resize(filtered_list.size(), "");
      if (selected_customer_index >= (int)filtered_list.size()) selected_customer_index = std::max(0, (int)filtered_list.size() - 1);
 
-     int w_id = 5;
-     int w_name = 30;
-     int w_phone = 15;
+     Element table_element;
+     if (filtered_list.empty()) {
+         table_element = text("Khong co du lieu khach hang.") | center;
+     } else {
+         std::vector<std::vector<std::string>> table_data;
+         table_data.push_back({"ID", "Ten Khach Hang", "SDT"});
+         for (const auto& c : filtered_list) {
+             table_data.push_back({
+                 std::to_string(c.id), truncate_text(c.name, 35),
+                 c.phone
+             });
+         }
+         
+         auto table = Table(table_data);
+         table.SelectAll().Border(LIGHT);
+         table.SelectRow(0).Decorate(bold);
+         table.SelectAll().SeparatorVertical(LIGHT);
+         table.SelectRow(0).Border(DOUBLE);
 
-     auto header = hbox({
-        text("ID") | size(WIDTH, EQUAL, w_id), text(" \xe2\x94\x82 "),
-        text(truncate_text("Ten Khach Hang", w_name)) | size(WIDTH, EQUAL, w_name), text(" \xe2\x94\x82 "),
-        text("SDT") | size(WIDTH, EQUAL, w_phone),
-        filler()
-     }) | bold;
+         int row_index = selected_customer_index + 1;
+         if (customer_menu->Focused()) {
+             table.SelectRow(row_index).Decorate(inverted);
+         } else {
+             table.SelectRow(row_index).Decorate(bold);
+         }
+         table_element = table.Render();
+     }
 
      auto table_panel = window(
         text(" DANH SACH KHACH (" + std::to_string(filtered_list.size()) + ") - BẤM ENTER ĐỂ CHỌN ") | bold | center,
-        vbox({
-            header,
-            separatorLight(),
-            customer_menu->Render() | vscroll_indicator | frame | flex
-        }) | border
+        table_element | vscroll_indicator | frame | flex
      ) | flex;
 
      return window(text(" " + title + " ") | bold | center, hbox({filter_panel, table_panel}));

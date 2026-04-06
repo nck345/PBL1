@@ -291,30 +291,6 @@ int select_rental_slip_ui(const std::string& title) {
      }
   };
   
-  slip_menu_opt.entries_option.transform = [&](const EntryState& state) {
-      if (state.index >= (int)filtered_rows.size()) return text("");
-      auto& r = filtered_rows[state.index];
-      std::string nm = std::to_string(r.slip.ngay_muon.day) + "/" + std::to_string(r.slip.ngay_muon.month) + "/" + std::to_string(r.slip.ngay_muon.year);
-      int w_id = 5;
-      int w_date = 12;
-      int w_cu = 25;
-      int w_c = 30;
-      int w_author = 20;
-      int w_type = 15;
-
-      auto row = hbox({
-          text(std::to_string(r.slip.id_phieu)) | size(WIDTH, EQUAL, w_id), text(" \xe2\x94\x82 "),
-          text(truncate_text(r.cu_name, w_cu)) | size(WIDTH, EQUAL, w_cu), text(" \xe2\x94\x82 "),
-          text(truncate_text(r.c_name, w_c)) | size(WIDTH, EQUAL, w_c), text(" \xe2\x94\x82 "),
-          text(truncate_text(r.c_author, w_author)) | size(WIDTH, EQUAL, w_author), text(" \xe2\x94\x82 "),
-          text(truncate_text(r.c_type, w_type)) | size(WIDTH, EQUAL, w_type), text(" \xe2\x94\x82 "),
-          text(nm) | size(WIDTH, EQUAL, w_date),
-          filler()
-      });
-      if (state.focused) { row = row | inverted; }
-      if (state.active) { row = row | bold; }
-      return row;
-  };
   Component slip_menu = Menu(&dummy_entries, &selected_slip_index, slip_menu_opt);
 
   Component exit_button = Button("Huy & Tro Ve (ESC)", [&] { 
@@ -369,30 +345,39 @@ int select_rental_slip_ui(const std::string& title) {
 
      dummy_entries.resize(filtered_rows.size(), "");
      if (selected_slip_index >= (int)filtered_rows.size()) selected_slip_index = std::max(0, (int)filtered_rows.size() - 1);
-     int w_id = 5;
-     int w_date = 12;
-     int w_cu = 25;
-     int w_c = 30;
-     int w_author = 20;
-     int w_type = 15;
+     Element table_element;
+     if (filtered_rows.empty()) {
+         table_element = text("Khong co du lieu phieu muon.") | center;
+     } else {
+         std::vector<std::vector<std::string>> table_data;
+         table_data.push_back({"ID", "Khach Hang", "Ten Truyen", "Tac Gia", "The Loai", "Ngay Muon"});
+         for (const auto& r : filtered_rows) {
+             std::string nm = std::to_string(r.slip.ngay_muon.day) + "/" + std::to_string(r.slip.ngay_muon.month) + "/" + std::to_string(r.slip.ngay_muon.year);
+             table_data.push_back({
+                 std::to_string(r.slip.id_phieu), truncate_text(r.cu_name, 25),
+                 truncate_text(r.c_name, 30), truncate_text(r.c_author, 20),
+                 truncate_text(r.c_type, 15), nm
+             });
+         }
+         
+         auto table = Table(table_data);
+         table.SelectAll().Border(LIGHT);
+         table.SelectRow(0).Decorate(bold);
+         table.SelectAll().SeparatorVertical(LIGHT);
+         table.SelectRow(0).Border(DOUBLE);
 
-     auto header = hbox({
-        text("ID") | size(WIDTH, EQUAL, w_id), text(" \xe2\x94\x82 "),
-        text(truncate_text("Khach Hang", w_cu)) | size(WIDTH, EQUAL, w_cu), text(" \xe2\x94\x82 "),
-        text(truncate_text("Ten Truyen", w_c)) | size(WIDTH, EQUAL, w_c), text(" \xe2\x94\x82 "),
-        text(truncate_text("Tac Gia", w_author)) | size(WIDTH, EQUAL, w_author), text(" \xe2\x94\x82 "),
-        text(truncate_text("The Loai", w_type)) | size(WIDTH, EQUAL, w_type), text(" \xe2\x94\x82 "),
-        text("Ngay Muon") | size(WIDTH, EQUAL, w_date),
-        filler()
-     }) | bold;
+         int row_index = selected_slip_index + 1;
+         if (slip_menu->Focused()) {
+             table.SelectRow(row_index).Decorate(inverted);
+         } else {
+             table.SelectRow(row_index).Decorate(bold);
+         }
+         table_element = table.Render();
+     }
 
      auto table_panel = window(
         text(" DANH SACH PHIEU (" + std::to_string(filtered_rows.size()) + ") - BẤM ENTER ĐỂ CHỌN ") | bold | center,
-        vbox({
-            header,
-            separatorLight(),
-            slip_menu->Render() | vscroll_indicator | frame | flex
-        }) | border
+        table_element | vscroll_indicator | frame | flex
      ) | flex;
 
      return window(text(" " + title + " ") | bold | center, hbox({filter_panel, table_panel}));
