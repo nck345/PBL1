@@ -273,11 +273,28 @@ int select_comic_ui(const std::string& title) {
       comic_menu
   });
 
+  ftxui::Box table_box;
+
   auto controls_with_event = CatchEvent(main_container, [&](Event event) {
     if (event == Event::Escape) {
       final_chosen_id = -1;
       form_screen.ExitLoopClosure()();
       return true;
+    }
+    if (event.is_mouse() && table_box.Contain(event.mouse().x, event.mouse().y)) {
+       int hovered_row = event.mouse().y - table_box.y_min - 3;
+       int max_idx = (int)filtered_comics.size() - 1;
+       if (hovered_row >= 0 && hovered_row <= max_idx) {
+           if (event.mouse().button == Mouse::Left && event.mouse().motion == Mouse::Pressed) {
+               selected_comic_index = hovered_row;
+               final_chosen_id = filtered_comics[hovered_row].id;
+               form_screen.ExitLoopClosure()();
+               return true;
+           } else if (event.mouse().motion == Mouse::Moved) {
+               selected_comic_index = hovered_row;
+               // We just update hovered index so it highlights following the mouse
+           }
+       }
     }
     return false;
   });
@@ -337,7 +354,7 @@ int select_comic_ui(const std::string& title) {
         } else {
             table.SelectRow(row_index).Decorate(bold);
         }
-        table_element = table.Render();
+        table_element = table.Render() | reflect(table_box);
     }
 
     auto table_panel = window(
