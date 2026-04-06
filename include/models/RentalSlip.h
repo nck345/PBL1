@@ -6,8 +6,8 @@
 // Khai báo struct cho Phiếu Thuê
 struct RentalSlip {
   int id_phieu;
-  char ten_truyen[100];
-  char khach_hang[100]; // Tên hoặc Số điện thoại
+  int comic_id;
+  int customer_id;
   Date ngay_muon;
   Date ngay_tra_du_kien;
   Date ngay_tra_thuc_te;

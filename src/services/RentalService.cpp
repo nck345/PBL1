@@ -6,6 +6,7 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <ctime>
 
 using namespace std;
 
@@ -43,17 +44,13 @@ long date_to_days(Date d) {
 }
 
 // Xử lý mượn truyện
-void process_new_rental(const char *ten_truyen, const char *khach_hang,
-                        Date ngay_muon, Date ngay_tra_du_kien, double gia_bia) {
+void process_new_rental(int comic_id, int customer_id, Date ngay_tra_du_kien) {
   // 1. Kiem tra ton kho va lay thong tin sach theo ten
-  std::vector<Comic> results = search_comics_by_name(ten_truyen);
-  if (results.empty()) {
-    cout << "Loi: Khong tim thay truyen voi ten: " << ten_truyen << "\n";
+  Comic comic;
+  if (!get_comic_by_id(comic_id, comic)) {
+    cout << "Loi: Khong tim thay truyen!\n";
     return;
   }
-
-  // Giả sử lấy kết quả đầu tiên khớp hoàn toàn hoặc gần đúng nhất
-  Comic comic = results[0];
 
   if (comic.is_deleted) {
     cout << "Loi: Truyen nay da bi xoa khoi he thong!\n";
@@ -64,32 +61,31 @@ void process_new_rental(const char *ten_truyen, const char *khach_hang,
     return;
   }
 
-  // 2. Kiem tra khach hang co ton tai khong (qua so dien thoai)
-  // khach_hang truyen vao duoc coi la so dien thoai de tra cuu
+  // 2. Kiem tra khach hang co ton tai khong
   Customer customer;
-  if (!find_customer_by_phone(khach_hang, customer)) {
-    cout << "Loi: Khong tim thay khach hang voi so dien thoai: " << khach_hang
-         << ".\n";
-    cout << "     Vui long kiem tra lai hoac dang ky khach hang truoc khi thue "
-            "truyen.\n";
+  if (!get_customer_by_id(customer_id, customer)) {
+    cout << "Loi: Khong tim thay khach hang!\n";
     return;
   }
+
+  // Auto generate current date
+  time_t t = time(0);
+  tm* now = localtime(&t);
+  Date ngay_muon = {now->tm_mday, now->tm_mon + 1, now->tm_year + 1900};
 
   // 3. Kiem tra logic ngay: ngay_tra_du_kien phai >= ngay_muon
   if (date_to_days(ngay_tra_du_kien) < date_to_days(ngay_muon)) {
     cout << "Loi: Ngay tra du kien (";
     cout << ngay_tra_du_kien.day << "/" << ngay_tra_du_kien.month << "/" << ngay_tra_du_kien.year;
-    cout << ") khong the som hon ngay muon (";
+    cout << ") khong the som hon ngay hien tai (";
     cout << ngay_muon.day << "/" << ngay_muon.month << "/" << ngay_muon.year;
     cout << ").\n";
     return;
   }
 
   // 4. Kiem tra trung phieu thue dang hoat dong
-  // Dieu kien: cung ten truyen + cung khach hang (customer.name) + trang_thai == 0
-  if (is_rental_duplicate(comic.comic_name, customer.name)) {
-    cout << "Loi: Khach hang \"" << customer.name << "\" dang co phieu thue cuon \""
-         << comic.comic_name << "\" chua tra!\n";
+  if (is_rental_duplicate(comic_id, customer_id)) {
+    cout << "Loi: Khach hang dang co phieu thue cuon nay chua tra!\n";
     cout << "     Vui long tra truyen cu truoc khi thue lai.\n";
     return;
   }
@@ -104,26 +100,18 @@ void process_new_rental(const char *ten_truyen, const char *khach_hang,
   // 6. Lap Phieu
   RentalSlip slip;
   slip.id_phieu = get_next_rental_id();
-  strncpy(slip.ten_truyen, comic.comic_name, sizeof(slip.ten_truyen) - 1);
-  slip.ten_truyen[sizeof(slip.ten_truyen) - 1] = '\0';
-
-  // Luu ten khach hang vao phieu (lay tu Customer da duoc xac thuc)
-  strncpy(slip.khach_hang, customer.name, sizeof(slip.khach_hang) - 1);
-  slip.khach_hang[sizeof(slip.khach_hang) - 1] = '\0';
-
+  slip.comic_id = comic_id;
+  slip.customer_id = customer_id;
   slip.ngay_muon = ngay_muon;
   slip.ngay_tra_du_kien = ngay_tra_du_kien;
   slip.ngay_tra_thuc_te = {0, 0, 0};
 
-  gia_bia = comic.price;
-  slip.tien_coc = gia_bia;
+  slip.tien_coc = comic.price;
   slip.tong_tien = 0;
   slip.trang_thai = 0;
 
   save_rental_slip(slip);
-  cout << "Tao phieu thue thanh cong! Ma phieu: " << slip.id_phieu
-       << " | Khach hang: " << customer.name << " (SDT: " << customer.phone
-       << ")\n";
+  cout << "Tao phieu thue thanh cong! Ma phieu: " << slip.id_phieu << "\n";
 }
 
 // Tính toán hóa đơn
@@ -186,9 +174,7 @@ void process_return_comic(int id_phieu, Date ngay_tra_thuc_te,
     slip.trang_thai = trang_thai_tra; // 1: Đã Trả Hoàn, 2: Làm Mất Hư Hỏng
 
     Comic comic;
-    std::vector<Comic> comics = search_comics_by_name(slip.ten_truyen);
-    if (!comics.empty()) {
-      comic = comics[0];
+    if (get_comic_by_id(slip.comic_id, comic)) {
       gia_bia = comic.price;
 
       // Neu tra nguyen ven (1), thi moi cong lai hang vao ton kho
@@ -197,19 +183,15 @@ void process_return_comic(int id_phieu, Date ngay_tra_thuc_te,
         update_comic(comic);
       }
     } else {
-      // Truyen da bi xoa khoi he thong hoac khong tim thay theo ten.
+      // Truyen da bi xoa khoi he thong hoac khong tim thay theo ID.
       // Fallback: dung tien_coc da luu trong phieu lam gia_bia
-      // (Vi luc thue: tien_coc = 100% gia_bia, nen tien_coc == gia_bia goc)
       if (slip.tien_coc > 0) {
         gia_bia = slip.tien_coc;
-        cout << "Canh bao: Khong tim thay truyen \"" << slip.ten_truyen
-             << "\" trong kho. Su dung tien coc da thu ("
+        cout << "Canh bao: Khong tim thay truyen. Su dung tien coc da thu ("
              << gia_bia << " VND) lam gia bia de tinh toan.\n";
       } else {
-        // Phieu khong co du lieu hop le de tinh tien -> tu choi xu ly
         cout << "Loi nghiem trong: Phieu ID " << id_phieu
-             << " khong the tinh toan vi truyen \"" << slip.ten_truyen
-             << "\" da bi xoa va tien_coc = 0. Lien he quan tri vien.\n";
+             << " khong the tinh toan vi tien_coc = 0. Lien he quan tri vien.\n";
         return;
       }
     }
