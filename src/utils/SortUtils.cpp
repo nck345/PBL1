@@ -2,6 +2,7 @@
 #include "../../include/models/Comic.h"
 #include "../../include/models/RentalSlip.h"
 #include "../../include/models/Customer.h"
+#include "../../include/ui/RentalUI.h"
 #include <vector>
 #include <algorithm> // for std::swap
 
@@ -37,6 +38,6 @@ void quick_sort(std::vector<T>& arr, bool (*compare)(const T&, const T&)) {
 
 // Explicit Instantiation cho Comic
 template void quick_sort<Comic>(std::vector<Comic>&, bool (*)(const Comic&, const Comic&));
-// Phép khai báo thêm để khỏi bị lỗi link cho bảng khác nếu Nhu Y dung (tuỳ chọn)
 template void quick_sort<RentalSlip>(std::vector<RentalSlip>&, bool (*)(const RentalSlip&, const RentalSlip&));
 template void quick_sort<Customer>(std::vector<Customer>&, bool (*)(const Customer&, const Customer&));
+template void quick_sort<RentalUIRow>(std::vector<RentalUIRow>&, bool (*)(const RentalUIRow&, const RentalUIRow&));
