@@ -73,3 +73,43 @@ bool is_valid_phone_number(const std::string& phone) {
     }
     return true;
 }
+
+std::string truncate_text(const std::string& str, size_t max_width) {
+    if (max_width <= 3) return "...";
+    size_t count = 0;
+    size_t utf8_len = 0;
+    
+    for (size_t i = 0; i < str.length(); ) {
+        unsigned char c = str[i];
+        size_t char_len = 1;
+        if ((c & 0x80) == 0) char_len = 1;
+        else if ((c & 0xE0) == 0xC0) char_len = 2;
+        else if ((c & 0xF0) == 0xE0) char_len = 3;
+        else if ((c & 0xF8) == 0xF0) char_len = 4;
+        utf8_len++;
+        i += char_len;
+    }
+    
+    if (utf8_len <= max_width) return str;
+    
+    size_t return_length = 0;
+    for (size_t i = 0; i < str.length(); ) {
+        unsigned char c = str[i];
+        size_t char_len = 1;
+        if ((c & 0x80) == 0) char_len = 1;
+        else if ((c & 0xE0) == 0xC0) char_len = 2;
+        else if ((c & 0xF0) == 0xE0) char_len = 3;
+        else if ((c & 0xF8) == 0xF0) char_len = 4;
+        
+        if (count + 3 >= max_width) {
+            break;
+        }
+        
+        return_length += char_len;
+        count++;
+        i += char_len;
+    }
+    
+    return str.substr(0, return_length) + "...";
+}
+

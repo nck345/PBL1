@@ -12,6 +12,7 @@
 #include <ftxui/component/screen_interactive.hpp>
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/dom/table.hpp>
+#include <ftxui/screen/terminal.hpp>
 
 using namespace ftxui;
 
@@ -88,10 +89,18 @@ int select_customer_ui(const std::string& title) {
   customer_menu_opt.entries_option.transform = [&](const EntryState& state) {
       if (state.index >= (int)filtered_list.size()) return text("");
       auto& c = filtered_list[state.index];
+      
+      int w_term = ftxui::Terminal::Size().dimx;
+      if (w_term < 60) w_term = 60;
+      int w_id = 5;
+      int w_phone = 15;
+      int w_name = w_term - w_id - w_phone - 45;
+      if (w_name < 15) w_name = 15;
+
       auto row = hbox({
-          text(std::to_string(c.id)) | size(WIDTH, EQUAL, 5), separatorEmpty(),
-          text(c.name) | size(WIDTH, EQUAL, 30), separatorEmpty(),
-          text(c.phone) | size(WIDTH, EQUAL, 15)
+          text(std::to_string(c.id)) | size(WIDTH, EQUAL, w_id), text(" \xe2\x94\x82 "),
+          text(truncate_text(c.name, w_name)) | size(WIDTH, EQUAL, w_name), text(" \xe2\x94\x82 "),
+          text(c.phone) | size(WIDTH, EQUAL, w_phone)
       });
       if (state.focused) { row = row | inverted; }
       if (state.active) { row = row | bold; }
@@ -137,10 +146,17 @@ int select_customer_ui(const std::string& title) {
      dummy_entries.resize(filtered_list.size(), "");
      if (selected_customer_index >= (int)filtered_list.size()) selected_customer_index = std::max(0, (int)filtered_list.size() - 1);
 
+     int w_term = ftxui::Terminal::Size().dimx;
+     if (w_term < 60) w_term = 60;
+     int w_id = 5;
+     int w_phone = 15;
+     int w_name = w_term - w_id - w_phone - 45;
+     if (w_name < 15) w_name = 15;
+
      auto header = hbox({
-        text("ID") | size(WIDTH, EQUAL, 5), separatorEmpty(),
-        text("Ten Khach Hang") | size(WIDTH, EQUAL, 30), separatorEmpty(),
-        text("SDT") | size(WIDTH, EQUAL, 15)
+        text("ID") | size(WIDTH, EQUAL, w_id), text(" \xe2\x94\x82 "),
+        text(truncate_text("Ten Khach Hang", w_name)) | size(WIDTH, EQUAL, w_name), text(" \xe2\x94\x82 "),
+        text("SDT") | size(WIDTH, EQUAL, w_phone)
      }) | bold | border;
 
      auto table_panel = window(

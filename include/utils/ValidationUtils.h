@@ -15,4 +15,6 @@ bool is_valid_date(int day, int month, int year);
 bool is_valid_date_struct(Date d);
 bool is_valid_phone_number(const std::string& phone);
 
+std::string truncate_text(const std::string& str, size_t max_width);
+
 #endif

@@ -18,6 +18,7 @@
 #include <ftxui/component/screen_interactive.hpp>
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/dom/table.hpp>
+#include <ftxui/screen/terminal.hpp>
 
 using namespace ftxui;
 
@@ -294,13 +295,28 @@ int select_rental_slip_ui(const std::string& title) {
       if (state.index >= (int)filtered_rows.size()) return text("");
       auto& r = filtered_rows[state.index];
       std::string nm = std::to_string(r.slip.ngay_muon.day) + "/" + std::to_string(r.slip.ngay_muon.month) + "/" + std::to_string(r.slip.ngay_muon.year);
+      
+      int w_term = ftxui::Terminal::Size().dimx;
+      if (w_term < 100) w_term = 100;
+      int w_id = 4;
+      int w_date = 12;
+      int w_rem = w_term - w_id - w_date - 65;
+      int w_cu = w_rem * 0.35;
+      int w_c = w_rem * 0.35;
+      int w_author = w_rem * 0.15;
+      int w_type = w_rem * 0.15;
+      if (w_cu < 15) w_cu = 15;
+      if (w_c < 15) w_c = 15;
+      if (w_author < 10) w_author = 10;
+      if (w_type < 10) w_type = 10;
+
       auto row = hbox({
-          text(std::to_string(r.slip.id_phieu)) | size(WIDTH, EQUAL, 4), separatorEmpty(),
-          text(r.cu_name) | size(WIDTH, EQUAL, 25), separatorEmpty(),
-          text(r.c_name) | size(WIDTH, EQUAL, 25), separatorEmpty(),
-          text(r.c_author) | size(WIDTH, EQUAL, 15), separatorEmpty(),
-          text(r.c_type) | size(WIDTH, EQUAL, 15), separatorEmpty(),
-          text(nm) | size(WIDTH, EQUAL, 12)
+          text(std::to_string(r.slip.id_phieu)) | size(WIDTH, EQUAL, w_id), text(" \xe2\x94\x82 "),
+          text(truncate_text(r.cu_name, w_cu)) | size(WIDTH, EQUAL, w_cu), text(" \xe2\x94\x82 "),
+          text(truncate_text(r.c_name, w_c)) | size(WIDTH, EQUAL, w_c), text(" \xe2\x94\x82 "),
+          text(truncate_text(r.c_author, w_author)) | size(WIDTH, EQUAL, w_author), text(" \xe2\x94\x82 "),
+          text(truncate_text(r.c_type, w_type)) | size(WIDTH, EQUAL, w_type), text(" \xe2\x94\x82 "),
+          text(nm) | size(WIDTH, EQUAL, w_date)
       });
       if (state.focused) { row = row | inverted; }
       if (state.active) { row = row | bold; }
@@ -361,13 +377,27 @@ int select_rental_slip_ui(const std::string& title) {
      dummy_entries.resize(filtered_rows.size(), "");
      if (selected_slip_index >= (int)filtered_rows.size()) selected_slip_index = std::max(0, (int)filtered_rows.size() - 1);
 
+     int w_term = ftxui::Terminal::Size().dimx;
+     if (w_term < 100) w_term = 100;
+     int w_id = 4;
+     int w_date = 12;
+     int w_rem = w_term - w_id - w_date - 65;
+     int w_cu = w_rem * 0.35;
+     int w_c = w_rem * 0.35;
+     int w_author = w_rem * 0.15;
+     int w_type = w_rem * 0.15;
+     if (w_cu < 15) w_cu = 15;
+     if (w_c < 15) w_c = 15;
+     if (w_author < 10) w_author = 10;
+     if (w_type < 10) w_type = 10;
+
      auto header = hbox({
-        text("ID") | size(WIDTH, EQUAL, 4), separatorEmpty(),
-        text("Khach Hang") | size(WIDTH, EQUAL, 25), separatorEmpty(),
-        text("Ten Truyen") | size(WIDTH, EQUAL, 25), separatorEmpty(),
-        text("Tac Gia") | size(WIDTH, EQUAL, 15), separatorEmpty(),
-        text("The Loai") | size(WIDTH, EQUAL, 15), separatorEmpty(),
-        text("Ngay Muon") | size(WIDTH, EQUAL, 12)
+        text("ID") | size(WIDTH, EQUAL, w_id), text(" \xe2\x94\x82 "),
+        text(truncate_text("Khach Hang", w_cu)) | size(WIDTH, EQUAL, w_cu), text(" \xe2\x94\x82 "),
+        text(truncate_text("Ten Truyen", w_c)) | size(WIDTH, EQUAL, w_c), text(" \xe2\x94\x82 "),
+        text(truncate_text("Tac Gia", w_author)) | size(WIDTH, EQUAL, w_author), text(" \xe2\x94\x82 "),
+        text(truncate_text("The Loai", w_type)) | size(WIDTH, EQUAL, w_type), text(" \xe2\x94\x82 "),
+        text("Ngay Muon") | size(WIDTH, EQUAL, w_date)
      }) | bold | border;
 
      auto table_panel = window(
