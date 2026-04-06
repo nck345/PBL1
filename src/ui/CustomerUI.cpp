@@ -15,14 +15,13 @@
 
 using namespace ftxui;
 
-void render_customer_table(const std::vector<Customer> &customers) {
+Element build_customer_table_element(const std::vector<Customer> &customers) {
   if (customers.empty()) {
-    std::cout << "Khong co du lieu khach hang.\n";
-    return;
+    return text("Khong co du lieu khach hang.") | center;
   }
 
   std::vector<std::vector<std::string>> table_data;
-  table_data.push_back({"Hinh Thuc", "Ten Khach Hang", "So Dien Thoai"});
+  table_data.push_back({"ID", "Ten Khach Hang", "So Dien Thoai"});
 
   bool has_data = false;
   for (const auto &c : customers) {
@@ -33,8 +32,7 @@ void render_customer_table(const std::vector<Customer> &customers) {
   }
 
   if (!has_data) {
-    std::cout << "Khong co du lieu (hoac da bi xoa).\n";
-    return;
+    return text("Khong co du lieu (hoac da bi xoa).") | center;
   }
 
   auto table = Table(table_data);
@@ -43,11 +41,7 @@ void render_customer_table(const std::vector<Customer> &customers) {
   table.SelectRow(0).SeparatorVertical(LIGHT);
   table.SelectRow(0).Border(DOUBLE);
 
-  auto document = table.Render();
-  auto screen = Screen::Create(Dimension::Fit(document), Dimension::Fit(document));
-  Render(screen, document);
-  screen.Print();
-  std::cout << "\n";
+  return table.Render();
 }
 
 int select_customer_ui(const std::string& title) {
@@ -115,7 +109,7 @@ void render_customer_menu() {
   std::vector<std::string> entries = {
       "1. Xem danh sach khach", "2. Them khach hang",
       "3. Sua khach hang", "4. Xoa khach hang",
-      "5. Tim kiem khach hang",      "6. Tro ve"};
+      "5. Tro ve"};
   int selected = 0;
 
   MenuOption option;
@@ -154,10 +148,64 @@ void render_customer_menu() {
 
     if (selected == 0) {
       system("cls");
-      std::cout << "\n--- DANH SACH KHACH HANG ---\n";
       std::vector<Customer> all = read_all_customers();
-      render_customer_table(all);
-      get_string_input("Nhan Enter de tiep tuc...");
+      if (all.empty()) {
+         std::cout << "Khong co khach hang nao trong he thong!\n";
+         get_string_input("Nhan Enter de tiep tuc...");
+         continue;
+      }
+
+      auto form_screen = ScreenInteractive::Fullscreen();
+      std::string search_kw = "";
+      std::vector<Customer> filtered_list = all;
+
+      auto apply_filter = [&] {
+         filtered_list.clear();
+         std::string kw = search_kw;
+         for (char &c : kw) c = std::tolower(c);
+         for (const auto& c : all) {
+            std::string n = c.name; for (char &ch : n) ch = std::tolower(ch);
+            std::string p = c.phone;
+            bool ok = kw.empty() || n.find(kw) != std::string::npos || p.find(kw) != std::string::npos || std::to_string(c.id) == kw;
+            if (ok && !c.is_deleted) {
+               filtered_list.push_back(c);
+            }
+         }
+      };
+
+      Component input_search = Input(&search_kw, "ID, SDT hoac Ten...");
+      Component exit_button = Button("Tro Ve", [&] { form_screen.ExitLoopClosure()(); }, ButtonOption::Animated());
+
+      auto controls = Container::Vertical({
+         input_search, exit_button
+      });
+      auto controls_event = CatchEvent(controls, [&](Event event) {
+         if (event == Event::Escape) {
+            form_screen.ExitLoopClosure()();
+            return true;
+         }
+         return false;
+      });
+
+      auto ui_renderer = Renderer(controls_event, [&] {
+         apply_filter();
+         auto filter_panel = vbox({
+            text("--- BỘ LỌC === ") | bold,
+            separator(),
+            hbox(text(" Tim kiem: "), input_search->Render()),
+            separator(),
+            exit_button->Render() | center
+         }) | border | size(WIDTH, GREATER_THAN, 30);
+
+         auto table_panel = window(
+            text(" DANH SACH KHACH HANG (" + std::to_string(filtered_list.size()) + ")") | bold | center,
+            build_customer_table_element(filtered_list) | vscroll_indicator | frame
+         ) | flex;
+
+         return hbox({filter_panel, table_panel});
+      });
+
+      form_screen.Loop(ui_renderer);
     } else if (selected == 1) {
       system("cls");
       auto form_screen = ScreenInteractive::TerminalOutput();
@@ -374,14 +422,6 @@ void render_customer_menu() {
       }
       get_string_input("Nhan Enter de tiep tuc...");
     } else if (selected == 4) {
-      system("cls");
-      std::cout << "\n--- TIM KIEM KHACH HANG ---\n";
-      std::string kw = get_string_input("Nhap ten khach can tim: ");
-      if (kw == "[ESC]") continue;
-      std::vector<Customer> res = search_customers_by_name(kw);
-      render_customer_table(res);
-      get_string_input("Nhan Enter de tiep tuc...");
-    } else if (selected == 5) {
       system("cls");
       break;
     }
