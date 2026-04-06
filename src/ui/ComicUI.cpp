@@ -251,18 +251,12 @@ int select_comic_ui(const std::string& title) {
       if (state.index >= (int)filtered_comics.size()) return text("");
       auto& c = filtered_comics[state.index];
       
-      int w_term = ftxui::Terminal::Size().dimx;
-      if (w_term < 80) w_term = 80;
       int w_id = 5;
-      int w_price = 12;
+      int w_name = 30;
+      int w_author = 20;
+      int w_type = 15;
+      int w_price = 15;
       int w_qty = 5;
-      int w_rem = w_term - w_id - w_price - w_qty - 55;
-      int w_name = w_rem * 0.5;
-      int w_author = w_rem * 0.25;
-      int w_type = w_rem * 0.25;
-      if (w_name < 20) w_name = 20;
-      if (w_author < 12) w_author = 12;
-      if (w_type < 12) w_type = 12;
 
       auto row = hbox({
           text(std::to_string(c.id)) | size(WIDTH, EQUAL, w_id), text(" \xe2\x94\x82 "),
@@ -270,7 +264,8 @@ int select_comic_ui(const std::string& title) {
           text(truncate_text(c.author, w_author)) | size(WIDTH, EQUAL, w_author), text(" \xe2\x94\x82 "),
           text(truncate_text(c.type, w_type)) | size(WIDTH, EQUAL, w_type), text(" \xe2\x94\x82 "),
           text(format_currency(c.price)) | size(WIDTH, EQUAL, w_price), text(" \xe2\x94\x82 "),
-          text(std::to_string(c.quantity)) | size(WIDTH, EQUAL, w_qty)
+          text(std::to_string(c.quantity)) | size(WIDTH, EQUAL, w_qty),
+          filler()
       });
       if (state.focused) { row = row | inverted; }
       if (state.active) { row = row | bold; }
@@ -338,18 +333,12 @@ int select_comic_ui(const std::string& title) {
     dummy_entries.resize(filtered_comics.size(), "");
     if (selected_comic_index >= (int)filtered_comics.size()) selected_comic_index = std::max(0, (int)filtered_comics.size() - 1);
 
-    int w_term = ftxui::Terminal::Size().dimx;
-    if (w_term < 80) w_term = 80;
     int w_id = 5;
-    int w_price = 12;
+    int w_name = 30;
+    int w_author = 20;
+    int w_type = 15;
+    int w_price = 15;
     int w_qty = 5;
-    int w_rem = w_term - w_id - w_price - w_qty - 55;
-    int w_name = w_rem * 0.5;
-    int w_author = w_rem * 0.25;
-    int w_type = w_rem * 0.25;
-    if (w_name < 20) w_name = 20;
-    if (w_author < 12) w_author = 12;
-    if (w_type < 12) w_type = 12;
 
     auto header = hbox({
         text("ID") | size(WIDTH, EQUAL, w_id), text(" \xe2\x94\x82 "),
@@ -357,15 +346,17 @@ int select_comic_ui(const std::string& title) {
         text(truncate_text("Tac Gia", w_author)) | size(WIDTH, EQUAL, w_author), text(" \xe2\x94\x82 "),
         text(truncate_text("The Loai", w_type)) | size(WIDTH, EQUAL, w_type), text(" \xe2\x94\x82 "),
         text("Gia") | size(WIDTH, EQUAL, w_price), text(" \xe2\x94\x82 "),
-        text("Ton") | size(WIDTH, EQUAL, w_qty)
-    }) | bold | border;
+        text("Ton") | size(WIDTH, EQUAL, w_qty),
+        filler()
+    }) | bold;
 
     auto table_panel = window(
         text(" DANH SÁCH (" + std::to_string(filtered_comics.size()) + ") - BẤM ENTER ĐỂ CHỌN ") | bold | center,
         vbox({
             header,
+            separatorLight(),
             comic_menu->Render() | vscroll_indicator | frame | flex
-        })
+        }) | border
     ) | flex;
 
     return window(text(" " + title + " ") | bold | center, hbox({ filter_panel, table_panel }));
@@ -390,8 +381,8 @@ void render_comic_table(const std::vector<Comic> &comics) {
   for (const auto &comic : comics) {
     if (!comic.is_deleted) {
       has_data = true;
-      table_data.push_back({std::to_string(comic.id), comic.comic_name,
-                            comic.author, comic.type, format_currency(comic.price),
+      table_data.push_back({std::to_string(comic.id), truncate_text(comic.comic_name, 25),
+                            truncate_text(comic.author, 15), truncate_text(comic.type, 15), format_currency(comic.price),
                             std::to_string(comic.quantity)});
     }
   }
@@ -405,7 +396,7 @@ void render_comic_table(const std::vector<Comic> &comics) {
   table.SelectAll().Border(LIGHT);
 
   table.SelectRow(0).Decorate(bold);
-  table.SelectRow(0).SeparatorVertical(LIGHT);
+  table.SelectAll().SeparatorVertical(LIGHT);
   table.SelectRow(0).Border(DOUBLE);
 
   // Alignment
@@ -429,8 +420,8 @@ Element build_comic_table_element(const std::vector<Comic>& comics) {
 
   for (const auto &comic : comics) {
     if (!comic.is_deleted) {
-      table_data.push_back({std::to_string(comic.id), comic.comic_name,
-                            comic.author, comic.type, format_currency(comic.price),
+      table_data.push_back({std::to_string(comic.id), truncate_text(comic.comic_name, 25),
+                            truncate_text(comic.author, 15), truncate_text(comic.type, 15), format_currency(comic.price),
                             std::to_string(comic.quantity)});
     }
   }
@@ -438,7 +429,7 @@ Element build_comic_table_element(const std::vector<Comic>& comics) {
   auto table = Table(table_data);
   table.SelectAll().Border(LIGHT);
   table.SelectRow(0).Decorate(bold);
-  table.SelectRow(0).SeparatorVertical(LIGHT);
+  table.SelectAll().SeparatorVertical(LIGHT);
   table.SelectRow(0).Border(DOUBLE);
 
   return table.Render();

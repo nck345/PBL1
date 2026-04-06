@@ -28,7 +28,7 @@ Element build_customer_table_element(const std::vector<Customer> &customers) {
   for (const auto &c : customers) {
     if (!c.is_deleted) {
       has_data = true;
-      table_data.push_back({std::to_string(c.id), c.name, c.phone});
+      table_data.push_back({std::to_string(c.id), truncate_text(c.name, 35), truncate_text(c.phone, 15)});
     }
   }
 
@@ -39,7 +39,7 @@ Element build_customer_table_element(const std::vector<Customer> &customers) {
   auto table = Table(table_data);
   table.SelectAll().Border(LIGHT);
   table.SelectRow(0).Decorate(bold);
-  table.SelectRow(0).SeparatorVertical(LIGHT);
+  table.SelectAll().SeparatorVertical(LIGHT);
   table.SelectRow(0).Border(DOUBLE);
 
   return table.Render();
@@ -90,17 +90,15 @@ int select_customer_ui(const std::string& title) {
       if (state.index >= (int)filtered_list.size()) return text("");
       auto& c = filtered_list[state.index];
       
-      int w_term = ftxui::Terminal::Size().dimx;
-      if (w_term < 60) w_term = 60;
       int w_id = 5;
+      int w_name = 30;
       int w_phone = 15;
-      int w_name = w_term - w_id - w_phone - 45;
-      if (w_name < 15) w_name = 15;
 
       auto row = hbox({
           text(std::to_string(c.id)) | size(WIDTH, EQUAL, w_id), text(" \xe2\x94\x82 "),
           text(truncate_text(c.name, w_name)) | size(WIDTH, EQUAL, w_name), text(" \xe2\x94\x82 "),
-          text(c.phone) | size(WIDTH, EQUAL, w_phone)
+          text(truncate_text(c.phone, w_phone)) | size(WIDTH, EQUAL, w_phone),
+          filler()
       });
       if (state.focused) { row = row | inverted; }
       if (state.active) { row = row | bold; }
@@ -146,25 +144,24 @@ int select_customer_ui(const std::string& title) {
      dummy_entries.resize(filtered_list.size(), "");
      if (selected_customer_index >= (int)filtered_list.size()) selected_customer_index = std::max(0, (int)filtered_list.size() - 1);
 
-     int w_term = ftxui::Terminal::Size().dimx;
-     if (w_term < 60) w_term = 60;
      int w_id = 5;
+     int w_name = 30;
      int w_phone = 15;
-     int w_name = w_term - w_id - w_phone - 45;
-     if (w_name < 15) w_name = 15;
 
      auto header = hbox({
         text("ID") | size(WIDTH, EQUAL, w_id), text(" \xe2\x94\x82 "),
         text(truncate_text("Ten Khach Hang", w_name)) | size(WIDTH, EQUAL, w_name), text(" \xe2\x94\x82 "),
-        text("SDT") | size(WIDTH, EQUAL, w_phone)
-     }) | bold | border;
+        text("SDT") | size(WIDTH, EQUAL, w_phone),
+        filler()
+     }) | bold;
 
      auto table_panel = window(
         text(" DANH SACH KHACH (" + std::to_string(filtered_list.size()) + ") - BẤM ENTER ĐỂ CHỌN ") | bold | center,
         vbox({
             header,
+            separatorLight(),
             customer_menu->Render() | vscroll_indicator | frame | flex
-        })
+        }) | border
      ) | flex;
 
      return window(text(" " + title + " ") | bold | center, hbox({filter_panel, table_panel}));

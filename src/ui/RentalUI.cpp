@@ -295,20 +295,12 @@ int select_rental_slip_ui(const std::string& title) {
       if (state.index >= (int)filtered_rows.size()) return text("");
       auto& r = filtered_rows[state.index];
       std::string nm = std::to_string(r.slip.ngay_muon.day) + "/" + std::to_string(r.slip.ngay_muon.month) + "/" + std::to_string(r.slip.ngay_muon.year);
-      
-      int w_term = ftxui::Terminal::Size().dimx;
-      if (w_term < 100) w_term = 100;
-      int w_id = 4;
+      int w_id = 5;
       int w_date = 12;
-      int w_rem = w_term - w_id - w_date - 65;
-      int w_cu = w_rem * 0.35;
-      int w_c = w_rem * 0.35;
-      int w_author = w_rem * 0.15;
-      int w_type = w_rem * 0.15;
-      if (w_cu < 15) w_cu = 15;
-      if (w_c < 15) w_c = 15;
-      if (w_author < 10) w_author = 10;
-      if (w_type < 10) w_type = 10;
+      int w_cu = 25;
+      int w_c = 30;
+      int w_author = 20;
+      int w_type = 15;
 
       auto row = hbox({
           text(std::to_string(r.slip.id_phieu)) | size(WIDTH, EQUAL, w_id), text(" \xe2\x94\x82 "),
@@ -316,7 +308,8 @@ int select_rental_slip_ui(const std::string& title) {
           text(truncate_text(r.c_name, w_c)) | size(WIDTH, EQUAL, w_c), text(" \xe2\x94\x82 "),
           text(truncate_text(r.c_author, w_author)) | size(WIDTH, EQUAL, w_author), text(" \xe2\x94\x82 "),
           text(truncate_text(r.c_type, w_type)) | size(WIDTH, EQUAL, w_type), text(" \xe2\x94\x82 "),
-          text(nm) | size(WIDTH, EQUAL, w_date)
+          text(nm) | size(WIDTH, EQUAL, w_date),
+          filler()
       });
       if (state.focused) { row = row | inverted; }
       if (state.active) { row = row | bold; }
@@ -376,20 +369,12 @@ int select_rental_slip_ui(const std::string& title) {
 
      dummy_entries.resize(filtered_rows.size(), "");
      if (selected_slip_index >= (int)filtered_rows.size()) selected_slip_index = std::max(0, (int)filtered_rows.size() - 1);
-
-     int w_term = ftxui::Terminal::Size().dimx;
-     if (w_term < 100) w_term = 100;
-     int w_id = 4;
+     int w_id = 5;
      int w_date = 12;
-     int w_rem = w_term - w_id - w_date - 65;
-     int w_cu = w_rem * 0.35;
-     int w_c = w_rem * 0.35;
-     int w_author = w_rem * 0.15;
-     int w_type = w_rem * 0.15;
-     if (w_cu < 15) w_cu = 15;
-     if (w_c < 15) w_c = 15;
-     if (w_author < 10) w_author = 10;
-     if (w_type < 10) w_type = 10;
+     int w_cu = 25;
+     int w_c = 30;
+     int w_author = 20;
+     int w_type = 15;
 
      auto header = hbox({
         text("ID") | size(WIDTH, EQUAL, w_id), text(" \xe2\x94\x82 "),
@@ -397,15 +382,17 @@ int select_rental_slip_ui(const std::string& title) {
         text(truncate_text("Ten Truyen", w_c)) | size(WIDTH, EQUAL, w_c), text(" \xe2\x94\x82 "),
         text(truncate_text("Tac Gia", w_author)) | size(WIDTH, EQUAL, w_author), text(" \xe2\x94\x82 "),
         text(truncate_text("The Loai", w_type)) | size(WIDTH, EQUAL, w_type), text(" \xe2\x94\x82 "),
-        text("Ngay Muon") | size(WIDTH, EQUAL, w_date)
-     }) | bold | border;
+        text("Ngay Muon") | size(WIDTH, EQUAL, w_date),
+        filler()
+     }) | bold;
 
      auto table_panel = window(
         text(" DANH SACH PHIEU (" + std::to_string(filtered_rows.size()) + ") - BẤM ENTER ĐỂ CHỌN ") | bold | center,
         vbox({
             header,
+            separatorLight(),
             slip_menu->Render() | vscroll_indicator | frame | flex
-        })
+        }) | border
      ) | flex;
 
      return window(text(" " + title + " ") | bold | center, hbox({filter_panel, table_panel}));
@@ -544,12 +531,12 @@ Element build_rental_table_element(const std::vector<RentalSlip>& slips, const s
     std::string c_name = get_c_name(s.comic_id, all_c);
     std::string c_author = get_c_author(s.comic_id, all_c);
     std::string c_type = get_c_type(s.comic_id, all_c);
-    table_data.push_back({std::to_string(s.id_phieu), cu_name, c_name, c_author, c_type, nm, tt});
+    table_data.push_back({std::to_string(s.id_phieu), truncate_text(cu_name, 25), truncate_text(c_name, 25), truncate_text(c_author, 15), truncate_text(c_type, 15), nm, tt});
   }
   auto table = Table(table_data);
   table.SelectAll().Border(LIGHT);
   table.SelectRow(0).Decorate(bold);
-  table.SelectRow(0).SeparatorVertical(LIGHT);
+  table.SelectAll().SeparatorVertical(LIGHT);
   table.SelectRow(0).Border(DOUBLE);
   return table.Render();
 }
@@ -804,7 +791,7 @@ void render_statistics_screen() {
         std::string c_name = get_c_name(s.comic_id, all_c);
 
         main_table_data.push_back({
-            std::to_string(s.id_phieu), c_name, cu_name, ngay_m, ngay_d, ngay_t,
+            std::to_string(s.id_phieu), truncate_text(c_name, 25), truncate_text(cu_name, 25), ngay_m, ngay_d, ngay_t,
             format_currency(s.tien_coc), format_currency(s.tong_tien), tt
         });
     }
@@ -833,7 +820,7 @@ void render_statistics_screen() {
         std::string c_name = get_c_name(s.comic_id, all_c);
         
         overdue_table_data.push_back({
-            std::to_string(s.id_phieu), c_name, cu_name,
+            std::to_string(s.id_phieu), truncate_text(c_name, 25), truncate_text(cu_name, 25),
           std::to_string(s.ngay_tra_du_kien.day) + "/" + std::to_string(s.ngay_tra_du_kien.month),
             delay_str
         });
