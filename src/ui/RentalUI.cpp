@@ -8,6 +8,10 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <ctime>
+#include "../../include/ui/ComicUI.h"
+#include "../../include/ui/CustomerUI.h"
+#include "../../include/repository/CustomerRepo.h"
 
 
 #include <ftxui/component/component.hpp>
@@ -26,153 +30,61 @@ Date parse_date_string(const std::string &date_str) {
   return d;
 }
 
-// Hàm chọn truyện từ danh sách kết quả tìm kiếm.
-// - Nếu tìm thấy đúng 1 kết quả: tự động chọn luôn.
-// - Nếu > 1 kết quả: hiện menu để người dùng chọn đúng quyển.
-// Trả về Comic được chọn. Nếu không tìm thấy hoặc thoát, id = 0.
-Comic select_comic_menu(const std::string &query) {
-  std::vector<Comic> results = search_comics_by_name(query);
-  if (results.empty()) return {0, "", "", "", 0, 0, false};
-  if (results.size() == 1) return results[0];
-
-  auto screen = ScreenInteractive::TerminalOutput();
-  std::vector<std::string> entries;
-  for (const auto &c : results)
-    entries.push_back(std::string(c.comic_name) + " | Gia: " +
-                      std::to_string((int)c.price) +
-                      "d | Kho: " + std::to_string(c.quantity));
-  entries.push_back("[Quay lai]");
-
-  int selected = 0;
-  MenuOption opt;
-  opt.on_enter = screen.ExitLoopClosure();
-  auto menu = Menu(&entries, &selected, opt);
-  auto menu_with_event = CatchEvent(menu, [&](Event event) {
-      if (event == Event::Escape) {
-          selected = entries.size() - 1;
-          screen.ExitLoopClosure()();
-          return true;
-      }
-      if (event.is_character()) {
-          char c = event.character()[0];
-          if (c >= '1' && c <= '9') {
-              int index = c - '1';
-              if (index < (int)entries.size()) {
-                  selected = index;
-                  screen.ExitLoopClosure()();
-                  return true;
-              }
-          }
-      }
-      return false;
-  });
-
-  auto renderer = Renderer(menu_with_event, [&] {
-    return window(text(" Tim thay " + std::to_string(results.size()) +
-                       " truyen - Chon dung quyen: "),
-                  menu_with_event->Render() | vscroll_indicator | frame);
-  });
-  screen.Loop(renderer);
-
-  if (selected >= 0 && selected < (int)results.size())
-    return results[selected];
-  return {0, "", "", "", 0, 0, false}; // Nguoi dung thoat
+std::string get_c_name(int comic_id, const std::vector<Comic>& comics) {
+  for (const auto& c : comics) {
+    if (c.id == comic_id) return c.comic_name;
+  }
+  return "Unknown Comic";
 }
 
-// Hàm gợi ý khách hàng dựa trên lịch sử phiếu thuê đã có.
-// - Nếu không thấy khách cũ nào khớp: trả thẳng string vừa nhập.
-// - Nếu thấy: hiện menu để chọn khách cũ hoặc dùng thông tin mới nhập.
-// Trả về chuỗi thông tin khách. Trả về "" nếu người dùng muốn quay lại.
-std::string select_customer_menu(const std::string &query) {
-  std::vector<RentalSlip> slips = get_all_rental_slips();
-  std::vector<std::string> matches;
-  for (const auto &s : slips) {
-    std::string info = s.khach_hang;
-    if (info.find(query) != std::string::npos) {
-      bool dup = false;
-      for (const auto &m : matches) if (m == info) { dup = true; break; }
-      if (!dup) matches.push_back(info);
-    }
+std::string get_cu_name(int customer_id, const std::vector<Customer>& customers) {
+  for (const auto& c : customers) {
+    if (c.id == customer_id) return std::string(c.name) + " (" + std::string(c.phone) + ")";
   }
-  if (matches.empty()) return query;
-
-  auto screen = ScreenInteractive::TerminalOutput();
-  std::vector<std::string> entries = matches;
-  entries.push_back("[Dung thong tin moi]: " + query);
-  entries.push_back("[Quay lai]");
-
-  int selected = 0;
-  MenuOption opt;
-  opt.on_enter = screen.ExitLoopClosure();
-  auto menu = Menu(&entries, &selected, opt);
-  auto menu_with_event = CatchEvent(menu, [&](Event event) {
-      if (event == Event::Escape) {
-          selected = entries.size() - 1; // [Quay lai]
-          screen.ExitLoopClosure()();
-          return true;
-      }
-      if (event.is_character()) {
-          char c = event.character()[0];
-          if (c >= '1' && c <= '9') {
-              int index = c - '1';
-              if (index < (int)entries.size()) {
-                  selected = index;
-                  screen.ExitLoopClosure()();
-                  return true;
-              }
-          }
-      }
-      return false;
-  });
-
-  auto renderer = Renderer(menu_with_event, [&] {
-    return window(text(" Goi y khach hang cu (chon hoac nhap moi): "),
-                  menu_with_event->Render() | vscroll_indicator | frame);
-  });
-  screen.Loop(renderer);
-
-  if (selected >= 0 && selected < (int)matches.size()) return matches[selected];
-  if (selected == (int)matches.size()) return query;
-  return ""; // Quay lai
+  return "Unknown Customer";
 }
 
 void render_new_rental_screen() {
   system("cls");
+
+  std::cout << "--- BUOC 1: CHON TRUYEN ---\n";
+  int comic_id = select_comic_ui("CHON TRUYEN DE CHO THUE");
+  if (comic_id <= 0) {
+    std::cout << "Huy thao tac mượn truyện. Nhấn Enter de thoat...\n";
+    get_string_input("");
+    return;
+  }
+
+  system("cls");
+  std::cout << "--- BUOC 2: CHON KHACH HANG ---\n";
+  int customer_id = select_customer_ui("CHON KHACH HANG MƯỢN TRUYỆN");
+  if (customer_id <= 0) {
+    std::cout << "Huy thao tac mượn truyện. Nhấn Enter de thoat...\n";
+    get_string_input("");
+    return;
+  }
+
+  system("cls");
   auto screen = ScreenInteractive::TerminalOutput();
 
-  std::string ten_truyen_str;
-  std::string khach_info_str;
-  std::string ngay_muon_d, ngay_muon_m, ngay_muon_y;
   std::string ngay_tra_d, ngay_tra_m, ngay_tra_y;
   std::string error_msg = "";
 
-  Component input_truyen = Input(&ten_truyen_str, "nhập tên truyện...");
-  Component input_khach = Input(&khach_info_str, "nhập tên hoặc SĐT...");
-  Component input_nm_d = Input(&ngay_muon_d, "DD");
-  Component input_nm_m = Input(&ngay_muon_m, "MM");
-  Component input_nm_y = Input(&ngay_muon_y, "YYYY");
   Component input_nt_d = Input(&ngay_tra_d, "DD");
   Component input_nt_m = Input(&ngay_tra_m, "MM");
   Component input_nt_y = Input(&ngay_tra_y, "YYYY");
   bool should_submit = false;
 
   auto submit_button = Button("Xác nhận & Cho thuê", [&] {
-      if (ten_truyen_str.empty() || khach_info_str.empty() || ngay_muon_d.empty() || ngay_muon_m.empty() || ngay_muon_y.empty() || ngay_tra_d.empty() || ngay_tra_m.empty() || ngay_tra_y.empty()) {
-          error_msg = "Lỗi: Không được để trống thông tin!";
+      if (ngay_tra_d.empty() || ngay_tra_m.empty() || ngay_tra_y.empty()) {
+          error_msg = "Lỗi: Vui lòng nhập ngày dự kiến trả!";
           return;
       }
       try {
-          int md = std::stoi(ngay_muon_d); int mm = std::stoi(ngay_muon_m); int my = std::stoi(ngay_muon_y);
           int td = std::stoi(ngay_tra_d); int tm = std::stoi(ngay_tra_m); int ty = std::stoi(ngay_tra_y);
-          if (!is_valid_date(md, mm, my) || !is_valid_date(td, tm, ty)) throw std::invalid_argument("invalid");
-          Date d_muon = {md, mm, my};
-          Date d_tra = {td, tm, ty};
-          if (date_to_days(d_tra) < date_to_days(d_muon)) {
-              error_msg = "Lỗi: Ngày trả dự kiến < ngày mượn!";
-              return;
-          }
+          if (!is_valid_date(td, tm, ty)) throw std::invalid_argument("invalid");
       } catch (...) {
-          error_msg = "Lỗi: Ngày tháng năm mượn/trả không hợp lệ!";
+          error_msg = "Lỗi: Ngày dự kiến trả không hợp lệ!";
           return;
       }
       error_msg = "";
@@ -186,8 +98,6 @@ void render_new_rental_screen() {
   }, ButtonOption::Animated());
 
   auto container = Container::Vertical({
-       input_truyen, input_khach,
-       input_nm_d, input_nm_m, input_nm_y,
        input_nt_d, input_nt_m, input_nt_y,
        Container::Horizontal({submit_button, cancel_button})
   });
@@ -199,34 +109,10 @@ void render_new_rental_screen() {
           return true;
       }
       if (event == Event::Return) {
-          if (input_truyen->Focused()) { input_khach->TakeFocus(); return true; }
-          if (input_khach->Focused()) { input_nm_d->TakeFocus(); return true; }
-          if (input_nm_d->Focused()) { input_nm_m->TakeFocus(); return true; }
-          if (input_nm_m->Focused()) { input_nm_y->TakeFocus(); return true; }
-          if (input_nm_y->Focused()) { input_nt_d->TakeFocus(); return true; }
           if (input_nt_d->Focused()) { input_nt_m->TakeFocus(); return true; }
           if (input_nt_m->Focused()) { input_nt_y->TakeFocus(); return true; }
           if (input_nt_y->Focused()) {
-              if (ten_truyen_str.empty() || khach_info_str.empty() || ngay_muon_d.empty() || ngay_muon_m.empty() || ngay_muon_y.empty() || ngay_tra_d.empty() || ngay_tra_m.empty() || ngay_tra_y.empty()) {
-                  error_msg = "Lỗi: Không được để trống thông tin!";
-                  return true;
-              }
-              try {
-                  int md = std::stoi(ngay_muon_d); int mm = std::stoi(ngay_muon_m); int my = std::stoi(ngay_muon_y);
-                  int td = std::stoi(ngay_tra_d); int tm = std::stoi(ngay_tra_m); int ty = std::stoi(ngay_tra_y);
-                  if (!is_valid_date(md, mm, my) || !is_valid_date(td, tm, ty)) throw std::invalid_argument("invalid");
-                  Date d_muon = {md, mm, my};
-                  Date d_tra = {td, tm, ty};
-                  if (date_to_days(d_tra) < date_to_days(d_muon)) {
-                      error_msg = "Lỗi: Ngày trả dự kiến < ngày mượn!";
-                      return true;
-                  }
-              } catch (...) {
-                  error_msg = "Lỗi: Ngày tháng năm mượn/trả không hợp lệ!";
-                  return true;
-              }
-              should_submit = true;
-              screen.ExitLoopClosure()();
+              submit_button->TakeFocus();
               return true;
           }
       }
@@ -234,10 +120,7 @@ void render_new_rental_screen() {
   });
 
   auto renderer = Renderer(container_with_esc, [&] {
-    return vbox({text(" THIẾT LẬP PHIẾU THUÊ ") | bold | center, separator(),
-                 hbox(text(" Tên Truyện:      "), input_truyen->Render()),
-                 hbox(text(" Khách hàng:      "), input_khach->Render()),
-                 hbox(text(" Ngày mượn:      "), input_nm_d->Render(), text("/"), input_nm_m->Render(), text("/"), input_nm_y->Render()),
+    return vbox({text(" THIẾT LẬP NGÀY TRẢ ") | bold | center, separator(),
                  hbox(text(" Hạn trả (dự kiến): "), input_nt_d->Render(), text("/"), input_nt_m->Render(), text("/"), input_nt_y->Render()),
                  separator(),
                  error_msg.empty() ? text("") : text(error_msg) | color(Color::Red) | center,
@@ -250,25 +133,11 @@ void render_new_rental_screen() {
   screen.Loop(renderer);
 
   if (should_submit) {
-    int md = std::stoi(ngay_muon_d); int mm = std::stoi(ngay_muon_m); int my = std::stoi(ngay_muon_y);
     int td = std::stoi(ngay_tra_d); int tm = std::stoi(ngay_tra_m); int ty = std::stoi(ngay_tra_y);
-    Date d_muon = {md, mm, my};
     Date d_tra = {td, tm, ty};
 
     system("cls");
-    // Buoc 1: Chon chinh xac quyen truyen
-    Comic chosen_comic = select_comic_menu(ten_truyen_str);
-    if (chosen_comic.id == 0) {
-      std::cout << "Khong tim thay truyen hoac da quay lai.\n";
-      get_string_input("Nhan Enter de thu lai...");
-      return;
-    }
-    // Buoc 2: Xac nhan thong tin khach hang
-    std::string final_khach = select_customer_menu(khach_info_str);
-    if (final_khach.empty()) return; // Nguoi dung quay lai
-
-    system("cls");
-    process_new_rental(chosen_comic.comic_name, final_khach.c_str(), d_muon, d_tra, 0.0);
+    process_new_rental(comic_id, customer_id, d_tra);
     get_string_input("Nhan Enter de tiep tuc...");
   }
 }
@@ -281,12 +150,20 @@ int select_rental_slip_ui(const std::string& title) {
 
   std::vector<RentalSlip> slips = get_all_rental_slips();
   std::vector<RentalSlip> active_slips;
+  
+  std::vector<Comic> all_c = read_all_comics();
+  std::vector<Customer> all_cu = read_all_customers();
+
   for (const auto& s : slips) {
     if (s.trang_thai == 0) { // Dang thue
-      std::string kh_lower = s.khach_hang;
+      std::string cu_name = get_cu_name(s.customer_id, all_cu);
+      std::string kh_lower = cu_name;
       for (auto& c : kh_lower) c = std::tolower(c);
-      std::string ten_lower = s.ten_truyen;
+      
+      std::string c_name = get_c_name(s.comic_id, all_c);
+      std::string ten_lower = c_name;
       for (auto& c : ten_lower) c = std::tolower(c);
+      
       if (kw_lower.empty() || kh_lower.find(kw_lower) != std::string::npos || ten_lower.find(kw_lower) != std::string::npos) {
         active_slips.push_back(s);
       }
@@ -303,7 +180,9 @@ int select_rental_slip_ui(const std::string& title) {
   std::vector<std::string> entries;
   for (size_t i = 0; i < active_slips.size(); ++i) {
     const auto& s = active_slips[i];
-    std::string item = std::to_string(s.id_phieu) + ". " + s.khach_hang + " muon [" + s.ten_truyen + "] ngay " +
+    std::string cu_name = get_cu_name(s.customer_id, all_cu);
+    std::string c_name = get_c_name(s.comic_id, all_c);
+    std::string item = std::to_string(s.id_phieu) + ". " + cu_name + " muon [" + c_name + "] ngay " +
                        std::to_string(s.ngay_muon.day) + "/" + std::to_string(s.ngay_muon.month) + "/" + std::to_string(s.ngay_muon.year);
     entries.push_back(item);
   }
@@ -463,7 +342,7 @@ void render_return_comic_screen() {
   }
 }
 
-Element build_rental_table_element(const std::vector<RentalSlip>& slips) {
+Element build_rental_table_element(const std::vector<RentalSlip>& slips, const std::vector<Comic>& all_c, const std::vector<Customer>& all_cu) {
   if (slips.empty()) {
     return text("Khong co du lieu phiếu thuê.") | center;
   }
@@ -472,7 +351,9 @@ Element build_rental_table_element(const std::vector<RentalSlip>& slips) {
   for (const auto &s : slips) {
     std::string nm = std::to_string(s.ngay_muon.day) + "/" + std::to_string(s.ngay_muon.month) + "/" + std::to_string(s.ngay_muon.year);
     std::string tt = (s.trang_thai == 0) ? "Dang thue" : (s.trang_thai == 1) ? "Da tra" : (s.trang_thai == 2) ? "Mat/Hong" : "Qua han";
-    table_data.push_back({std::to_string(s.id_phieu), s.khach_hang, s.ten_truyen, nm, tt});
+    std::string cu_name = get_cu_name(s.customer_id, all_cu);
+    std::string c_name = get_c_name(s.comic_id, all_c);
+    table_data.push_back({std::to_string(s.id_phieu), cu_name, c_name, nm, tt});
   }
   auto table = Table(table_data);
   table.SelectAll().Border(LIGHT);
@@ -537,14 +418,17 @@ void render_rental_menu() {
             std::vector<std::string> status_options = {"Tat ca", "Dang thue", "Da tra/Khac"};
             int selected_status = 0;
             std::vector<RentalSlip> filtered_slips = all_slips;
+            
+            std::vector<Comic> all_c = read_all_comics();
+            std::vector<Customer> all_cu = read_all_customers();
 
             auto apply_filter = [&] {
                 filtered_slips.clear();
                 std::string kw = search_kw;
                 for(auto&c : kw) c = std::tolower(c);
                 for (const auto& s : all_slips) {
-                    std::string tn = s.ten_truyen; for(auto&c : tn) c = std::tolower(c);
-                    std::string tk = s.khach_hang; for(auto&c : tk) c = std::tolower(c);
+                    std::string tn = get_c_name(s.comic_id, all_c); for(auto&c : tn) c = std::tolower(c);
+                    std::string tk = get_cu_name(s.customer_id, all_cu); for(auto&c : tk) c = std::tolower(c);
                     bool match_kw = kw.empty() || tn.find(kw) != std::string::npos || tk.find(kw) != std::string::npos || std::to_string(s.id_phieu) == kw;
                     bool match_status = true;
                     if (selected_status == 1) match_status = (s.trang_thai == 0);
@@ -555,6 +439,7 @@ void render_rental_menu() {
                     }
                 }
             };
+
 
             Component input_search = Input(&search_kw, "ID, SDT, hoac ten truyen...");
             Component status_radiobox = Radiobox(&status_options, &selected_status);
@@ -587,7 +472,7 @@ void render_rental_menu() {
 
                 auto table_panel = window(
                     text(" DANH SACH PHIEU (" + std::to_string(filtered_slips.size()) + ")") | bold | center,
-                    build_rental_table_element(filtered_slips) | vscroll_indicator | frame
+                    build_rental_table_element(filtered_slips, all_c, all_cu) | vscroll_indicator | frame
                 ) | flex;
 
                 return hbox({filter_panel, table_panel});
@@ -621,6 +506,9 @@ void render_statistics_screen() {
     // --- Sắp xếp danh sách chính theo doanh thu ---
     quick_sort(slips, compare_revenue_desc);
 
+    std::vector<Comic> all_c = read_all_comics();
+    std::vector<Customer> all_cu = read_all_customers();
+
     std::vector<std::vector<std::string>> main_table_data;
     main_table_data.push_back({"  ID  ", "       Tên Truyện       ", "      Khách Hàng      ", " Ngày Mượn ", "  Hạn Trả  ", "  Thực Tế  ", "  Tiền Cọc  ", "  Tổng Tiền  ", " Trạng Thái "});
     for (const auto &s : slips) {
@@ -629,8 +517,11 @@ void render_statistics_screen() {
         std::string ngay_t = (s.ngay_tra_thuc_te.year > 1900) ? (std::to_string(s.ngay_tra_thuc_te.day) + "/" + std::to_string(s.ngay_tra_thuc_te.month)) : "---";
         std::string tt = (s.trang_thai == 1) ? "Đã Trả" : (s.trang_thai == 2) ? "Mất/Hỏng" : "Đang Thuê";
 
+        std::string cu_name = get_cu_name(s.customer_id, all_cu);
+        std::string c_name = get_c_name(s.comic_id, all_c);
+
         main_table_data.push_back({
-            std::to_string(s.id_phieu), s.ten_truyen, s.khach_hang, ngay_m, ngay_d, ngay_t,
+            std::to_string(s.id_phieu), c_name, cu_name, ngay_m, ngay_d, ngay_t,
             format_currency(s.tien_coc), format_currency(s.tong_tien), tt
         });
     }
@@ -655,8 +546,11 @@ void render_statistics_screen() {
             delay_str = "Lỗi dữ liệu";
         }
         
+        std::string cu_name = get_cu_name(s.customer_id, all_cu);
+        std::string c_name = get_c_name(s.comic_id, all_c);
+        
         overdue_table_data.push_back({
-            std::to_string(s.id_phieu), s.ten_truyen, s.khach_hang,
+            std::to_string(s.id_phieu), c_name, cu_name,
           std::to_string(s.ngay_tra_du_kien.day) + "/" + std::to_string(s.ngay_tra_du_kien.month),
             delay_str
         });

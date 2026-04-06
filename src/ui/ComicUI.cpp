@@ -19,6 +19,8 @@
 
 using namespace ftxui;
 
+Element build_comic_table_element(const std::vector<Comic>& comics);
+
 std::string to_lower_text(const std::string& text) {
   std::string lowered = text;
   std::transform(lowered.begin(), lowered.end(), lowered.begin(),
@@ -140,53 +142,211 @@ int select_comic_ui(const std::string& title) {
     return -1;
   }
 
-  auto screen = ScreenInteractive::TerminalOutput();
-  std::vector<std::string> entries;
-  for (size_t i = 0; i < active_comics.size(); ++i) {
-    std::string item = std::to_string(i + 1) + ". " + std::string(active_comics[i].comic_name) +
-                       " - " + active_comics[i].author + " | TL: " + active_comics[i].type +
-                       " (SL: " + std::to_string(active_comics[i].quantity) + ")";
-    entries.push_back(item);
-  }
-  entries.push_back(std::to_string(active_comics.size() + 1) + ". -> Huy thao tac");
+  auto form_screen = ScreenInteractive::Fullscreen();
+  
+  std::string search_name = "";
+  std::string search_type = "";
+  
+  std::vector<std::string> stock_options = {"Tat ca", "Con hang", "Het hang"};
+  int selected_stock = 0;
 
-  int selected = 0;
-  MenuOption option;
-  option.on_enter = screen.ExitLoopClosure();
+  std::vector<std::string> sort_options = {"-", "Tang dan", "Giam dan"};
+  std::vector<std::string> sort_options_az = {"-", "A -> Z", "Z -> A"};
+  
+  int sort_id_opt = 0;
+  int sort_name_opt = 0;
+  int sort_price_opt = 0;
+  int sort_type_opt = 0;
 
-  auto menu = Menu(&entries, &selected, option);
-  auto menu_with_event = CatchEvent(menu, [&](Event event) {
-      if (event == Event::Escape) {
-          selected = entries.size() - 1;
-          screen.ExitLoopClosure()();
-          return true;
+  int prev_sort_id = 0;
+  int prev_sort_name = 0;
+  int prev_sort_price = 0;
+  int prev_sort_type = 0;
+  int last_clicked_sort = 0;
+
+  auto check_toggle_changes = [&] {
+     if (sort_id_opt != prev_sort_id) { last_clicked_sort = 1; prev_sort_id = sort_id_opt; }
+     if (sort_name_opt != prev_sort_name) { last_clicked_sort = 2; prev_sort_name = sort_name_opt; }
+     if (sort_price_opt != prev_sort_price) { last_clicked_sort = 3; prev_sort_price = sort_price_opt; }
+     if (sort_type_opt != prev_sort_type) { last_clicked_sort = 4; prev_sort_type = sort_type_opt; }
+  };
+
+  std::vector<std::string> type_options = build_type_options(active_comics);
+  std::vector<std::string> filtered_type_options;
+  int selected_type_option = 0;
+
+  std::vector<Comic> filtered_comics = active_comics;
+
+  auto apply_filter_sort = [&] {
+    filtered_comics.clear();
+    std::string s_name = to_lower_text(trim(search_name));
+    std::string s_type = "";
+    
+    if (!is_empty_string(search_type)) {
+       s_type = to_lower_text(trim(search_type));
+    }
+
+    for (const auto& comic : active_comics) {
+      bool name_ok = s_name.empty() || to_lower_text(comic.comic_name).find(s_name) != std::string::npos;
+      bool type_ok = s_type.empty() || to_lower_text(comic.type).find(s_type) != std::string::npos;
+      bool stock_ok = true;
+      if (selected_stock == 1) stock_ok = comic.quantity > 0;
+      if (selected_stock == 2) stock_ok = comic.quantity <= 0;
+
+      if (name_ok && type_ok && stock_ok) {
+        filtered_comics.push_back(comic);
       }
-      if (event.is_character()) {
-          char c = event.character()[0];
-          if (c >= '1' && c <= '9') {
-              int index = c - '1';
-              if (index < (int)entries.size()) {
-                  selected = index;
-                  screen.ExitLoopClosure()();
-                  return true;
-              }
-          }
-      }
-      return false;
+    }
+
+    if (last_clicked_sort == 1) { 
+      if (sort_id_opt == 1) quick_sort(filtered_comics, compare_comic_by_id_asc);
+      else if (sort_id_opt == 2) quick_sort(filtered_comics, compare_comic_by_id_desc);
+    } else if (last_clicked_sort == 2) { 
+      if (sort_name_opt == 1) quick_sort(filtered_comics, compare_comic_by_name_asc);
+      else if (sort_name_opt == 2) quick_sort(filtered_comics, compare_comic_by_name_desc);
+    } else if (last_clicked_sort == 3) {
+      if (sort_price_opt == 1) quick_sort(filtered_comics, compare_comic_by_price_asc);
+      else if (sort_price_opt == 2) quick_sort(filtered_comics, compare_comic_by_price_desc);
+    } else if (last_clicked_sort == 4) {
+      if (sort_type_opt == 1) quick_sort(filtered_comics, compare_comic_by_type_asc);
+      else if (sort_type_opt == 2) quick_sort(filtered_comics, compare_comic_by_type_desc);
+    }
+  };
+
+  Component input_search_name = Input(&search_name, "Tim theo ten...");
+  Component input_search_type = Input(&search_type, "Go de tim the loai...");
+  Component stock_radiobox = Radiobox(&stock_options, &selected_stock);
+  
+  auto type_menu_raw = Menu(&filtered_type_options, &selected_type_option);
+  auto type_menu_c = CatchEvent(type_menu_raw, [&](Event event) {
+    if (event.is_mouse() && event.mouse().motion == Mouse::Moved) return true;
+    if (event == Event::Return) {
+       if (!filtered_type_options.empty() && is_valid_type_suggestion(filtered_type_options[selected_type_option])) {
+           search_type = filtered_type_options[selected_type_option];
+       }
+       stock_radiobox->TakeFocus();
+       return true; 
+    }
+    return false;
   });
 
-  auto renderer = Renderer(menu_with_event, [&] {
-    return window(text(" " + title + " "),
-                  menu_with_event->Render() | vscroll_indicator | frame) | bold;
+  auto toggle_id_comp = Toggle(&sort_options, &sort_id_opt);
+  auto toggle_name_comp = Toggle(&sort_options_az, &sort_name_opt);
+  auto toggle_price_comp = Toggle(&sort_options, &sort_price_opt);
+  auto toggle_type_comp = Toggle(&sort_options_az, &sort_type_opt);
+
+  int selected_comic_index = 0;
+  int final_chosen_id = -1;
+  std::vector<std::string> dummy_entries;
+
+  MenuOption comic_menu_opt;
+  comic_menu_opt.on_enter = [&] {
+      if (!filtered_comics.empty() && selected_comic_index >= 0 && selected_comic_index < (int)filtered_comics.size()) {
+          final_chosen_id = filtered_comics[selected_comic_index].id;
+          form_screen.ExitLoopClosure()();
+      }
+  };
+  comic_menu_opt.entries_option.transform = [&](const EntryState& state) {
+      if (state.index >= (int)filtered_comics.size()) return text("");
+      auto& c = filtered_comics[state.index];
+      auto row = hbox({
+          text(std::to_string(c.id)) | size(WIDTH, EQUAL, 5), separatorEmpty(),
+          text(c.comic_name) | size(WIDTH, EQUAL, 25), separatorEmpty(),
+          text(c.author) | size(WIDTH, EQUAL, 15), separatorEmpty(),
+          text(c.type) | size(WIDTH, EQUAL, 15), separatorEmpty(),
+          text(format_currency(c.price)) | size(WIDTH, EQUAL, 12), separatorEmpty(),
+          text(std::to_string(c.quantity)) | size(WIDTH, EQUAL, 5)
+      });
+      if (state.focused) { row = row | inverted; }
+      if (state.active) { row = row | bold; }
+      return row;
+  };
+  Component comic_menu = Menu(&dummy_entries, &selected_comic_index, comic_menu_opt);
+
+  Component exit_button = Button("Huy & Tro Ve (ESC)", [&] {
+      final_chosen_id = -1;
+      form_screen.ExitLoopClosure()(); 
+  }, ButtonOption::Animated());
+
+  auto left_controls = Container::Vertical({
+      input_search_name,
+      input_search_type,
+      type_menu_c,
+      stock_radiobox,
+      toggle_id_comp,
+      toggle_name_comp,
+      toggle_price_comp,
+      toggle_type_comp,
+      exit_button
   });
 
-  screen.Loop(renderer);
+  auto main_container = Container::Horizontal({
+      left_controls,
+      comic_menu
+  });
+
+  auto controls_with_event = CatchEvent(main_container, [&](Event event) {
+    if (event == Event::Escape) {
+      final_chosen_id = -1;
+      form_screen.ExitLoopClosure()();
+      return true;
+    }
+    return false;
+  });
+
+  auto renderer = Renderer(controls_with_event, [&] {
+    refresh_type_suggestions(type_options, search_type, filtered_type_options, selected_type_option);
+    check_toggle_changes();
+    apply_filter_sort();
+
+    auto filter_panel = vbox({
+        text("--- BỘ LỌC TÌM KIẾM ---") | bold,
+        separator(),
+        hbox(text(" Tên truyện: "), input_search_name->Render()),
+        hbox(text(" Thể loại: "), input_search_type->Render()),
+        text(" Gợi ý (Enter de chon):"), type_menu_c->Render() | size(HEIGHT, EQUAL, 5) | frame | border, 
+        separator(),
+        text(" Tồn kho:") | bold,
+        stock_radiobox->Render(),
+        separator(),
+        text("--- SẮP XẾP ---") | bold,
+        hbox(text(" ID:       "), toggle_id_comp->Render()),
+        hbox(text(" Tên:      "), toggle_name_comp->Render()),
+        hbox(text(" Giá:      "), toggle_price_comp->Render()),
+        hbox(text(" Thể loại: "), toggle_type_comp->Render()),
+        separator(),
+        text(" Dùng Phím -> để Chuyển sang chọn") | color(Color::Green) | bold,
+        exit_button->Render() | center,
+    }) | border | size(WIDTH, GREATER_THAN, 40);
+
+    // Dummy entries resize must happen in render exactly before rendering
+    dummy_entries.resize(filtered_comics.size(), "");
+    if (selected_comic_index >= (int)filtered_comics.size()) selected_comic_index = std::max(0, (int)filtered_comics.size() - 1);
+
+    auto header = hbox({
+        text("ID") | size(WIDTH, EQUAL, 5), separatorEmpty(),
+        text("Ten Truyen") | size(WIDTH, EQUAL, 25), separatorEmpty(),
+        text("Tac Gia") | size(WIDTH, EQUAL, 15), separatorEmpty(),
+        text("The Loai") | size(WIDTH, EQUAL, 15), separatorEmpty(),
+        text("Gia") | size(WIDTH, EQUAL, 12), separatorEmpty(),
+        text("Ton") | size(WIDTH, EQUAL, 5)
+    }) | bold | border;
+
+    auto table_panel = window(
+        text(" DANH SÁCH (" + std::to_string(filtered_comics.size()) + ") - BẤM ENTER ĐỂ CHỌN ") | bold | center,
+        vbox({
+            header,
+            comic_menu->Render() | vscroll_indicator | frame | flex
+        })
+    ) | flex;
+
+    return window(text(" " + title + " ") | bold | center, hbox({ filter_panel, table_panel }));
+  });
+
+  form_screen.Loop(renderer);
   system("cls");
 
-  if (static_cast<size_t>(selected) == entries.size() - 1) {
-    return -1;
-  }
-  return active_comics[selected].id;
+  return final_chosen_id;
 }
 
 void render_comic_table(const std::vector<Comic> &comics) {

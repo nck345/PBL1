@@ -45,62 +45,118 @@ Element build_customer_table_element(const std::vector<Customer> &customers) {
 }
 
 int select_customer_ui(const std::string& title) {
-  std::string keyword = get_string_input("Nhap So dien thoai can tim: ");
-  if (keyword == "[ESC]") return -1;
-  if (is_empty_string(keyword)) return -1;
-
-  std::vector<Customer> found_list = search_customers_by_phone(keyword);
-  
-  if (found_list.empty()) {
-    std::cout << "Khong tim thay khach hang voi SDT nay!\n";
-    return -1;
-  }
-
-  auto screen = ScreenInteractive::TerminalOutput();
-  std::vector<std::string> entries;
-  for (size_t i = 0; i < found_list.size(); ++i) {
-    std::string item = std::to_string(i + 1) + ". " + std::string(found_list[i].name) + " - SDT: " + found_list[i].phone;
-    entries.push_back(item);
-  }
-  entries.push_back(std::to_string(found_list.size() + 1) + ". -> Huy thao tac");
-
-  int selected = 0;
-  MenuOption option;
-  option.on_enter = screen.ExitLoopClosure();
-
-  auto menu = Menu(&entries, &selected, option);
-  auto menu_with_event = CatchEvent(menu, [&](Event event) {
-      if (event == Event::Escape) {
-          selected = entries.size() - 1;
-          screen.ExitLoopClosure()();
-          return true;
-      }
-      if (event.is_character()) {
-          char c = event.character()[0];
-          if (c >= '1' && c <= '9') {
-              int index = c - '1';
-              if (index < (int)entries.size()) {
-                  selected = index;
-                  screen.ExitLoopClosure()();
-                  return true;
-              }
-          }
-      }
-      return false;
-  });
-
-  auto renderer = Renderer(menu_with_event, [&] {
-    return window(text(" " + title + " "),
-                  menu_with_event->Render() | vscroll_indicator | frame) | bold;
-  });
-
-  screen.Loop(renderer);
   system("cls");
-
-  if (static_cast<size_t>(selected) == entries.size() - 1) {
-    return -1;
+  std::vector<Customer> all = read_all_customers();
+  if (all.empty()) {
+     std::cout << "Khong co khach hang nao trong he thong!\n";
+     get_string_input("Nhan Enter de tiep tuc...");
+     return -1;
   }
-  return found_list[selected].id;
+
+  auto form_screen = ScreenInteractive::Fullscreen();
+  std::string search_kw = "";
+  std::vector<Customer> filtered_list = all;
+
+  auto apply_filter = [&] {
+     filtered_list.clear();
+     std::string kw = search_kw;
+     for (char &c : kw) c = std::tolower(c);
+     for (const auto& c : all) {
+        std::string n = c.name; for (char &ch : n) ch = std::tolower(ch);
+        std::string p = c.phone;
+        bool ok = kw.empty() || n.find(kw) != std::string::npos || p.find(kw) != std::string::npos || std::to_string(c.id) == kw;
+        if (ok && !c.is_deleted) {
+           filtered_list.push_back(c);
+        }
+     }
+  };
+
+  Component input_search = Input(&search_kw, "ID, SDT hoac Ten...");
+  
+  int selected_customer_index = 0;
+  int final_chosen_id = -1;
+  std::vector<std::string> dummy_entries;
+  
+  MenuOption customer_menu_opt;
+  customer_menu_opt.on_enter = [&] {
+     if (!filtered_list.empty() && selected_customer_index >= 0 && selected_customer_index < (int)filtered_list.size()) {
+        final_chosen_id = filtered_list[selected_customer_index].id;
+        form_screen.ExitLoopClosure()();
+     }
+  };
+  
+  customer_menu_opt.entries_option.transform = [&](const EntryState& state) {
+      if (state.index >= (int)filtered_list.size()) return text("");
+      auto& c = filtered_list[state.index];
+      auto row = hbox({
+          text(std::to_string(c.id)) | size(WIDTH, EQUAL, 5), separatorEmpty(),
+          text(c.name) | size(WIDTH, EQUAL, 30), separatorEmpty(),
+          text(c.phone) | size(WIDTH, EQUAL, 15)
+      });
+      if (state.focused) { row = row | inverted; }
+      if (state.active) { row = row | bold; }
+      return row;
+  };
+  Component customer_menu = Menu(&dummy_entries, &selected_customer_index, customer_menu_opt);
+
+  Component exit_button = Button("Huy & Tro Ve (ESC)", [&] { 
+      final_chosen_id = -1;
+      form_screen.ExitLoopClosure()(); 
+  }, ButtonOption::Animated());
+
+  auto left_controls = Container::Vertical({
+     input_search,
+     exit_button
+  });
+
+  auto controls = Container::Horizontal({
+     left_controls,
+     customer_menu
+  });
+  
+  auto controls_event = CatchEvent(controls, [&](Event event) {
+     if (event == Event::Escape) {
+        final_chosen_id = -1;
+        form_screen.ExitLoopClosure()();
+        return true;
+     }
+     return false;
+  });
+
+  auto ui_renderer = Renderer(controls_event, [&] {
+     apply_filter();
+     auto filter_panel = vbox({
+        text("--- BỘ LỌC TÌM KIẾM --- ") | bold,
+        separator(),
+        hbox(text(" Tim kiem: "), input_search->Render()),
+        separator(),
+        text(" Dùng Phím -> để Chuyển sang chọn") | color(Color::Green) | bold,
+        exit_button->Render() | center
+     }) | border | size(WIDTH, GREATER_THAN, 30);
+
+     dummy_entries.resize(filtered_list.size(), "");
+     if (selected_customer_index >= (int)filtered_list.size()) selected_customer_index = std::max(0, (int)filtered_list.size() - 1);
+
+     auto header = hbox({
+        text("ID") | size(WIDTH, EQUAL, 5), separatorEmpty(),
+        text("Ten Khach Hang") | size(WIDTH, EQUAL, 30), separatorEmpty(),
+        text("SDT") | size(WIDTH, EQUAL, 15)
+     }) | bold | border;
+
+     auto table_panel = window(
+        text(" DANH SACH KHACH (" + std::to_string(filtered_list.size()) + ") - BẤM ENTER ĐỂ CHỌN ") | bold | center,
+        vbox({
+            header,
+            customer_menu->Render() | vscroll_indicator | frame | flex
+        })
+     ) | flex;
+
+     return window(text(" " + title + " ") | bold | center, hbox({filter_panel, table_panel}));
+  });
+
+  form_screen.Loop(ui_renderer);
+  system("cls");
+  return final_chosen_id;
 }
 
 void render_customer_menu() {

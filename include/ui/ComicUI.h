@@ -3,8 +3,9 @@
 
 #include "../../include/models/Comic.h"
 #include <vector>
+#include <string>
 
-void render_comic_table(const std::vector<Comic>& comics);
 void render_comic_menu();
+int select_comic_ui(const std::string& title);
 
 #endif
