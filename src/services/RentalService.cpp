@@ -43,8 +43,28 @@ long date_to_days(Date d) {
   return total_days;
 }
 
+Date add_days(Date d, int days_to_add) {
+    struct tm t = {0};
+    t.tm_year = d.year - 1900;
+    t.tm_mon = d.month - 1;
+    t.tm_mday = d.day;
+    t.tm_hour = 12; // To avoid DST issues
+    t.tm_min = 0;
+    t.tm_sec = 0;
+    t.tm_mday += days_to_add;
+    
+    // Su dung mktime de tu dong can bang ngay thang
+    mktime(&t);
+    
+    Date result;
+    result.day = t.tm_mday;
+    result.month = t.tm_mon + 1;
+    result.year = t.tm_year + 1900;
+    return result;
+}
+
 // Xử lý mượn truyện
-void process_new_rental(int comic_id, int customer_id, Date ngay_tra_du_kien) {
+void process_new_rental(int comic_id, int customer_id, Date ngay_tra_du_kien, double tien_coc, double tien_thue) {
   // 1. Kiem tra ton kho va lay thong tin sach theo ten
   Comic comic;
   if (!get_comic_by_id(comic_id, comic)) {
@@ -106,8 +126,8 @@ void process_new_rental(int comic_id, int customer_id, Date ngay_tra_du_kien) {
   slip.ngay_tra_du_kien = ngay_tra_du_kien;
   slip.ngay_tra_thuc_te = {0, 0, 0};
 
-  slip.tien_coc = comic.price;
-  slip.tong_tien = 0;
+  slip.tien_coc = tien_coc;
+  slip.tong_tien = tien_thue;
   slip.trang_thai = 0;
 
   save_rental_slip(slip);
@@ -115,35 +135,24 @@ void process_new_rental(int comic_id, int customer_id, Date ngay_tra_du_kien) {
 }
 
 // Tính toán hóa đơn
-void compute_payment_bill(RentalSlip &slip, double gia_bia) {
-  // 1. Trường hợp làm mất hoặc hư hỏng nặng
-  if (slip.trang_thai == 2) {
-    // Phạt đền 100% giá bìa (Đúng bằng số tiền cọc ban đầu slip.tien_coc)
-    // Hệ thống chốt tổng tiền bằng giá bìa, khách không được thối lại tiền
-    slip.tong_tien = gia_bia;
-
-    // Cập nhật trạng thái xuống đĩa và kết thúc hàm ngay lập tức
-    update_rental_status(slip);
-    return;
-  }
-  // 2. Trường hợp trả truyện bình thường
-  long so_ngay_thue =
-      date_to_days(slip.ngay_tra_thuc_te) - date_to_days(slip.ngay_muon);
-  if (so_ngay_thue < 1) {
-    so_ngay_thue = 1; // Thuê trả ngay trong ngày tính 1
+void compute_payment_bill(RentalSlip &slip, double gia_bia, int trang_thai_tra) {
+  double phat_hu_hong = 0.0;
+  if (trang_thai_tra == 2) {
+    phat_hu_hong = 0.2 * gia_bia;
+  } else if (trang_thai_tra == 3) {
+    phat_hu_hong = 0.5 * gia_bia;
+  } else if (trang_thai_tra == 4) {
+    phat_hu_hong = slip.tien_coc; // Mat 100% tien coc
   }
 
-  // Tiền thuê = số ngày * 10% giá bìa
-  slip.tong_tien = so_ngay_thue * (TY_LE_THUE_THEO_NGAY * gia_bia);
-
-  // Xử lý phạt mượn lố qua ngày
-  long so_ngay_qua_han =
-      date_to_days(slip.ngay_tra_thuc_te) - date_to_days(slip.ngay_tra_du_kien);
+  double phat_tre_han = 0.0;
+  long so_ngay_qua_han = date_to_days(slip.ngay_tra_thuc_te) - date_to_days(slip.ngay_tra_du_kien);
   if (so_ngay_qua_han > 0) {
-    slip.tong_tien += (so_ngay_qua_han * PHI_PHAT_QUA_HAN_MOT_NGAY);
+    phat_tre_han = so_ngay_qua_han * PHI_PHAT_QUA_HAN_MOT_NGAY;
   }
 
-  // (Thu tiền cọc hay trả lại tiền cọc sẽ do hàm/ui ở phần Thống Kê lo liệu)
+  // tong_tien da chua san tien thue khach tra tai luc muong, minh chi cong them phan ho bi phat (doanh thu tang)
+  slip.tong_tien += (phat_hu_hong + phat_tre_han);
 
   // Call hàm của Repo để ghi đè `seekp` nóng xuống đĩa
   update_rental_status(slip);
@@ -177,11 +186,18 @@ void process_return_comic(int id_phieu, Date ngay_tra_thuc_te,
     if (get_comic_by_id(slip.comic_id, comic)) {
       gia_bia = comic.price;
 
-      // Neu tra nguyen ven (1), thi moi cong lai hang vao ton kho
-      if (trang_thai_tra == 1) {
+      if (trang_thai_tra == 1) { // 1: Binh thuong
         comic.quantity += 1;
         update_comic(comic);
-      } else if (trang_thai_tra == 2) { // Mat/Hong
+      } else if (trang_thai_tra == 2) { // 2: Rach
+        comic.quantity += 1;
+        comic.price *= 0.8;
+        update_comic(comic);
+      } else if (trang_thai_tra == 3) { // 3: Mat trang
+        comic.quantity += 1;
+        comic.price *= 0.5;
+        update_comic(comic);
+      } else if (trang_thai_tra == 4) { // 4: Mat hong toan bo
         comic.total_quantity -= 1;
         if (comic.total_quantity < 0) comic.total_quantity = 0;
         update_comic(comic);
@@ -200,7 +216,7 @@ void process_return_comic(int id_phieu, Date ngay_tra_thuc_te,
       }
     }
 
-    compute_payment_bill(slip, gia_bia);
+    compute_payment_bill(slip, gia_bia, trang_thai_tra);
   } else {
     cout << "Khong tim thay Phieu hoac sach nay khach da tra roi.\n";
   }
@@ -228,12 +244,12 @@ rental_statistics compute_all_statistics(Date today, int target_month,
     // Dem so luong sach
     if (slip.trang_thai == 0) {
       stats.rented_count++;
-    } else if (slip.trang_thai == 2) {
+    } else if (slip.trang_thai == 4 || slip.trang_thai == 2 /* backward compat */) {
       stats.lost_count++;
     }
 
     // Tinh doanh thu
-    if (slip.trang_thai == 1 || slip.trang_thai == 2) {
+    if (slip.trang_thai != 0) {
       // Doanh thu ngay
       if (slip.ngay_tra_thuc_te.day == today.day &&
           slip.ngay_tra_thuc_te.month == today.month &&
