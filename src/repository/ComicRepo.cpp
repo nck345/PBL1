@@ -16,24 +16,18 @@ std::string to_lower_copy(const std::string& text) {
 
 int get_next_comic_id() {
     int id = 1;
-    std::fstream file(METADATA_FILE, std::ios::in | std::ios::out | std::ios::binary);
-    
-    // Nếu file chưa tồn tại, tạo mới với ID bắt đầu = 1
-    if (!file) {
-        std::ofstream out_file(METADATA_FILE, std::ios::binary);
-        out_file.write(reinterpret_cast<const char*>(&id), sizeof(int));
-        out_file.close();
-        return id;
+    std::ifstream inFile(METADATA_FILE, std::ios::binary);
+    if (inFile.is_open()) {
+        inFile.read(reinterpret_cast<char*>(&id), sizeof(int));
+        inFile.close();
     }
-
-    // Đọc ID hiện tại
-    file.read(reinterpret_cast<char*>(&id), sizeof(int));
     
-    // Tăng ID lên 1 để chuẩn bị cho lần lấy tiếp theo
     int next_id = id + 1;
-    file.seekp(0, std::ios::beg);
-    file.write(reinterpret_cast<const char*>(&next_id), sizeof(int));
-    file.close();
+    std::ofstream outFile(METADATA_FILE, std::ios::binary);
+    if (outFile.is_open()) {
+        outFile.write(reinterpret_cast<const char*>(&next_id), sizeof(int));
+        outFile.close();
+    }
     
     return id;
 }
