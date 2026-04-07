@@ -181,6 +181,10 @@ void process_return_comic(int id_phieu, Date ngay_tra_thuc_te,
       if (trang_thai_tra == 1) {
         comic.quantity += 1;
         update_comic(comic);
+      } else if (trang_thai_tra == 2) { // Mat/Hong
+        comic.total_quantity -= 1;
+        if (comic.total_quantity < 0) comic.total_quantity = 0;
+        update_comic(comic);
       }
     } else {
       // Truyen da bi xoa khoi he thong hoac khong tim thay theo ID.

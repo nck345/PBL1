@@ -333,12 +333,12 @@ int select_comic_ui(const std::string& title) {
         table_element = text("Khong co du lieu phu hop.") | center;
     } else {
         std::vector<std::vector<std::string>> table_data;
-        table_data.push_back({"ID", "Ten Truyen", "Tac Gia", "The Loai", "Gia", "Ton"});
+        table_data.push_back({"ID", "Ten Truyen", "Tac Gia", "The Loai", "Gia", "Ton/Tong"});
         for (const auto& c : filtered_comics) {
             table_data.push_back({
                 std::to_string(c.id), truncate_text(c.comic_name, 25),
                 truncate_text(c.author, 15), truncate_text(c.type, 15),
-                format_currency(c.price), std::to_string(c.quantity)
+                format_currency(c.price), std::to_string(c.quantity) + "/" + std::to_string(c.total_quantity)
             });
         }
         
@@ -378,7 +378,7 @@ void render_comic_table(const std::vector<Comic> &comics) {
   }
 
   std::vector<std::vector<std::string>> table_data;
-  table_data.push_back({"ID", "Ten Truyen", "Tac Gia", "The Loai", "Gia", "So Luong"});
+  table_data.push_back({"ID", "Ten Truyen", "Tac Gia", "The Loai", "Gia", "Ton/Tong"});
 
   bool has_data = false;
   for (const auto &comic : comics) {
@@ -386,7 +386,7 @@ void render_comic_table(const std::vector<Comic> &comics) {
       has_data = true;
       table_data.push_back({std::to_string(comic.id), truncate_text(comic.comic_name, 25),
                             truncate_text(comic.author, 15), truncate_text(comic.type, 15), format_currency(comic.price),
-                            std::to_string(comic.quantity)});
+                            std::to_string(comic.quantity) + "/" + std::to_string(comic.total_quantity)});
     }
   }
 
@@ -419,13 +419,13 @@ Element build_comic_table_element(const std::vector<Comic>& comics) {
   }
 
   std::vector<std::vector<std::string>> table_data;
-  table_data.push_back({"ID", "Ten Truyen", "Tac Gia", "The Loai", "Gia", "Ton"});
+  table_data.push_back({"ID", "Ten Truyen", "Tac Gia", "The Loai", "Gia", "Ton/Tong"});
 
   for (const auto &comic : comics) {
     if (!comic.is_deleted) {
       table_data.push_back({std::to_string(comic.id), truncate_text(comic.comic_name, 25),
                             truncate_text(comic.author, 15), truncate_text(comic.type, 15), format_currency(comic.price),
-                            std::to_string(comic.quantity)});
+                            std::to_string(comic.quantity) + "/" + std::to_string(comic.total_quantity)});
     }
   }
 
@@ -701,7 +701,7 @@ void render_comic_menu() {
         return false;
       });
       Component input_price = Input(&price_str, "Nhap gia...");
-      Component input_quantity = Input(&quantity_str, "Nhap so luong...");
+      Component input_quantity = Input(&quantity_str, "Nhap tong so luong...");
 
       auto submit_action = [&] {
         if (is_empty_string(name_str)) {
@@ -754,6 +754,7 @@ void render_comic_menu() {
         copy_text_to_buffer(new_comic.type, sizeof(new_comic.type), type_str);
         new_comic.price = price;
         new_comic.quantity = quantity;
+        new_comic.total_quantity = quantity;
         new_comic.is_deleted = false;
 
         add_comic(new_comic);
@@ -826,7 +827,7 @@ void render_comic_menu() {
             type_menu->Render() | frame,
             text(" The loai da chon: " + (is_empty_string(type_str) ? std::string("[chua chon]") : type_str)),
             hbox(text(" Gia (VND):   "), input_price->Render()),
-            hbox(text(" So luong:    "), input_quantity->Render()),
+            hbox(text(" Tong so luong:"), input_quantity->Render()),
             separator(),
             text(error_msg) | color(is_saved ? Color::Green : Color::Red) | center,
             separator(),
@@ -852,6 +853,7 @@ void render_comic_menu() {
         std::string type_query_str = comic_to_edit.type;
         std::string price_str = std::to_string((int)comic_to_edit.price); // Avoid huge precision
         std::string quantity_str = std::to_string(comic_to_edit.quantity);
+        std::string total_quantity_str = std::to_string(comic_to_edit.total_quantity);
         std::string orig_name = comic_to_edit.comic_name;
         std::string orig_author = comic_to_edit.author;
         std::string orig_type = comic_to_edit.type;
@@ -880,7 +882,8 @@ void render_comic_menu() {
           return false;
         });
         Component input_price = Input(&price_str, "Nhap gia...");
-        Component input_quantity = Input(&quantity_str, "Nhap so luong...");
+        Component input_quantity = Input(&quantity_str, "Nhap ton kho...");
+        Component input_total_quantity = Input(&total_quantity_str, "Nhap tong so luong...");
 
         auto submit_action = [&] {
           if (is_empty_string(name_str)) {
@@ -922,10 +925,25 @@ void render_comic_menu() {
               quantity = std::stoi(quantity_str, &pos);
               if (pos != quantity_str.length()) throw std::invalid_argument("Invalid");
           } catch (...) {
-              error_msg = "Loi: So luong phai la mot so nguyen hop le!"; is_saved = false; return;
+              error_msg = "Loi: Ton kho phai la mot so nguyen hop le!"; is_saved = false; return;
           }
           if (is_negative(quantity)) {
-              error_msg = "Loi: So luong khong duoc nho hon 0!"; is_saved = false; return;
+              error_msg = "Loi: Ton kho khong duoc nho hon 0!"; is_saved = false; return;
+          }
+
+          int total_quantity = 0;
+          try {
+              size_t pos;
+              total_quantity = std::stoi(total_quantity_str, &pos);
+              if (pos != total_quantity_str.length()) throw std::invalid_argument("Invalid");
+          } catch (...) {
+              error_msg = "Loi: Tong so luong phai hop le!"; is_saved = false; return;
+          }
+          if (is_negative(total_quantity)) {
+              error_msg = "Loi: Tong so luong phai >= 0!"; is_saved = false; return;
+          }
+          if (quantity > total_quantity) {
+              error_msg = "Loi: Ton kho khong the lon hon tong so luong!"; is_saved = false; return;
           }
 
           copy_text_to_buffer(comic_to_edit.comic_name, sizeof(comic_to_edit.comic_name), name_str);
@@ -933,6 +951,7 @@ void render_comic_menu() {
           copy_text_to_buffer(comic_to_edit.type, sizeof(comic_to_edit.type), type_str);
           comic_to_edit.price = price;
           comic_to_edit.quantity = quantity;
+          comic_to_edit.total_quantity = total_quantity;
 
           if (update_comic(comic_to_edit)) {
               is_saved = true;
@@ -949,7 +968,7 @@ void render_comic_menu() {
         }, ButtonOption::Animated());
 
         auto container = Container::Vertical({
-          input_name, input_author, input_type_query, type_menu, input_price, input_quantity,
+          input_name, input_author, input_type_query, type_menu, input_price, input_quantity, input_total_quantity,
           Container::Horizontal({submit_button, cancel_button})
         });
 
@@ -985,6 +1004,10 @@ void render_comic_menu() {
               return true;
             }
             if (input_quantity->Focused()) {
+              input_total_quantity->TakeFocus();
+              return true;
+            }
+            if (input_total_quantity->Focused()) {
               submit_action();
               if (is_saved) {
                 form_screen.ExitLoopClosure()();
@@ -1009,7 +1032,8 @@ void render_comic_menu() {
               type_menu->Render() | frame,
               text(" The loai da chon: " + (is_empty_string(type_str) ? std::string("[chua chon]") : type_str)),
               hbox(text(" Gia (VND):   "), input_price->Render()),
-              hbox(text(" So luong:    "), input_quantity->Render()),
+              hbox(text(" Ton kho:     "), input_quantity->Render()),
+              hbox(text(" Tong so:     "), input_total_quantity->Render()),
               separator(),
               text(error_msg) | color(is_saved ? Color::Green : Color::Red) | center,
               separator(),

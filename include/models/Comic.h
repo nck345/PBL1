@@ -8,6 +8,7 @@ struct Comic {
   char type[50];
   double price;
   int quantity;
+  int total_quantity;
   bool is_deleted;
 };
 
