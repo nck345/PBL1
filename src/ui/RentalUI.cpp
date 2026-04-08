@@ -553,7 +553,7 @@ void render_rental_menu() {
     std::vector<std::string> entries = {
         "1. Xem danh sach phieu thue",
         "2. Cho thue truyen moi",
-        "3. Tra truyen & Thanh toan",
+        "3. Tra truyen",
         "4. Tro ve"
     };
     int selected = 0;

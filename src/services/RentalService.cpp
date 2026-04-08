@@ -148,11 +148,29 @@ void compute_payment_bill(RentalSlip &slip, double gia_bia, int trang_thai_tra) 
   double phat_tre_han = 0.0;
   long so_ngay_qua_han = date_to_days(slip.ngay_tra_thuc_te) - date_to_days(slip.ngay_tra_du_kien);
   if (so_ngay_qua_han > 0) {
-    phat_tre_han = so_ngay_qua_han * PHI_PHAT_QUA_HAN_MOT_NGAY;
+    phat_tre_han = so_ngay_qua_han * (0.10 * gia_bia); // Phạt mỗi ngày trễ 10% giá bìa
   }
 
   // tong_tien da chua san tien thue khach tra tai luc muong, minh chi cong them phan ho bi phat (doanh thu tang)
   slip.tong_tien += (phat_hu_hong + phat_tre_han);
+
+  double tien_hoan_tra = slip.tien_coc - phat_hu_hong - phat_tre_han;
+
+  cout << "\n============= HOA DON TRA TRUYEN =============\n";
+  cout << " Tien coc da thu    : " << slip.tien_coc << " VND\n";
+  if (phat_hu_hong > 0) {
+      cout << " Phat hu hong/mat   : -" << phat_hu_hong << " VND\n";
+  }
+  if (so_ngay_qua_han > 0) {
+      cout << " Phat tre " << so_ngay_qua_han << " ngay     : -" << phat_tre_han << " VND\n";
+  }
+  cout << "----------------------------------------------\n";
+  if (tien_hoan_tra >= 0) {
+      cout << " >>> BOI HOAN CHO KHACH: " << tien_hoan_tra << " VND\n";
+  } else {
+      cout << " >>> KHACH CAN DONG THEM : " << -tien_hoan_tra << " VND\n";
+  }
+  cout << "==============================================\n";
 
   // Call hàm của Repo để ghi đè `seekp` nóng xuống đĩa
   update_rental_status(slip);
