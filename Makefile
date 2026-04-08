@@ -25,6 +25,7 @@ SRCS := $(wildcard $(SRC_DIR)/*.cpp) \
         $(wildcard $(SRC_DIR)/repository/*.cpp) \
         $(wildcard $(SRC_DIR)/services/*.cpp) \
         $(wildcard $(SRC_DIR)/ui/*.cpp) \
+        $(wildcard $(SRC_DIR)/ui/*/*.cpp) \
         $(wildcard $(SRC_DIR)/utils/*.cpp)
 
 # Chuyển đổi danh sách file .cpp sang .o, dùng strip để tránh lỗi khoảng trắng

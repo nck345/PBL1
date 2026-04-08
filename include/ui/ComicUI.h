@@ -16,4 +16,7 @@ void refresh_type_suggestions(const std::vector<std::string>& type_options,
                               int& selected_index);
 bool is_valid_type_suggestion(const std::string& value);
 
+std::vector<Comic> get_active_comics();
+void copy_text_to_buffer(char* target, size_t target_size, const std::string& source);
+
 #endif
