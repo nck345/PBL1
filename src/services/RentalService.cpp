@@ -151,25 +151,35 @@ void compute_payment_bill(RentalSlip &slip, double gia_bia, int trang_thai_tra) 
     phat_tre_han = so_ngay_qua_han * (0.10 * gia_bia); // Phạt mỗi ngày trễ 10% giá bìa
   }
 
-  // tong_tien da chua san tien thue khach tra tai luc muong, minh chi cong them phan ho bi phat (doanh thu tang)
+  // tong_tien ban đầu chứa tiền thuê dự kiến. Giờ cộng thêm phần phạt để ra tổng doanh thu thu được từ phiếu
+  double phi_goc = slip.tong_tien;
   slip.tong_tien += (phat_hu_hong + phat_tre_han);
 
-  double tien_hoan_tra = slip.tien_coc - phat_hu_hong - phat_tre_han;
+  // Khách chỉ mới đóng tiền cọc. Trừ đi tổng phí (tiền thuê + phạt) là ra số tiền còn lại hoàn trả khách.
+  double tien_hoan_tra = slip.tien_coc - slip.tong_tien;
+  
+  // Giới hạn không để khách đóng thêm tiền quá mức tiền cọc (coi như bán truyện)
+  bool mien_tru = false;
+  if (tien_hoan_tra < 0) {
+      tien_hoan_tra = 0;
+      slip.tong_tien = slip.tien_coc; // Doanh thu thực tế chỉ bằng tiền cọc đã thu
+      mien_tru = true;
+  }
 
   cout << "\n============= HOA DON TRA TRUYEN =============\n";
   cout << " Tien coc da thu    : " << slip.tien_coc << " VND\n";
+  cout << " Phi thue truyen    : -" << phi_goc << " VND\n";
   if (phat_hu_hong > 0) {
       cout << " Phat hu hong/mat   : -" << phat_hu_hong << " VND\n";
   }
   if (so_ngay_qua_han > 0) {
       cout << " Phat tre " << so_ngay_qua_han << " ngay     : -" << phat_tre_han << " VND\n";
   }
-  cout << "----------------------------------------------\n";
-  if (tien_hoan_tra >= 0) {
-      cout << " >>> BOI HOAN CHO KHACH: " << tien_hoan_tra << " VND\n";
-  } else {
-      cout << " >>> KHACH CAN DONG THEM : " << -tien_hoan_tra << " VND\n";
+  if (mien_tru) {
+      cout << " (Mien tru tien phat vuot muc coc do truot gia)\n";
   }
+  cout << "----------------------------------------------\n";
+  cout << " >>> BOI HOAN CHO KHACH: " << tien_hoan_tra << " VND\n";
   cout << "==============================================\n";
 
   // Call hàm của Repo để ghi đè `seekp` nóng xuống đĩa

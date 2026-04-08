@@ -111,7 +111,7 @@ void render_new_rental_screen() {
     int one_days = (days % 7) % 3;
     
     double current_phi = weeks * phi_7_ngay + three_days * phi_3_ngay + one_days * phi_1_ngay;
-    double tong_tra = tien_coc + current_phi;
+    double tong_tra = tien_coc;
       
     return vbox({text(" THIẾT LẬP GÓI THUÊ ") | bold | center, separator(),
                  hbox(text(" Truyện: "), text(popup_comic.comic_name)),
@@ -122,10 +122,10 @@ void render_new_rental_screen() {
                  text(" Hệ thống tự phân chia: " + std::to_string(weeks) + " tuần, " + std::to_string(three_days) + " combo 3 ngày, " + std::to_string(one_days) + " ngày lẻ.") | color(Color::Blue),
                  separator(),
                  text(" HÓA ĐƠN TẠM TÍNH: ") | bold | color(Color::Cyan),
-                 hbox(text(" Tiền cọc: "), text(format_currency(tien_coc))),
-                 hbox(text(" Phí thuê: "), text(format_currency(current_phi))),
-                 hbox(text(" TỔNG PHẢI TRẢ LÚC NÀY: ") | bold, text(format_currency(tong_tra)) | bold | color(Color::Red)),
-                 hbox(text(" Số tiền rủi ro hoàn lại lúc trả: ") | color(Color::Green), text(format_currency(tien_coc)) | color(Color::Green)),
+                 hbox(text(" Tiền cọc (phải đóng): "), text(format_currency(tien_coc))),
+                 hbox(text(" Phí thuê dự kiến: "), text(format_currency(current_phi))),
+                 hbox(text(" TỔNG PHẢI TRẢ LÚC NÀY (Chỉ cọc): ") | bold, text(format_currency(tong_tra)) | bold | color(Color::Red)),
+                 hbox(text(" Số tiền hoàn lại lúc trả (ước tính): ") | color(Color::Green), text(format_currency(tien_coc - current_phi >= 0 ? tien_coc - current_phi : 0)) | color(Color::Green)),
                  separator(),
                  error_msg.empty() ? text("") : text(error_msg) | color(Color::Red) | center,
                  hbox(submit_button->Render(), text("   "),
