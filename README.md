@@ -20,24 +20,33 @@ PBL1/
 │   ├── rentals.dat         # Danh sách phiếu thuê
 │   └── metadata.dat        # Lưu các biến toàn cục (VD: ID tự tăng tiếp theo)
 │
-├── include/                # Khai báo (.h)
-│   ├── models/             # Cấu trúc dữ liệu
-│   ├── repository/         # Tương tác file
-│   ├── services/           # Logic nghiệp vụ
-│   ├── ui/                 # Giao diện
+├── include/                # Khai báo cấu trúc và định dạng hàm (.h)
+│   ├── models/             # Định nghĩa Object (Comic, Customer, RentalSlip)
+│   ├── repository/         # Tương tác đọc/ghi file nhị phân (CRUD)
+│   ├── services/           # Logic nghiệp vụ (Tính tiền, Thanh toán)
+│   ├── ui/                 # Giao diện hiển thị Menu chính
+│   │   ├── comic/          # Các màn hình riêng của chức năng Truyện (Thêm, Sửa, Xóa, Xem)
+│   │   ├── customer/       # Các màn hình riêng của chức năng Khách hàng
+│   │   └── rental/         # Các màn hình riêng của Phiếu Thuê (Tạo phiếu, Trả sách, Thống kê)
 │   └── utils/              # Hàm tiện ích dùng chung
-│       ├── StringUtils.h   # Cắt khoảng trắng, in hoa, format currency
-│       └── ConsoleUtils.h  # Xóa màn hình, dừng màn hình chờ, đổi màu chữ
+│       ├── SearchUtils.h   # Cung cấp bộ lọc, thanh tìm kiếm Regex
+│       ├── SortUtils.h     # Các thuật toán sắp xếp (Quick Sort)
+│       ├── StringUtils.h   # Cắt khoảng trắng, in hoa, format tiền tệ
+│       ├── InputHandler.h  # Bắt lỗi nhập liệu của người dùng
+│       └── ConsoleUtils.h  # Xóa màn hình, dừng màn hình chờ
 │
-├── src/                    # Mã nguồn triển khai (.cpp)
-│   ├── models/             
-│   ├── repository/         
-│   ├── services/           
-│   ├── ui/                 
-│   ├── utils/              
-│   └── main.cpp            # Chức năng chính
+├── src/                    # Mã nguồn triển khai chi tiết logic (.cpp)
+│   ├── models/             # (Ít dùng, thường khai báo thẳng trong .h)
+│   ├── repository/         # Chứa mã nguồn đọc/ghi file thực tế
+│   ├── services/           # Chứa mã nguồn xử lý mượn/trả truyện
+│   ├── ui/                 # Các file Router kết nối Menu chính (ComicUI, CustomerUI, RentalUI)
+│   │   ├── comic/          # Mã nguồn các view Thêm, Sửa, Xóa của Truyện
+│   │   ├── customer/       # Mã nguồn các view Thêm, Sửa, Xóa của Khách Hàng 
+│   │   └── rental/         # Mã nguồn các view Tạo Phiếu, Nhận Trả Sách, Thống kê
+│   ├── utils/              # Mã nguồn thực thi Hàm tiện ích
+│   └── main.cpp            # Điểm bắt đầu (khởi chạy hệ thống)
 │
-└── README.md               # Mô tả dự án
+└── README.md               # File mô tả dự án (bạn đang đọc)
 ```
 
 ---
