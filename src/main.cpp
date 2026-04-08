@@ -44,6 +44,14 @@ int main() {
               }
           }
       }
+      if (event.is_mouse() && event.mouse().button == ftxui::Mouse::Left && event.mouse().motion == ftxui::Mouse::Pressed) {
+          if (menu->OnEvent(event)) {
+              if (option.on_enter) {
+                  option.on_enter();
+              }
+              return true;
+          }
+      }
       return false;
   });
 
