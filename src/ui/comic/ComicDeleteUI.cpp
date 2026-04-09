@@ -27,7 +27,22 @@ void handle_delete_comic() {
       if (id == -1) return;
 
       system("cls");
-      std::cout << "\n--- XOA TRUYEN ---\n";
+      std::cout << "\n--- XAC NHAN XOA TRUYEN ---\n";
+      Comic c;
+      if (get_comic_by_id(id, c)) {
+          std::cout << "Ban dang chuan bi xoa truyen:\n";
+          std::cout << "Ten truyen: " << c.comic_name << "\n";
+          std::cout << "The loai:   " << c.type << "\n";
+          std::cout << "Tac gia:    " << c.author << "\n";
+      }
+
+      std::string confirm = get_string_input("\nBan co chac chan muon xoa truyen nay khong? (Y/N): ");
+      if (confirm != "y" && confirm != "Y") {
+          std::cout << "Da huy xoa truyen.\n";
+          get_string_input("Nhan Enter de tiep tuc...");
+          return;
+      }
+
       if (delete_comic(id)) {
         std::cout << "Xoa truyen thanh cong!\n";
       } else {

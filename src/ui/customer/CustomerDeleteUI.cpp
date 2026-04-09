@@ -25,6 +25,21 @@ void handle_delete_customer() {
       if (id == -1) return;
 
       system("cls");
+      std::cout << "\n--- XAC NHAN XOA KHACH HANG ---\n";
+      Customer c;
+      if (get_customer_by_id(id, c)) {
+          std::cout << "Ban dang chuan bi xoa khach hang:\n";
+          std::cout << "Ho ten:       " << c.name << "\n";
+          std::cout << "So dien thoai: " << c.phone << "\n";
+      }
+
+      std::string confirm = get_string_input("\nBan co chac chan muon xoa khach hang nay khong? (Y/N): ");
+      if (confirm != "y" && confirm != "Y") {
+          std::cout << "Da huy xoa khach hang.\n";
+          get_string_input("Nhan Enter de tiep tuc...");
+          return;
+      }
+
       if (delete_customer(id)) {
         std::cout << "Xoa khach hang thanh cong!\n";
       } else {
