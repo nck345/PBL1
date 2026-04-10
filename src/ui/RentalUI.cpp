@@ -546,11 +546,77 @@ void render_return_comic_screen() {
   }
 }
 
+void render_active_rentals_screen() {
+  auto screen = ScreenInteractive::TerminalOutput();
+  std::string search_query = "";
+
+  InputOption iopt;
+  iopt.multiline = false;
+  Component input_query = Input(&search_query, "Tìm theo tên truyện hoặc khách...", iopt);
+
+  auto renderer = Renderer(input_query, [&] {
+    std::vector<RentalSlip> slips = get_all_rental_slips();
+    std::vector<std::vector<std::string>> table_data;
+    table_data.push_back({"  ID  ", "       Ten Truyen       ", "      Khach Hang      ", " Ngay Muon ", "  Han Tra  "});
+
+    // Chuyển query về chữ thường để tìm kiếm không phân biệt hoa thường (đơn giản hóa)
+    std::string q = search_query;
+    for (auto &c : q) c = tolower(c);
+
+    for (const auto &s : slips) {
+        if (s.trang_thai != 0) continue; // Chỉ hiện phiếu đang thuê
+
+        std::string t_name = s.ten_truyen;
+        std::string k_name = s.khach_hang;
+        std::string t_low = t_name; for (auto &c : t_low) c = tolower(c);
+        std::string k_low = k_name; for (auto &c : k_low) c = tolower(c);
+
+        if (q.empty() || t_low.find(q) != std::string::npos || k_low.find(q) != std::string::npos) {
+            std::string ngay_m = std::to_string(s.ngay_muon.day) + "/" + std::to_string(s.ngay_muon.month) + "/" + std::to_string(s.ngay_muon.year);
+            std::string ngay_d = std::to_string(s.ngay_tra_du_kien.day) + "/" + std::to_string(s.ngay_tra_du_kien.month) + "/" + std::to_string(s.ngay_tra_du_kien.year);
+            
+            table_data.push_back({
+                std::to_string(s.id_phieu), t_name, k_name, ngay_m, ngay_d
+            });
+        }
+    }
+
+    auto tbl = Table(table_data);
+    tbl.SelectAll().SeparatorVertical();
+    tbl.SelectRow(0).Decorate(bold);
+    tbl.SelectRow(0).SeparatorHorizontal();
+    tbl.SelectAll().Border(LIGHT);
+
+    return vbox({
+        text(" DANH SACH PHIEU DANG THUE ") | bold | center,
+        separator(),
+        hbox(text(" Tim Kiem: "), input_query->Render() | border | color(Color::Cyan)),
+        separator(),
+        table_data.size() > 1 ? tbl.Render() | center : text(" (Khong tim thay ket qua trung khop) ") | center | dim,
+        separator(),
+        text(" [ Nhấn ESC để quay lại ] ") | center | dim
+    });
+  });
+
+  auto renderer_with_esc = CatchEvent(renderer, [&](Event event) {
+    if (event == Event::Escape) {
+      screen.ExitLoopClosure()();
+      return true;
+    }
+    return false;
+  });
+
+  screen.Loop(renderer_with_esc);
+}
+
 void render_rental_menu() {
   auto screen = ScreenInteractive::TerminalOutput();
 
   std::vector<std::string> entries = {
-      "1. Cho thue truyen moi", "2. Tra truyen & Thanh toan", "3. Tro ve"};
+      "1. Cho thue truyen moi", 
+      "2. Tra truyen & Thanh toan", 
+      "3. Danh sach phieu dang thue",
+      "4. Tro ve"};
   int selected = 0;
 
   MenuOption option;
@@ -592,6 +658,8 @@ void render_rental_menu() {
     } else if (selected == 1) {
       render_return_comic_screen();
     } else if (selected == 2) {
+      render_active_rentals_screen();
+    } else if (selected == 3) {
       system("cls");
       break;
     }
