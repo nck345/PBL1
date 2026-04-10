@@ -6,8 +6,19 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <ctime>
 
 using namespace std;
+
+Date get_current_date() {
+  time_t t = time(nullptr);
+  tm* now = localtime(&t);
+  Date d;
+  d.day = now->tm_mday;
+  d.month = now->tm_mon + 1;
+  d.year = now->tm_year + 1900;
+  return d;
+}
 
 bool is_leap_year(int year) {
   return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
@@ -229,9 +240,18 @@ bool compare_overdue_priority_desc(const RentalSlip& a, const RentalSlip& b) {
     return date_to_days(a.ngay_tra_du_kien) < date_to_days(b.ngay_tra_du_kien);
 }
 
-rental_statistics compute_all_statistics(Date today, int target_month,
-                                         int target_year) {
-  rental_statistics stats = {0.0, 0.0, 0, 0};
+rental_statistics compute_all_statistics(Date target_date, int start_month, int start_year,
+                                         int end_month, int end_year) {
+  rental_statistics stats;
+  stats.target_daily_revenue = 0.0;
+  stats.range_monthly_revenue = 0.0;
+  stats.rented_count = 0;
+  stats.lost_count = 0;
+
+  int total_months = (end_year - start_year) * 12 + (end_month - start_month) + 1;
+  if (total_months > 0 && total_months <= 60) {
+      stats.chart_data.resize(total_months, 0);
+  }
 
   ifstream file("data/rentals.dat", ios::binary);
   if (!file.is_open())
@@ -249,15 +269,22 @@ rental_statistics compute_all_statistics(Date today, int target_month,
     // Tinh doanh thu
     if (slip.trang_thai == 1 || slip.trang_thai == 2) {
       // Doanh thu ngay
-      if (slip.ngay_tra_thuc_te.day == today.day &&
-          slip.ngay_tra_thuc_te.month == today.month &&
-          slip.ngay_tra_thuc_te.year == today.year) {
-        stats.daily_revenue += slip.tong_tien;
+      if (slip.ngay_tra_thuc_te.day == target_date.day &&
+          slip.ngay_tra_thuc_te.month == target_date.month &&
+          slip.ngay_tra_thuc_te.year == target_date.year) {
+        stats.target_daily_revenue += slip.tong_tien;
       }
-      // Doanh thu thang
-      if (slip.ngay_tra_thuc_te.month == target_month &&
-          slip.ngay_tra_thuc_te.year == target_year) {
-        stats.monthly_revenue += slip.tong_tien;
+      // Doanh thu thang trong khoang thoi gian
+      long slip_m = slip.ngay_tra_thuc_te.year * 12 + slip.ngay_tra_thuc_te.month;
+      long start_m = start_year * 12 + start_month;
+      long end_m = end_year * 12 + end_month;
+
+      if (slip_m >= start_m && slip_m <= end_m) {
+        stats.range_monthly_revenue += slip.tong_tien;
+        int idx = slip_m - start_m;
+        if (idx >= 0 && idx < stats.chart_data.size()) {
+            stats.chart_data[idx] += slip.tong_tien;
+        }
       }
     }
   }
