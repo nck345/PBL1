@@ -96,9 +96,9 @@
 - [x] **Xây dựng các tiêu chí so sánh (Comparator)**: Khai báo logic so sánh riêng cho `RentalSlip` (theo ngày, tiền phạt...) để truyền vào thuật toán của Khiêm **(~10% công việc)**
 - [x] **Xây dựng nâng cao cho Quản lý Phiếu**: Gọi hàm `quick_sort()` của Khiêm để xử lý hiển thị danh sách phiếu quá hạn theo ưu tiên đòi sách **(~10% công việc)**
 - [x] **Xây dựng nâng cao cho Thống kê**: Tích hợp thuật toán sắp xếp của Khiêm vào báo cáo doanh thu để liệt kê từ cao xuống thấp **(~5% công việc)**
-- [ ] **Cập nhật Logic Doanh thu Ngày**: Tự động hiển thị doanh thu ngày hiện tại nếu các ô nhập liệu ngày/tháng/năm để trống; thêm 3 ô nhập liệu (Ngày, Tháng, Năm) để xem doanh thu cụ thể.
-- [ ] **Thêm Thống kê Doanh thu Tháng**: Hiển thị doanh thu tháng hiện tại mặc định; thêm 4 ô nhập liệu (2 nhóm Tháng-Năm) để xem doanh thu trải dài giữa hai mốc thời gian.
-- [ ] **Trực quan hóa dữ liệu (Charts)**: Sử dụng các thành phần vẽ của **FTXUI** để vẽ đồ thị (Line/Bar chart) thể hiện biến động doanh thu theo thời gian.
+- [x] **Cập nhật Logic Doanh thu Ngày**: Tự động hiển thị doanh thu ngày hiện tại nếu các ô nhập liệu ngày/tháng/năm để trống; thêm 3 ô nhập liệu (Ngày, Tháng, Năm) để xem doanh thu cụ thể.
+- [x] **Thêm Thống kê Doanh thu Tháng**: Hiển thị doanh thu tháng hiện tại mặc định; thêm 4 ô nhập liệu (2 nhóm Tháng-Năm) để xem doanh thu trải dài giữa hai mốc thời gian.
+- [x] **Trực quan hóa dữ liệu (Charts)**: Sử dụng các thành phần vẽ của **FTXUI** để vẽ đồ thị (Line/Bar chart) thể hiện biến động doanh thu theo thời gian.
 
 ### 6. Cải tiến trải nghiệm nhập liệu (UX Refactor)
 - [x] **Refactor màn hình Cho Thuê Truyện (`RentalUI.cpp`)**: 
