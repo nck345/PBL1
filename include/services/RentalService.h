@@ -3,6 +3,7 @@
 
 #include "../models/Date.h"
 #include "../models/RentalSlip.h"
+#include <vector>
 
 // Ty le phat/thue
 #define PHI_PHAT_QUA_HAN_MOT_NGAY 5000.0
@@ -32,5 +33,10 @@ rental_statistics compute_all_statistics(Date today, int target_month,
                                          int target_year);
 void find_overdue_slips(RentalSlip overdue_list[], int &count, int max_size,
                         Date today);
+
+// New statistics functions
+void get_current_date(int &d, int &m, int &y);
+double compute_revenue_between_months(int m1, int y1, int m2, int y2);
+std::vector<int> get_revenue_chart_data(int month, int year);
 
 #endif
