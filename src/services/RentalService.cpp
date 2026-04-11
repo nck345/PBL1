@@ -15,34 +15,25 @@ bool is_leap_year(int year) {
 }
 
 long date_to_days(Date d) {
+  if (d.month < 1 || d.month > 12 || d.year < 1) return 0; // Tránh crash nếu dữ liệu rác
   long total_days = 0;
-
+  
   // Tính tổng ngày của các NĂM trọn vẹn trước đó (từ năm 1 đến year - 1)
   int y = d.year - 1;
-  // Mỗi năm 365 ngày + Cộng thêm 1 ngày cho mỗi năm nhuận đã trôi qua
   total_days = y * 365 + y / 4 - y / 100 + y / 400;
 
-  // Tính tổng ngày của các THÁNG trọn vẹn trước đó (trong năm hiện tại)
-  //  Mảng lưu số ngày của 12 tháng (tháng 0 bỏ trống để index chạy từ 1 đến 12
-  //  cho dễ nhìn)
   int days_in_month[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-
-  // Nếu năm nay là năm nhuận, tháng 2 có 29 ngày
   if (is_leap_year(d.year)) {
     days_in_month[2] = 29;
   }
 
-  // Cộng dồn ngày của các tháng trước tháng d.month
   for (int m = 1; m < d.month; m++) {
     total_days += days_in_month[m];
   }
 
-  // Cộng thêm số ngày của tháng hiện tại
   total_days += d.day;
-
   return total_days;
 }
-
 Date add_days(Date d, int days_to_add) {
     struct tm t = {0};
     t.tm_year = d.year - 1900;
@@ -316,4 +307,61 @@ void find_overdue_slips(RentalSlip overdue_list[], int &count, int max_size,
     }
   }
   file.close();
+}
+
+void get_current_date(int &d, int &m, int &y) {
+  time_t t = time(0);
+  tm* now = localtime(&t);
+  d = now->tm_mday;
+  m = now->tm_mon + 1;
+  y = now->tm_year + 1900;
+}
+
+double compute_revenue_between_months(int m1, int y1, int m2, int y2) {
+  double total = 0.0;
+  ifstream file("data/rentals.dat", ios::binary);
+  if (!file.is_open()) return total;
+
+  RentalSlip slip;
+  while (file.read(reinterpret_cast<char *>(&slip), sizeof(RentalSlip))) {
+    if (slip.trang_thai != 0) { // Thu tien khi tra hoac lam mat
+      long t_month = slip.ngay_tra_thuc_te.year * 12 + slip.ngay_tra_thuc_te.month;
+      long start_month = y1 * 12 + m1;
+      long end_month = y2 * 12 + m2;
+      
+      if (t_month >= start_month && t_month <= end_month) {
+        total += slip.tong_tien;
+      }
+    }
+  }
+  file.close();
+  return total;
+}
+
+std::vector<int> get_revenue_chart_data(int month, int year) {
+  // Lấy dữ liệu biểu đồ cho 31 ngày (thêm phần tử 0 để bỏ qua ngày 0)
+  std::vector<int> daily_rev(32, 0); 
+  
+  ifstream file("data/rentals.dat", ios::binary);
+  if (!file.is_open()) return daily_rev;
+
+  RentalSlip slip;
+  double max_rev = 0;
+  while (file.read(reinterpret_cast<char *>(&slip), sizeof(RentalSlip))) {
+    if (slip.trang_thai != 0) {
+      if (slip.ngay_tra_thuc_te.month == month && slip.ngay_tra_thuc_te.year == year) {
+        int day = slip.ngay_tra_thuc_te.day;
+        if (day >= 1 && day <= 31) {
+          daily_rev[day] += static_cast<int>(slip.tong_tien);
+        }
+      }
+    }
+  }
+  file.close();
+
+  for (int i = 1; i <= 31; ++i) {
+      if (daily_rev[i] > max_rev) max_rev = daily_rev[i];
+  }
+
+  return daily_rev;
 }
