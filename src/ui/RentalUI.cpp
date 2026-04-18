@@ -433,7 +433,6 @@ Element build_rental_table_element(const std::vector<RentalSlip> &slips,
 
 #include "../../include/ui/rental/RentalAddUI.h"
 #include "../../include/ui/rental/RentalReturnUI.h"
-#include "../../include/ui/rental/RentalStatisticsUI.h"
 #include "../../include/ui/rental/RentalViewUI.h"
 
 
@@ -441,7 +440,7 @@ void render_rental_menu() {
   auto screen = ScreenInteractive::TerminalOutput();
   std::vector<std::string> entries = {"1. Xem danh sach phieu thue",
                                       "2. Cho thue truyen moi", "3. Tra truyen",
-                                      "4. Thong ke doanh thu", "5. Tro ve"};
+                                      "4. Tro ve"};
   int selected = 0;
   MenuOption option;
   option.on_enter = screen.ExitLoopClosure();
@@ -491,8 +490,6 @@ void render_rental_menu() {
     } else if (selected == 2) {
       render_return_comic_screen();
     } else if (selected == 3) {
-      render_statistics_screen();
-    } else if (selected == 4) {
       system("cls");
       break;
     }
