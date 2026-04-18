@@ -14,6 +14,8 @@
 #include <ftxui/dom/table.hpp>
 #include <ftxui/screen/terminal.hpp>
 
+#include "../../include/ui/UITheme.h"
+
 using namespace ftxui;
 
 Element build_customer_table_element(const std::vector<Customer> &customers) {
@@ -193,9 +195,12 @@ int select_customer_ui(const std::string& title) {
 void render_customer_menu() {
   auto screen = ScreenInteractive::TerminalOutput();
   std::vector<std::string> entries = {
-      "1. Xem danh sach khach", "2. Them khach hang",
-      "3. Sua khach hang", "4. Xoa khach hang",
-      "5. Tro ve"};
+      " [1] Xem danh sách khách ", 
+      " [2] Thêm khách hàng mới ",
+      " [3] Sửa thông tin khách ", 
+      " [4] Xóa khách hàng      ",
+      " [5] Trở về Menu chính   "
+  };
   int selected = 0;
   MenuOption option;
   option.on_enter = screen.ExitLoopClosure();
@@ -204,7 +209,7 @@ void render_customer_menu() {
       if (event == Event::Escape) { selected = entries.size() - 1; screen.ExitLoopClosure()(); return true; }
       if (event.is_character()) {
           char c = event.character()[0];
-          if (c >= '1' && c <= '9') {
+          if (c >= '1' && c <= '5') {
               int index = c - '1';
               if (index < (int)entries.size()) { selected = index; screen.ExitLoopClosure()(); return true; }
           }
@@ -214,8 +219,32 @@ void render_customer_menu() {
       }
       return false;
   });
-  auto renderer = Renderer(menu_with_event, [&] {
-    return window(text(" QUAN LY KHACH HANG "), menu_with_event->Render() | vscroll_indicator | frame) | bold;
+  
+  auto renderer = Renderer(menu_with_event, [&]() -> Element {
+    auto sidebar = window(
+        text(" QUẢN LÝ KHÁCH HÀNG ") | bold | center, 
+        menu_with_event->Render() | vscroll_indicator | frame
+    ) | size(WIDTH, EQUAL, 32);
+
+    auto main_area = window(
+        text(" CHỨC NĂNG ") | bold | center,
+        vbox({
+            text(" Chào mừng đến với module Quản lý Khách Hàng.") | center,
+            text(" Dùng phím (1-5) để chọn chức năng nhanh.") | color(ui::theme::kTextMutedColor) | center
+        }) | center
+    ) | flex;
+
+    auto layout = hbox({ sidebar, main_area }) | ui::theme::FocusedPanel() | flex;
+
+    auto title = text(" QUẢN LÝ THUÊ TRUYỆN TRANH (PBL1) ") | ui::theme::AppTitle() | center;
+    
+    return vbox({
+        text("") | size(HEIGHT, EQUAL, 1),
+        title,
+        text("") | size(HEIGHT, EQUAL, 1),
+        layout,
+        text("") | size(HEIGHT, EQUAL, 1)
+    }) | bgcolor(ui::theme::kBgColor) | borderEmpty | center;
   });
 
   while (true) {

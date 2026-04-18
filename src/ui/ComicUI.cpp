@@ -18,6 +18,8 @@
 #include <ftxui/dom/table.hpp>
 #include <ftxui/screen/terminal.hpp>
 
+#include "../../include/ui/UITheme.h"
+
 using namespace ftxui;
 
 Element build_comic_table_element(const std::vector<Comic>& comics);
@@ -448,9 +450,12 @@ void render_comic_menu() {
   auto screen = ScreenInteractive::TerminalOutput();
 
   std::vector<std::string> entries = {
-      "1. Xem danh sach truyen", "2. Them truyen moi",
-      "3. Sua thong tin truyen", "4. Xoa truyen",
-      "5. Tro ve"};
+      " [1] Xem danh sách truyện ", 
+      " [2] Thêm truyện mới      ",
+      " [3] Sửa thông tin truyện ", 
+      " [4] Xóa truyện           ",
+      " [5] Trở về Menu chính    "
+  };
   int selected = 0;
 
   MenuOption option;
@@ -465,7 +470,7 @@ void render_comic_menu() {
       }
       if (event.is_character()) {
           char c = event.character()[0];
-          if (c >= '1' && c <= '9') {
+          if (c >= '1' && c <= '5') {
               int index = c - '1';
               if (index < (int)entries.size()) {
                   selected = index;
@@ -485,10 +490,31 @@ void render_comic_menu() {
       return false;
   });
 
-  auto renderer = Renderer(menu_with_event, [&] {
-    return window(text(" QUAN LY TRUYEN "),
-                  menu_with_event->Render() | vscroll_indicator | frame) |
-           bold;
+  auto renderer = Renderer(menu_with_event, [&]() -> Element {
+    auto sidebar = window(
+        text(" QUẢN LÝ TRUYỆN TRANH ") | bold | center, 
+        menu_with_event->Render() | vscroll_indicator | frame
+    ) | size(WIDTH, EQUAL, 32);
+
+    auto main_area = window(
+        text(" CHỨC NĂNG ") | bold | center,
+        vbox({
+            text(" Chào mừng đến với module Quản lý Kho Truyện.") | center,
+            text(" Dùng phím (1-5) để chọn chức năng nhanh.") | color(ui::theme::kTextMutedColor) | center
+        }) | center
+    ) | flex;
+
+    auto layout = hbox({ sidebar, main_area }) | ui::theme::FocusedPanel() | flex;
+
+    auto title = text(" QUẢN LÝ THUÊ TRUYỆN TRANH (PBL1) ") | ui::theme::AppTitle() | center;
+    
+    return vbox({
+        text("") | size(HEIGHT, EQUAL, 1),
+        title,
+        text("") | size(HEIGHT, EQUAL, 1),
+        layout,
+        text("") | size(HEIGHT, EQUAL, 1)
+    }) | bgcolor(ui::theme::kBgColor) | borderEmpty | center;
   });
 
   while (true) {
@@ -509,3 +535,4 @@ void render_comic_menu() {
     }
   }
 }
+
