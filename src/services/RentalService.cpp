@@ -118,7 +118,7 @@ int process_new_rental(int comic_id, int customer_id, Date ngay_tra_du_kien, dou
   }
 
   // 4. Kiem tra trung phieu thue dang hoat dong
-  if (is_rental_duplicate(comic_id, customer_id)) {
+  if (!is_reservation && is_rental_duplicate(comic_id, customer_id)) {
     cout << "Loi: Khach hang dang co phieu thue cuon nay chua tra!\n";
     cout << "     Vui long tra truyen cu truoc khi thue lai.\n";
     return -1;

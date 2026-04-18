@@ -38,18 +38,17 @@ void render_new_rental_screen() {
 
   bool is_reservation = false;
   Date reservation_start_date = {0, 0, 0};
+  Date earliest_return_date = {0, 0, 0};
 
   if (popup_comic.quantity <= 0) {
-      Date earliest = {0,0,0};
-      if (get_earliest_return_date(comic_id, earliest)) {
+      if (get_earliest_return_date(comic_id, earliest_return_date)) {
           std::cout << "\n[!] CANH BAO: Truyen nay da het hang trong kho!\n";
           std::cout << "    Ngay du kien co hang som nhat (khach tra): " 
-                    << earliest.day << "/" << earliest.month << "/" << earliest.year << "\n";
+                    << earliest_return_date.day << "/" << earliest_return_date.month << "/" << earliest_return_date.year << "\n";
           
           std::string ans = get_string_input("Ban co muon DAT TRUOC khong? (y/n)");
           if (ans == "y" || ans == "Y") {
               is_reservation = true;
-              reservation_start_date = add_days(earliest, 1); // Cho phep lay vao 1 ngay sau luot khach tước
           } else {
               std::cout << "Huy thao tac.\n";
               return;
@@ -81,6 +80,16 @@ void render_new_rental_screen() {
   std::string days_str = "";
   Component input_days = Input(&days_str, "Nhập số ngày...");
 
+  int reservation_option = 0;
+  std::vector<std::string> reservation_options;
+  if (is_reservation) {
+      reservation_options = {
+          "Ngay khi co truyen (" + std::to_string(earliest_return_date.day) + "/" + std::to_string(earliest_return_date.month) + "/" + std::to_string(earliest_return_date.year) + ")",
+          "Sau do 1 ngay (" + std::to_string(add_days(earliest_return_date, 1).day) + "/" + std::to_string(add_days(earliest_return_date, 1).month) + "/" + std::to_string(add_days(earliest_return_date, 1).year) + ")"
+      };
+  }
+  Component res_radiobox = Radiobox(&reservation_options, &reservation_option);
+
   std::string error_msg = "";
   bool should_submit = false;
 
@@ -107,6 +116,7 @@ void render_new_rental_screen() {
   }, ButtonOption::Animated());
 
   auto container = Container::Vertical({
+       is_reservation ? res_radiobox : Container::Vertical({}),
        input_days,
        Container::Horizontal({submit_button, cancel_button})
   });
@@ -139,7 +149,7 @@ void render_new_rental_screen() {
       
     return vbox({text(is_reservation ? " PHIẾU ĐẶT TRƯỚC " : " THIẾT LẬP GÓI THUÊ ") | bold | center, separator(),
                  hbox(text(" Truyện: "), text(popup_comic.comic_name)),
-                 is_reservation ? text(" Bắt đầu mượn (dự kiến): " + std::to_string(reservation_start_date.day) + "/" + std::to_string(reservation_start_date.month) + "/" + std::to_string(reservation_start_date.year)) | color(Color::Green) : text(""),
+                 is_reservation ? vbox({ text(" CHỌN BẮT ĐẦU MƯỢN TRUYỆN: ") | bold | color(Color::Green), res_radiobox->Render() | color(Color::Green) }) : text(""),
                  hbox(text(" Tiền cọc (120%): "), text(format_currency(tien_coc)) | color(Color::Yellow)),
                  separator(),
                  text(" Mức giá: 1 Ngày(" + format_currency(phi_1_ngay) + "), Combo 3 Ngày(" + format_currency(phi_3_ngay) + "), Combo 1 Tuần(" + format_currency(phi_7_ngay) + ")") | dim,
@@ -171,6 +181,11 @@ void render_new_rental_screen() {
     
     Date d_hien_tai;
     if (is_reservation) {
+        if (reservation_option == 0) {
+            reservation_start_date = earliest_return_date;
+        } else {
+            reservation_start_date = add_days(earliest_return_date, 1);
+        }
         d_hien_tai = reservation_start_date;
     } else {
         time_t t = time(0);
