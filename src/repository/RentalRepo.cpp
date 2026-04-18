@@ -20,7 +20,6 @@ void save_rental_slip(const RentalSlip &slip) {
   if (file.is_open()) {
     file.write(reinterpret_cast<const char *>(&slip), sizeof(RentalSlip));
     file.close();
-    cout << "Luu phieu thue id: " << slip.id_phieu << " thanh cong!\n";
   } else {
     cout << "Loi: Khong the mo file data/rentals.dat de ghi.\n";
   }

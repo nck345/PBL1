@@ -54,58 +54,83 @@ Date add_days(Date d, int days_to_add) {
     return result;
 }
 
-// Xử lý mượn truyện
-void process_new_rental(int comic_id, int customer_id, Date ngay_tra_du_kien, double tien_coc, double tien_thue) {
+bool get_earliest_return_date(int comic_id, Date& out_date) {
+  std::vector<RentalSlip> all_slips = get_all_rental_slips();
+  bool found = false;
+  long min_days = 99999999;
+  
+  for (const auto& s : all_slips) {
+      if (s.comic_id == comic_id && s.trang_thai == 0) {
+          long d = date_to_days(s.ngay_tra_du_kien);
+          if (d < min_days) {
+              min_days = d;
+              out_date = s.ngay_tra_du_kien;
+              found = true;
+          }
+      }
+  }
+  return found;
+}
+
+// Xử lý mượn truyện / Đặt trước
+int process_new_rental(int comic_id, int customer_id, Date ngay_tra_du_kien, double tien_coc, double tien_thue, bool is_reservation, Date custom_start_date) {
   // 1. Kiem tra ton kho va lay thong tin sach theo ten
   Comic comic;
   if (!get_comic_by_id(comic_id, comic)) {
     cout << "Loi: Khong tim thay truyen!\n";
-    return;
+    return -1;
   }
 
   if (comic.is_deleted) {
     cout << "Loi: Truyen nay da bi xoa khoi he thong!\n";
-    return;
+    return -1;
   }
-  if (comic.quantity <= 0) {
+  if (!is_reservation && comic.quantity <= 0) {
     cout << "Loi: Truyen nay da het hang trong kho (khong the cho thue)!\n";
-    return;
+    return -1;
   }
 
   // 2. Kiem tra khach hang co ton tai khong
   Customer customer;
   if (!get_customer_by_id(customer_id, customer)) {
     cout << "Loi: Khong tim thay khach hang!\n";
-    return;
+    return -1;
   }
 
-  // Auto generate current date
-  time_t t = time(0);
-  tm* now = localtime(&t);
-  Date ngay_muon = {now->tm_mday, now->tm_mon + 1, now->tm_year + 1900};
+  // Auto generate current date or use custom start date for reservation
+  Date ngay_muon;
+  if (is_reservation && custom_start_date.year != 0) {
+      ngay_muon = custom_start_date;
+  } else {
+      time_t t = time(0);
+      tm* now = localtime(&t);
+      ngay_muon = {now->tm_mday, now->tm_mon + 1, now->tm_year + 1900};
+  }
 
   // 3. Kiem tra logic ngay: ngay_tra_du_kien phai >= ngay_muon
   if (date_to_days(ngay_tra_du_kien) < date_to_days(ngay_muon)) {
     cout << "Loi: Ngay tra du kien (";
     cout << ngay_tra_du_kien.day << "/" << ngay_tra_du_kien.month << "/" << ngay_tra_du_kien.year;
-    cout << ") khong the som hon ngay hien tai (";
+    cout << ") khong the som hon ngay hien tai / ngay bat dau muon (";
     cout << ngay_muon.day << "/" << ngay_muon.month << "/" << ngay_muon.year;
     cout << ").\n";
-    return;
+    return -1;
   }
 
   // 4. Kiem tra trung phieu thue dang hoat dong
   if (is_rental_duplicate(comic_id, customer_id)) {
     cout << "Loi: Khach hang dang co phieu thue cuon nay chua tra!\n";
     cout << "     Vui long tra truyen cu truoc khi thue lai.\n";
-    return;
+    return -1;
   }
 
-  // 5. Tien hanh tru so luong sach do xuat kho (chi tru sau khi qua tat ca kiem tra)
-  comic.quantity -= 1;
-  if (!update_comic(comic)) {
-    cout << "Loi: Khong the cap nhat so luong truyen vao kho!\n";
-    return;
+  // 5. Tien hanh tru so luong sach do xuat kho (neu khong phai dat truoc)
+  if (!is_reservation) {
+      comic.quantity -= 1;
+      if (!update_comic(comic)) {
+        cout << "Loi: Khong the cap nhat so luong truyen vao kho!\n";
+        return -1;
+      }
   }
 
   // 6. Lap Phieu
@@ -119,10 +144,11 @@ void process_new_rental(int comic_id, int customer_id, Date ngay_tra_du_kien, do
 
   slip.tien_coc = tien_coc;
   slip.tong_tien = tien_thue;
-  slip.trang_thai = 0;
+  slip.trang_thai = is_reservation ? 3 : 0; // 3 la Dat truoc, 0 la Dang thue
 
   save_rental_slip(slip);
-  cout << "Tao phieu thue thanh cong! Ma phieu: " << slip.id_phieu << "\n";
+  
+  return slip.id_phieu;
 }
 
 // Tính toán hóa đơn

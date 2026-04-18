@@ -25,13 +25,40 @@ using namespace ftxui;
 
 void render_new_rental_screen() {
   system("cls");
-
   std::cout << "--- BUOC 1: CHON TRUYEN ---\n";
   int comic_id = select_comic_ui("CHON TRUYEN DE CHO THUE");
   if (comic_id <= 0) {
     std::cout << "Huy thao tac mượn truyện. Nhấn Enter de thoat...\n";
     get_string_input("");
     return;
+  }
+
+  Comic popup_comic;
+  get_comic_by_id(comic_id, popup_comic);
+
+  bool is_reservation = false;
+  Date reservation_start_date = {0, 0, 0};
+
+  if (popup_comic.quantity <= 0) {
+      Date earliest = {0,0,0};
+      if (get_earliest_return_date(comic_id, earliest)) {
+          std::cout << "\n[!] CANH BAO: Truyen nay da het hang trong kho!\n";
+          std::cout << "    Ngay du kien co hang som nhat (khach tra): " 
+                    << earliest.day << "/" << earliest.month << "/" << earliest.year << "\n";
+          
+          std::string ans = get_string_input("Ban co muon DAT TRUOC khong? (y/n)");
+          if (ans == "y" || ans == "Y") {
+              is_reservation = true;
+              reservation_start_date = add_days(earliest, 1); // Cho phep lay vao 1 ngay sau luot khach tước
+          } else {
+              std::cout << "Huy thao tac.\n";
+              return;
+          }
+      } else {
+          std::cout << "\n[!] LOI: Truyen nay khong ton tai!\n";
+          get_string_input("Nhan Enter de thoat...");
+          return;
+      }
   }
 
   system("cls");
@@ -45,9 +72,6 @@ void render_new_rental_screen() {
 
   system("cls");
   auto screen = ScreenInteractive::TerminalOutput();
-
-  Comic popup_comic;
-  get_comic_by_id(comic_id, popup_comic);
   
   double tien_coc = popup_comic.price * 1.2;
   double phi_1_ngay = popup_comic.price * 0.05;
@@ -60,7 +84,7 @@ void render_new_rental_screen() {
   std::string error_msg = "";
   bool should_submit = false;
 
-  auto submit_button = Button("Xác nhận & Cho thuê", [&] {
+  auto submit_button = Button(is_reservation ? "Xác nhận Đặt trước" : "Xác nhận & Cho thuê", [&] {
       if (days_str.empty()) {
           error_msg = "Lỗi: Vui lòng nhập số ngày thuê!";
           return;
@@ -113,8 +137,9 @@ void render_new_rental_screen() {
     double current_phi = weeks * phi_7_ngay + three_days * phi_3_ngay + one_days * phi_1_ngay;
     double tong_tra = tien_coc;
       
-    return vbox({text(" THIẾT LẬP GÓI THUÊ ") | bold | center, separator(),
+    return vbox({text(is_reservation ? " PHIẾU ĐẶT TRƯỚC " : " THIẾT LẬP GÓI THUÊ ") | bold | center, separator(),
                  hbox(text(" Truyện: "), text(popup_comic.comic_name)),
+                 is_reservation ? text(" Bắt đầu mượn (dự kiến): " + std::to_string(reservation_start_date.day) + "/" + std::to_string(reservation_start_date.month) + "/" + std::to_string(reservation_start_date.year)) | color(Color::Green) : text(""),
                  hbox(text(" Tiền cọc (120%): "), text(format_currency(tien_coc)) | color(Color::Yellow)),
                  separator(),
                  text(" Mức giá: 1 Ngày(" + format_currency(phi_1_ngay) + "), Combo 3 Ngày(" + format_currency(phi_3_ngay) + "), Combo 1 Tuần(" + format_currency(phi_7_ngay) + ")") | dim,
@@ -144,14 +169,45 @@ void render_new_rental_screen() {
     int one_days = (days_to_add % 7) % 3;
     double expected_phi = weeks * phi_7_ngay + three_days * phi_3_ngay + one_days * phi_1_ngay;
     
-    time_t t = time(0);
-    tm* now = localtime(&t);
-    Date d_hien_tai = {now->tm_mday, now->tm_mon + 1, now->tm_year + 1900};
+    Date d_hien_tai;
+    if (is_reservation) {
+        d_hien_tai = reservation_start_date;
+    } else {
+        time_t t = time(0);
+        tm* now = localtime(&t);
+        d_hien_tai = {now->tm_mday, now->tm_mon + 1, now->tm_year + 1900};
+    }
     Date d_tra = add_days(d_hien_tai, days_to_add);
 
     system("cls");
-    process_new_rental(comic_id, customer_id, d_tra, tien_coc, expected_phi);
-    get_string_input("Nhan Enter de tiep tuc...");
+    int slip_id = process_new_rental(comic_id, customer_id, d_tra, tien_coc, expected_phi, is_reservation, reservation_start_date);
+    
+    if (slip_id > 0) {
+        // Render a beautiful receipt
+        Customer c; get_customer_by_id(customer_id, c);
+        auto receipt_screen = ScreenInteractive::TerminalOutput();
+        auto ok_btn = Button("Đóng Biên Lai", [&] { receipt_screen.ExitLoopClosure()(); }, ButtonOption::Animated());
+        
+        auto renderer = Renderer(ok_btn, [&]() -> Element {
+            return window(is_reservation ? text(" CHI TIẾT ĐẶT TRƯỚC HỆ THỐNG ") | bold : text(" CHI TIẾT PHIẾU THUÊ ") | bold,
+                vbox({
+                    text(" THÀNH CÔNG! HỆ THỐNG ĐÃ GHI NHẬN: MÃ PHIẾU #" + std::to_string(slip_id)) | bold | color(Color::Green) | center,
+                    separator(),
+                    text(" Khách hàng: " + std::string(c.name) + " (" + std::string(c.phone) + ")"),
+                    text(" Truyện: " + std::string(popup_comic.comic_name) + " - Tác giả: " + std::string(popup_comic.author)),
+                    text(" Ngày bắt đầu mượn" + std::string(is_reservation ? " (dự kiến): " : ": ") + std::to_string(d_hien_tai.day) + "/" + std::to_string(d_hien_tai.month) + "/" + std::to_string(d_hien_tai.year)),
+                    text(" Hạn trả (dự kiến): " + std::to_string(d_tra.day) + "/" + std::to_string(d_tra.month) + "/" + std::to_string(d_tra.year)) | color(Color::Cyan),
+                    text(" Tiền cọc đã nhận: " + format_currency(tien_coc)) | color(Color::Yellow),
+                    separator(),
+                    ok_btn->Render() | center
+                }) | borderEmpty
+            ) | center;
+        });
+        
+        receipt_screen.Loop(renderer);
+    } else {
+        get_string_input("Co loi xay ra, vui long nhan Enter de tiep tuc...");
+    }
   }
 }
 

@@ -12,8 +12,9 @@
 long date_to_days(Date d);
 Date add_days(Date d, int days);
 
-// Xử lý nghiệp vụ Mượn/Trả
-void process_new_rental(int comic_id, int customer_id, Date ngay_tra_du_kien, double tien_coc, double tien_thue);
+// Xử lý nghiệp vụ Mượn/Trả/Đặt Trước
+int process_new_rental(int comic_id, int customer_id, Date ngay_tra_du_kien, double tien_coc, double tien_thue, bool is_reservation = false, Date custom_start_date = {0,0,0});
+bool get_earliest_return_date(int comic_id, Date& out_date);
 void compute_payment_bill(RentalSlip &slip, double gia_bia, int trang_thai_tra);
 void process_return_comic(int id_phieu, Date ngay_tra_thuc_te,
                           int trang_thai_tra, double gia_bia);
