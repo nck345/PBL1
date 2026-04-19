@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iostream>
 #include <ctime>
+#include <algorithm>
 
 using namespace std;
 
@@ -56,20 +57,62 @@ Date add_days(Date d, int days_to_add) {
 
 bool get_earliest_return_date(int comic_id, Date& out_date) {
   std::vector<RentalSlip> all_slips = get_all_rental_slips();
-  bool found = false;
-  long min_days = 99999999;
+  Comic comic;
+  if (!get_comic_by_id(comic_id, comic)) return false;
+
+  int total_copies = comic.quantity;
+  if (total_copies < 0) total_copies = 0;
+
+  time_t t = time(0); tm* now = localtime(&t);
+  Date today = {now->tm_mday, now->tm_mon + 1, now->tm_year + 1900};
   
+  std::vector<Date> candidates;
+  candidates.push_back(today);
+
   for (const auto& s : all_slips) {
-      if (s.comic_id == comic_id && s.trang_thai == 0) {
-          long d = date_to_days(s.ngay_tra_du_kien);
-          if (d < min_days) {
-              min_days = d;
-              out_date = s.ngay_tra_du_kien;
-              found = true;
+      if (s.comic_id == comic_id) {
+          if (s.trang_thai == 0) {
+              total_copies++;
+              candidates.push_back(s.ngay_tra_du_kien);
+          } else if (s.trang_thai == 3) {
+              candidates.push_back(s.ngay_tra_du_kien);
           }
       }
   }
-  return found;
+
+  if (total_copies <= 0) return false;
+
+  auto busy_on = [&](long day) {
+      int count = 0;
+      for (const auto& s : all_slips) {
+          if (s.comic_id == comic_id) {
+              long d_muon = date_to_days(s.ngay_muon);
+              long d_tra = date_to_days(s.ngay_tra_du_kien);
+              if (s.trang_thai == 0) {
+                  if (day < d_tra) count++;
+              } else if (s.trang_thai == 3) {
+                  if (day >= d_muon && day < d_tra) count++;
+              }
+          }
+      }
+      return count;
+  };
+
+  std::sort(candidates.begin(), candidates.end(), [](const Date& a, const Date& b) {
+      return date_to_days(a) < date_to_days(b);
+  });
+
+  long today_long = date_to_days(today);
+  for (const auto& date_val : candidates) {
+      long d_val = date_to_days(date_val);
+      if (d_val < today_long) continue;
+
+      if (busy_on(d_val) < total_copies) {
+          out_date = date_val;
+          return true;
+      }
+  }
+  return false;
 }
 
 // Xử lý mượn truyện / Đặt trước
