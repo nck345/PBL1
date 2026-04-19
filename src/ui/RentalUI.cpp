@@ -415,7 +415,8 @@ Element build_rental_table_element(const std::vector<RentalSlip> &slips,
     std::string tt = (s.trang_thai == 0)   ? "Dang thue"
                      : (s.trang_thai == 1) ? "Da tra"
                      : (s.trang_thai == 2) ? "Mat/Hong"
-                                           : "Qua han";
+                     : (s.trang_thai == 3) ? "Dat truoc"
+                                           : "Khong ro";
     std::string cu_name = get_cu_name(s.customer_id, all_cu);
     std::string c_name = get_c_name(s.comic_id, all_c);
     std::string c_author = get_c_author(s.comic_id, all_c);

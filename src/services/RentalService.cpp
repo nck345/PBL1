@@ -97,9 +97,9 @@ int process_new_rental(int comic_id, int customer_id, Date ngay_tra_du_kien, dou
     return -1;
   }
 
-  // Auto generate current date or use custom start date for reservation
+  // Auto generate current date or use custom start date
   Date ngay_muon;
-  if (is_reservation && custom_start_date.year != 0) {
+  if (custom_start_date.year != 0) {
       ngay_muon = custom_start_date;
   } else {
       time_t t = time(0);

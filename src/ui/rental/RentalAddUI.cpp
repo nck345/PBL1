@@ -82,10 +82,19 @@ void render_new_rental_screen() {
 
   int reservation_option = 0;
   std::vector<std::string> reservation_options;
+  
+  time_t t = time(0); tm* now = localtime(&t);
+  Date today_dt = {now->tm_mday, now->tm_mon + 1, now->tm_year + 1900};
+  
   if (is_reservation) {
       reservation_options = {
           "Ngay khi co truyen (" + std::to_string(earliest_return_date.day) + "/" + std::to_string(earliest_return_date.month) + "/" + std::to_string(earliest_return_date.year) + ")",
           "Sau do 1 ngay (" + std::to_string(add_days(earliest_return_date, 1).day) + "/" + std::to_string(add_days(earliest_return_date, 1).month) + "/" + std::to_string(add_days(earliest_return_date, 1).year) + ")"
+      };
+  } else {
+      reservation_options = {
+          "Hôm nay (" + std::to_string(today_dt.day) + "/" + std::to_string(today_dt.month) + "/" + std::to_string(today_dt.year) + ")",
+          "Ngày mai (" + std::to_string(add_days(today_dt, 1).day) + "/" + std::to_string(add_days(today_dt, 1).month) + "/" + std::to_string(add_days(today_dt, 1).year) + ")"
       };
   }
   Component res_radiobox = Radiobox(&reservation_options, &reservation_option);
@@ -116,7 +125,7 @@ void render_new_rental_screen() {
   }, ButtonOption::Animated());
 
   auto container = Container::Vertical({
-       is_reservation ? res_radiobox : Container::Vertical({}),
+       res_radiobox,
        input_days,
        Container::Horizontal({submit_button, cancel_button})
   });
@@ -149,7 +158,7 @@ void render_new_rental_screen() {
       
     return vbox({text(is_reservation ? " PHIẾU ĐẶT TRƯỚC " : " THIẾT LẬP GÓI THUÊ ") | bold | center, separator(),
                  hbox(text(" Truyện: "), text(popup_comic.comic_name)),
-                 is_reservation ? vbox({ text(" CHỌN BẮT ĐẦU MƯỢN TRUYỆN: ") | bold | color(Color::Green), res_radiobox->Render() | color(Color::Green) }) : text(""),
+                 vbox({ text(" CHỌN BẮT ĐẦU MƯỢN TRUYỆN: ") | bold | color(Color::Green), res_radiobox->Render() | color(Color::Green) }),
                  hbox(text(" Tiền cọc (120%): "), text(format_currency(tien_coc)) | color(Color::Yellow)),
                  separator(),
                  text(" Mức giá: 1 Ngày(" + format_currency(phi_1_ngay) + "), Combo 3 Ngày(" + format_currency(phi_3_ngay) + "), Combo 1 Tuần(" + format_currency(phi_7_ngay) + ")") | dim,
@@ -190,7 +199,13 @@ void render_new_rental_screen() {
     } else {
         time_t t = time(0);
         tm* now = localtime(&t);
-        d_hien_tai = {now->tm_mday, now->tm_mon + 1, now->tm_year + 1900};
+        Date baseline_today = {now->tm_mday, now->tm_mon + 1, now->tm_year + 1900};
+        if (reservation_option == 0) {
+            reservation_start_date = baseline_today;
+        } else {
+            reservation_start_date = add_days(baseline_today, 1);
+        }
+        d_hien_tai = reservation_start_date;
     }
     Date d_tra = add_days(d_hien_tai, days_to_add);
 
