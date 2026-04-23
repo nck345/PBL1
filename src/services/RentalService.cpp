@@ -434,3 +434,29 @@ std::vector<int> get_revenue_chart_data(int month, int year) {
 
   return daily_rev;
 }
+
+// Trả về mảng doanh thu theo từng tháng trong khoảng [m1/y1 .. m2/y2]
+// Phần tử [0] = tháng m1/y1, [1] = tháng tiếp theo, ...
+std::vector<int> get_monthly_chart_data(int m1, int y1, int m2, int y2) {
+  // Tính số tháng trong khoảng
+  int total_months = (y2 - y1) * 12 + (m2 - m1) + 1;
+  if (total_months < 1) total_months = 1;
+  std::vector<int> monthly_rev(total_months, 0);
+
+  ifstream file("data/rentals.dat", ios::binary);
+  if (!file.is_open()) return monthly_rev;
+
+  long start_key = (long)y1 * 12 + m1;
+  RentalSlip slip;
+  while (file.read(reinterpret_cast<char*>(&slip), sizeof(RentalSlip))) {
+    if (slip.trang_thai != 0) {
+      long key = (long)slip.ngay_tra_thuc_te.year * 12 + slip.ngay_tra_thuc_te.month;
+      int idx = (int)(key - start_key);
+      if (idx >= 0 && idx < total_months) {
+        monthly_rev[idx] += static_cast<int>(slip.tong_tien);
+      }
+    }
+  }
+  file.close();
+  return monthly_rev;
+}

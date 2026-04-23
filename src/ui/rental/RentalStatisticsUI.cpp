@@ -42,7 +42,46 @@ void render_statistics_screen() {
     std::string to_m_str = std::to_string(current_m);
     std::string to_y_str = std::to_string(current_y);
     std::string monthly_revenue_str = "...";
+    std::string peak_info_str = "---";   // "Ngày X (YYY VNĐ)" hoặc "Tháng X (YYY VNĐ)"
+    bool chart_multi_month = false;       // false = chế độ 1 tháng, true = nhiều tháng
     std::vector<int> chart_data = get_revenue_chart_data(current_m, current_y);
+    int chart_fm = current_m, chart_fy = current_y; // lưu từ/đến cho generate_custom_chart
+    int chart_tm = current_m, chart_ty = current_y;
+
+    // Helper: số ngày thực tế trong tháng
+    auto get_days_in_month = [](int m, int y) -> int {
+        if (m == 2) {
+            bool leap = (y % 400 == 0) || (y % 4 == 0 && y % 100 != 0);
+            return leap ? 29 : 28;
+        }
+        if (m == 4 || m == 6 || m == 9 || m == 11) return 30;
+        return 31;
+    };
+
+    // Helper: tính đỉnh từ chart_data (dùng chung cả 2 chế độ)
+    auto compute_peak = [&]() {
+        int peak_idx = 0;
+        int peak_val = 0;
+        for (int i = 0; i < (int)chart_data.size(); ++i) {
+            if (chart_data[i] > peak_val) {
+                peak_val = chart_data[i];
+                peak_idx = i;
+            }
+        }
+        if (peak_val == 0) { peak_info_str = "---"; return; }
+        if (!chart_multi_month) {
+            // Chế độ 1 tháng: peak_idx là ngày (1-based trong chart_data)
+            peak_info_str = "Ngày " + std::to_string(peak_idx) + " (" + format_currency(peak_val) + " VNĐ)";
+        } else {
+            // Chế độ nhiều tháng: peak_idx là offset từ chart_fm
+            int pm = chart_fm + peak_idx;
+            int py = chart_fy + (pm - 1) / 12;
+            pm = (pm - 1) % 12 + 1;
+            peak_info_str = "Tháng " + std::to_string(pm) + "/" + std::to_string(py)
+                          + " (" + format_currency(peak_val) + " VNĐ)";
+        }
+    };
+    compute_peak();
     
     // UI Elements for Tab 1
     Component input_day = Input(&day_str, "DD");
@@ -76,10 +115,19 @@ void render_statistics_screen() {
             if (!to_m_str.empty()) tm = std::stoi(to_m_str);
             if (!to_y_str.empty()) ty = std::stoi(to_y_str);
         } catch(...) {}
-        
+
         double total = compute_revenue_between_months(fm, fy, tm, ty);
         monthly_revenue_str = format_currency(total);
-        chart_data = get_revenue_chart_data(tm, ty); // Show chart of "To" month
+
+        chart_fm = fm; chart_fy = fy; chart_tm = tm; chart_ty = ty;
+        // Tự động chọn chế độ biểu đồ
+        chart_multi_month = !((fy == ty) && (fm == tm));
+        if (!chart_multi_month) {
+            chart_data = get_revenue_chart_data(tm, ty); // Chế độ ngày
+        } else {
+            chart_data = get_monthly_chart_data(fm, fy, tm, ty); // Chế độ tháng
+        }
+        compute_peak();
     }, ButtonOption::Ascii());
 
     // Initialization
@@ -148,16 +196,126 @@ void render_statistics_screen() {
         Container::Tab({ container_tab1, container_tab2, Renderer([]{return text("");}) }, &tab_selected)
     });
 
-    auto graph_func = [&](int width, int height) {
-        if (chart_data.empty()) return std::vector<int>(width, 0);
-        std::vector<int> out(width, 0);
-        for (int i = 0; i < width; ++i) {
-            int day = (i * 31) / std::max(width, 1) + 1;
-            if (day >= 1 && day <= 31 && day < chart_data.size()) {
-                out[i] = chart_data[day];
+    auto generate_custom_chart = [&]() -> Element {
+        if (chart_data.empty()) return text("Chưa có dữ liệu biểu đồ.") | center;
+
+        // ── Số điểm dữ liệu ──
+        int num_points;
+        if (!chart_multi_month) {
+            num_points = get_days_in_month(chart_tm, chart_ty);
+        } else {
+            num_points = (int)chart_data.size();
+        }
+        if (num_points < 1) num_points = 1;
+
+        // ── Chuẩn hoá dữ liệu sang Nghìn VNĐ ──
+        double max_val_k = 0;
+        std::vector<double> data_k(num_points, 0.0);
+        for (int i = 0; i < num_points; ++i) {
+            int src = chart_multi_month ? i : (i + 1);
+            if (src < (int)chart_data.size()) {
+                data_k[i] = chart_data[src] / 1000.0;
+                if (data_k[i] > max_val_k) max_val_k = data_k[i];
             }
         }
-        return out;
+
+        // ── Tính step chẵn cho trục Y ──
+        if (max_val_k == 0) max_val_k = 10.0;
+        int num_steps = 10;
+        double raw_step = max_val_k / num_steps;
+        double multiplier = 1.0;
+        while (raw_step >= 10.0) { raw_step /= 10.0; multiplier *= 10.0; }
+        while (raw_step < 1.0 && raw_step > 0) { raw_step *= 10.0; multiplier /= 10.0; }
+        int nice_step_base = 1;
+        if (raw_step > 5.0)      nice_step_base = 10;
+        else if (raw_step > 2.0) nice_step_base = 5;
+        else if (raw_step > 1.0) nice_step_base = 2;
+        int step = (int)(nice_step_base * multiplier);
+        if (step < 1) step = 1;
+
+        // ── Tìm index đỉnh ──
+        int peak_idx = -1;
+        double peak_k = 0;
+        for (int i = 0; i < num_points; ++i) {
+            if (data_k[i] > peak_k) { peak_k = data_k[i]; peak_idx = i; }
+        }
+
+        // ── Xây dựng cột Y (trái, chiều rộng cố định) ──
+        // Mỗi phần tử: "  50 |" — 5 ký tự số + " |" = 7 ký tự
+        const int Y_COL_WIDTH = 7;
+        Elements y_col;
+        Elements bar_rows; // phần body cột phải (chỉ chứa bars)
+
+        for (int row = num_steps; row >= 0; --row) {
+            int thr = row * step;
+
+            // Nhãn Y căn phải 5 ký tự + " |"
+            std::string y_label = std::to_string(thr);
+            while ((int)y_label.length() < 5) y_label = " " + y_label;
+            y_col.push_back(
+                hbox({ text(y_label) | color(Color::Cyan), text(" |") })
+            );
+
+            // Hàng bars — dùng filler() giữa các điểm để trải đều theo flex
+            Elements bar;
+            for (int i = 0; i < num_points; ++i) {
+                if (i > 0) bar.push_back(filler());
+                bool filled = (thr > 0) ? (data_k[i] >= thr) : (data_k[i] > 0);
+                Color col = (i == peak_idx && filled) ? Color::Yellow : Color::Green;
+                bar.push_back(filled ? (text("██") | color(col)) : text("  "));
+            }
+            bar_rows.push_back(hbox(bar));
+        }
+
+        // ── Xây dựng nhãn trục X ──
+        Elements x_labels;
+        if (!chart_multi_month) {
+            // Chế độ ngày: mốc 1, 5, 10, 15, 20, 25, [ngày cuối]
+            std::vector<int> ms = {1, 5, 10, 15, 20, 25, num_points};
+            bool first = true;
+            for (int d : ms) {
+                if (d < 1 || d > num_points) continue;
+                if (!first) x_labels.push_back(filler());
+                x_labels.push_back(
+                    text(std::to_string(d)) | color(Color::Yellow) | bold
+                );
+                first = false;
+            }
+        } else {
+            // Chế độ tháng: T1, T2, ... Tháng cuối — xử lý đúng qua năm
+            bool first = true;
+            for (int i = 0; i < num_points; ++i) {
+                int pm = chart_fm + i;
+                int py = chart_fy + (pm - 1) / 12;
+                pm = (pm - 1) % 12 + 1;
+                (void)py; // năm không hiển thị trong nhãn tháng ngắn
+                if (!first) x_labels.push_back(filler());
+                x_labels.push_back(
+                    text("T" + std::to_string(pm)) | color(Color::Yellow) | bold
+                );
+                first = false;
+            }
+        }
+
+        // ── Lắp ráp layout ──
+        // Trái: cột Y (chiều rộng cố định Y_COL_WIDTH)
+        // Phải: vbox(bars | flex, separator, x-labels) | flex
+        //   → separator() bên trong vbox sẽ tự mở rộng hết chiều ngang của phần phải
+
+        return hbox({
+            // Cột Y — chiều rộng cố định
+            vbox(y_col) | size(WIDTH, EQUAL, Y_COL_WIDTH),
+
+            // Phần phải — flex, gồm 3 dòng trong vbox
+            vbox({
+                // Dòng 1: vùng bars, flex về chiều cao
+                vbox(bar_rows) | flex,
+                // Dòng 2: đường kẻ ngang — separator() trong vbox = ngang, full width!
+                separator(),
+                // Dòng 3: nhãn trục X rải đều
+                hbox(x_labels)
+            }) | flex
+        });
     };
 
     auto renderer = Renderer(main_container, [&] {
@@ -179,20 +337,44 @@ void render_statistics_screen() {
                 }) | border
             });
         } else if (tab_selected == 1) {
+            // Tiêu đề thời gian: 1 dòng nếu cùng tháng, 2 vế nếu khác
+            bool same_period = (from_m_str == to_m_str && from_y_str == to_y_str);
+            std::string period_label = same_period
+                ? ("Thống kê Tháng " + to_m_str + "/" + to_y_str)
+                : ("Từ Tháng " + from_m_str + " Năm " + from_y_str
+                   + "   -   Đến Tháng " + to_m_str + " Năm " + to_y_str);
+            std::string chart_title = same_period
+                ? (" BIỂU ĐỒ THÁNG " + to_m_str + "/" + to_y_str + " (Nghìn VNĐ)")
+                : (" BIỂU ĐỒ GIAI ĐOẠN " + from_m_str + "/" + from_y_str
+                   + " → " + to_m_str + "/" + to_y_str + " (Nghìn VNĐ)");
+
             content = vbox({
-                text(" KHOẢNG THỜI GIAN THỐNG KÊ ") | bold | center,
-                separator(),
-                hbox({ text(" Từ Tháng: "), input_fm->Render() | size(WIDTH, EQUAL, 5), text(" Năm: "), input_fy->Render() | size(WIDTH, EQUAL, 7) }) | center,
-                hbox({ text(" Đến Tháng: "), input_tm->Render() | size(WIDTH, EQUAL, 5), text(" Năm: "), input_ty->Render() | size(WIDTH, EQUAL, 7) }) | center,
-                btn_calc_monthly->Render() | center,
-                separator(),
                 vbox({
-                     text(" TỔNG DOANH THU GIAI ĐOẠN: ") | bold | center,
-                     text(monthly_revenue_str + " VNĐ") | bold | color(Color::Green) | center
+                    text(" KHOẢNG THỜI GIAN THỐNG KÊ ") | bold | center,
+                    separator(),
+                    hbox({
+                        text(" Từ Tháng: "), input_fm->Render() | size(WIDTH, EQUAL, 5),
+                        text("  Năm: "), input_fy->Render() | size(WIDTH, EQUAL, 7),
+                        filler(),
+                        text(" Đến Tháng: "), input_tm->Render() | size(WIDTH, EQUAL, 5),
+                        text("  Năm: "), input_ty->Render() | size(WIDTH, EQUAL, 7),
+                        text(" ")
+                    }),
+                    btn_calc_monthly->Render() | center,
+                    separator(),
+                    text(" " + period_label + " ") | dim | center,
+                    // Gom TỔNG & ĐỈNH trên 1 hàng để tiết kiệm chiều cao
+                    hbox({
+                        text(" TỔNG: ") | bold,
+                        text(monthly_revenue_str + " VNĐ") | bold | color(Color::Green),
+                        text("   │   "),
+                        text("ĐỈNH: ") | bold,
+                        text(peak_info_str) | bold | color(Color::RedLight)
+                    }) | center,
                 }),
                 separator(),
-                text(" BIỂU ĐỒ DOANH THU THÁNG " + to_m_str + "/" + to_y_str + " (VNĐ)") | bold | center,
-                graph(std::ref(graph_func)) | flex | size(HEIGHT, GREATER_THAN, 12) | border
+                text(chart_title) | bold | center,
+                generate_custom_chart() | border | flex
             });
         } else {
              // Re-render cached table inside frame for scrolling
