@@ -143,22 +143,34 @@ void render_statistics_screen() {
     
     auto generate_main_table = [&]() {
         if (slips.empty()) return text("Không có dữ liệu phiếu thuê.") | center;
-        std::vector<RentalSlip> sorted_slips = slips;
+        std::vector<RentalSlip> sorted_slips;
+        total_rented = 0;
+        for (const auto& s : slips) {
+            if (s.trang_thai == 0) total_rented++;
+            if (s.trang_thai == 1) { // Chỉ lấy phiếu Đã Trả
+                sorted_slips.push_back(s);
+            }
+        }
+
         quick_sort(sorted_slips, compare_revenue_desc);
         std::vector<std::vector<std::string>> data;
-        data.push_back({" ID ", " Tên Truyện ", " Khách Hàng ", " Ngày Mượn ", " Hạn Trả ", " Thực Tế ", " Tiền Cọc ", " Tổng Tiền ", " Trạng Thái "});
-        total_rented = 0;
-        for (const auto &s : sorted_slips) {
-            std::string ngay_m = std::to_string(s.ngay_muon.day) + "/" + std::to_string(s.ngay_muon.month);
-            std::string ngay_d = std::to_string(s.ngay_tra_du_kien.day) + "/" + std::to_string(s.ngay_tra_du_kien.month);
-            std::string ngay_t = (s.ngay_tra_thuc_te.year > 1900) ? (std::to_string(s.ngay_tra_thuc_te.day) + "/" + std::to_string(s.ngay_tra_thuc_te.month)) : "---";
-            std::string tt = (s.trang_thai == 1) ? "Đã Trả" : (s.trang_thai == 2) ? "Mất/Hỏng" : "Đang Thuê";
-            if (s.trang_thai == 0) total_rented++;
-            data.push_back({
-                std::to_string(s.id_phieu), truncate_text(get_c_name(s.comic_id, all_c), 20), truncate_text(get_cu_name(s.customer_id, all_cu), 20),
-                ngay_m, ngay_d, ngay_t, format_currency(s.tien_coc), format_currency(s.tong_tien), tt
-            });
+        data.push_back({" ID ", " Tên Truyện ", " Khách Hàng ", " Ngày Mượn ", " Hạn Trả ", " Thực Tế ", " Tổng Tiền "});
+        
+        if (sorted_slips.empty()) {
+            data.push_back({"---", "---", "---", "---", "---", "---", "---"});
+        } else {
+            for (const auto &s : sorted_slips) {
+                std::string ngay_m = std::to_string(s.ngay_muon.day) + "/" + std::to_string(s.ngay_muon.month);
+                std::string ngay_d = std::to_string(s.ngay_tra_du_kien.day) + "/" + std::to_string(s.ngay_tra_du_kien.month);
+                std::string ngay_t = (s.ngay_tra_thuc_te.year > 1900) ? (std::to_string(s.ngay_tra_thuc_te.day) + "/" + std::to_string(s.ngay_tra_thuc_te.month)) : "---";
+                
+                data.push_back({
+                    std::to_string(s.id_phieu), truncate_text(get_c_name(s.comic_id, all_c), 20), truncate_text(get_cu_name(s.customer_id, all_cu), 20),
+                    ngay_m, ngay_d, ngay_t, format_currency(s.tong_tien)
+                });
+            }
         }
+
         auto tbl = Table(data);
         tbl.SelectAll().SeparatorVertical();
         tbl.SelectRow(0).Decorate(bold);
@@ -179,6 +191,16 @@ void render_statistics_screen() {
         "3. Dữ Liệu Chi Tiết"
     };
     auto tab_menu = Menu(&tab_entries, &tab_selected);
+    tab_menu = CatchEvent(tab_menu, [&](Event event) {
+        if (event.is_character()) {
+            char c = event.character()[0];
+            if (c >= '1' && c <= '3') {
+                tab_selected = c - '1';
+                return true;
+            }
+        }
+        return false;
+    });
 
     // Containers (must be kept alive holding focus)
     auto container_tab1 = Container::Vertical({
