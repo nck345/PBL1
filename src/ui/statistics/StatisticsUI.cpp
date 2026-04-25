@@ -1,4 +1,4 @@
-#include "../../../include/ui/rental/RentalStatisticsUI.h"
+#include "../../../include/ui/statistics/StatisticsUI.h"
 #include "../../../include/ui/RentalUI.h"
 #include "../../../include/repository/RentalRepo.h"
 #include "../../../include/repository/ComicRepo.h"

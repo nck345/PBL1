@@ -8,7 +8,7 @@
 #include "../include/ui/ComicUI.h"
 #include "../include/ui/CustomerUI.h"
 #include "../include/ui/RentalUI.h"
-
+#include "../include/ui/statistics/StatisticsUI.h"
 // Include repositories to get real data
 #include "../include/repository/ComicRepo.h"
 #include "../include/repository/CustomerRepo.h"

@@ -15,8 +15,6 @@ struct RentalUIRow {
 // Giao dien Quan ly phieu thue
 void render_rental_menu();
 
-// Giao dien Thong ke & Doanh thu
-void render_statistics_screen();
 
 
 #include <ftxui/dom/elements.hpp>
