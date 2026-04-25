@@ -154,7 +154,7 @@ void render_statistics_screen() {
 
         quick_sort(sorted_slips, compare_revenue_desc);
         std::vector<std::vector<std::string>> data;
-        data.push_back({" ID ", " Tên Truyện ", " Khách Hàng ", " Ngày Mượn ", " Hạn Trả ", " Thực Tế ", " Tổng Tiền "});
+        data.push_back({" ID ", " Tên Truyện ", " Khách Hàng ", " Ngày Mượn ", " Hạn Trả ", " Ngày Trả ", " Tổng Tiền "});
         
         int term_width = ftxui::Terminal::Size().dimx;
         int remaining = std::max(20, term_width - 92);
@@ -165,9 +165,9 @@ void render_statistics_screen() {
             data.push_back({"---", "---", "---", "---", "---", "---", "---"});
         } else {
             for (const auto &s : sorted_slips) {
-                std::string ngay_m = std::to_string(s.ngay_muon.day) + "/" + std::to_string(s.ngay_muon.month);
-                std::string ngay_d = std::to_string(s.ngay_tra_du_kien.day) + "/" + std::to_string(s.ngay_tra_du_kien.month);
-                std::string ngay_t = (s.ngay_tra_thuc_te.year > 1900) ? (std::to_string(s.ngay_tra_thuc_te.day) + "/" + std::to_string(s.ngay_tra_thuc_te.month)) : "---";
+                std::string ngay_m = std::to_string(s.ngay_muon.day) + "/" + std::to_string(s.ngay_muon.month) + "/" + std::to_string(s.ngay_muon.year);
+                std::string ngay_d = std::to_string(s.ngay_tra_du_kien.day) + "/" + std::to_string(s.ngay_tra_du_kien.month) + "/" + std::to_string(s.ngay_tra_du_kien.year);
+                std::string ngay_t = (s.ngay_tra_thuc_te.year > 1900) ? (std::to_string(s.ngay_tra_thuc_te.day) + "/" + std::to_string(s.ngay_tra_thuc_te.month) + "/" + std::to_string(s.ngay_tra_thuc_te.year)) : "---";
                 
                 data.push_back({
                     std::to_string(s.id_phieu), truncate_text(get_c_name(s.comic_id, all_c), dyn_c), truncate_text(get_cu_name(s.customer_id, all_cu), dyn_cu),
