@@ -156,6 +156,11 @@ void render_statistics_screen() {
         std::vector<std::vector<std::string>> data;
         data.push_back({" ID ", " Tên Truyện ", " Khách Hàng ", " Ngày Mượn ", " Hạn Trả ", " Thực Tế ", " Tổng Tiền "});
         
+        int term_width = ftxui::Terminal::Size().dimx;
+        int remaining = std::max(20, term_width - 92);
+        int dyn_c = remaining / 2;
+        int dyn_cu = remaining - dyn_c;
+
         if (sorted_slips.empty()) {
             data.push_back({"---", "---", "---", "---", "---", "---", "---"});
         } else {
@@ -165,7 +170,7 @@ void render_statistics_screen() {
                 std::string ngay_t = (s.ngay_tra_thuc_te.year > 1900) ? (std::to_string(s.ngay_tra_thuc_te.day) + "/" + std::to_string(s.ngay_tra_thuc_te.month)) : "---";
                 
                 data.push_back({
-                    std::to_string(s.id_phieu), truncate_text(get_c_name(s.comic_id, all_c), 20), truncate_text(get_cu_name(s.customer_id, all_cu), 20),
+                    std::to_string(s.id_phieu), truncate_text(get_c_name(s.comic_id, all_c), dyn_c), truncate_text(get_cu_name(s.customer_id, all_cu), dyn_cu),
                     ngay_m, ngay_d, ngay_t, format_currency(s.tong_tien)
                 });
             }
@@ -182,6 +187,7 @@ void render_statistics_screen() {
         });
     };
     
+    int last_term_width = ftxui::Terminal::Size().dimx;
     Element table_cache = generate_main_table(); // Cache render để không giật lag
 
     int tab_selected = 0;
@@ -341,6 +347,12 @@ void render_statistics_screen() {
     };
 
     auto renderer = Renderer(main_container, [&] {
+        int current_term_width = ftxui::Terminal::Size().dimx;
+        if (current_term_width != last_term_width) {
+            table_cache = generate_main_table();
+            last_term_width = current_term_width;
+        }
+
         Element content;
         if (tab_selected == 0) {
             content = vbox({

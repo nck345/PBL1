@@ -26,11 +26,14 @@ Element build_customer_table_element(const std::vector<Customer> &customers) {
   std::vector<std::vector<std::string>> table_data;
   table_data.push_back({"ID", "Ten Khach Hang", "So Dien Thoai"});
 
+  int term_width = ftxui::Terminal::Size().dimx;
+  int dyn_cu = std::max(15, term_width - 50);
+
   bool has_data = false;
   for (const auto &c : customers) {
     if (!c.is_deleted) {
       has_data = true;
-      table_data.push_back({std::to_string(c.id), truncate_text(c.name, 25), truncate_text(c.phone, 15)});
+      table_data.push_back({std::to_string(c.id), truncate_text(c.name, dyn_cu), truncate_text(c.phone, 15)});
     }
   }
 
@@ -151,9 +154,12 @@ int select_customer_ui(const std::string& title) {
      } else {
          std::vector<std::vector<std::string>> table_data;
          table_data.push_back({"ID", "Ten Khach Hang", "SDT"});
+         int term_width = ftxui::Terminal::Size().dimx;
+         int dyn_cu = std::max(15, term_width - 50);
+
          for (const auto& c : filtered_list) {
              table_data.push_back({
-                 std::to_string(c.id), truncate_text(c.name, 25),
+                 std::to_string(c.id), truncate_text(c.name, dyn_cu),
                  c.phone
              });
          }

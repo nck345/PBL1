@@ -357,13 +357,18 @@ int select_rental_slip_ui(const std::string &title) {
       std::vector<std::vector<std::string>> table_data;
       table_data.push_back({"ID", "Khach Hang", "Ten Truyen", "Tac Gia",
                             "The Loai", "Ngay Muon"});
+      int term_width = ftxui::Terminal::Size().dimx;
+      int remaining = std::max(20, term_width - 80);
+      int dyn_cu = remaining / 2;
+      int dyn_c = remaining - dyn_cu;
+
       for (const auto &r : filtered_rows) {
         std::string nm = std::to_string(r.slip.ngay_muon.day) + "/" +
                          std::to_string(r.slip.ngay_muon.month) + "/" +
                          std::to_string(r.slip.ngay_muon.year);
         table_data.push_back(
-            {std::to_string(r.slip.id_phieu), truncate_text(r.cu_name, 20),
-             truncate_text(r.c_name, 20), truncate_text(r.c_author, 15),
+            {std::to_string(r.slip.id_phieu), truncate_text(r.cu_name, dyn_cu),
+             truncate_text(r.c_name, dyn_c), truncate_text(r.c_author, 10),
              truncate_text(r.c_type, 12), nm});
       }
 
@@ -408,6 +413,11 @@ Element build_rental_table_element(const std::vector<RentalSlip> &slips,
   std::vector<std::vector<std::string>> table_data;
   table_data.push_back({"ID", "Khach Hang", "Ten Truyen", "Tac Gia", "The Loai",
                         "Ngay Muon", "Trang Thai"});
+  int term_width = ftxui::Terminal::Size().dimx;
+  int remaining = std::max(20, term_width - 92);
+  int dyn_cu = remaining / 2;
+  int dyn_c = remaining - dyn_cu;
+
   for (const auto &s : slips) {
     std::string nm = std::to_string(s.ngay_muon.day) + "/" +
                      std::to_string(s.ngay_muon.month) + "/" +
@@ -422,8 +432,8 @@ Element build_rental_table_element(const std::vector<RentalSlip> &slips,
     std::string c_author = get_c_author(s.comic_id, all_c);
     std::string c_type = get_c_type(s.comic_id, all_c);
     table_data.push_back({std::to_string(s.id_phieu),
-                          truncate_text(cu_name, 20), truncate_text(c_name, 20),
-                          truncate_text(c_author, 15),
+                          truncate_text(cu_name, dyn_cu), truncate_text(c_name, dyn_c),
+                          truncate_text(c_author, 10),
                           truncate_text(c_type, 12), nm, tt});
   }
   auto table = Table(table_data);
