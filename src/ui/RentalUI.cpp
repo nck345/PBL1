@@ -377,6 +377,8 @@ int select_rental_slip_ui(const std::string &title) {
       table.SelectRow(0).Decorate(bold);
       table.SelectAll().SeparatorVertical(LIGHT);
       table.SelectRow(0).Border(DOUBLE);
+      table.SelectColumn(0).DecorateCells(ftxui::align_right);
+      table.SelectColumn(5).DecorateCells(ftxui::align_right);
 
       int row_index = selected_slip_index + 1;
       if (slip_menu->Focused()) {
@@ -441,6 +443,8 @@ Element build_rental_table_element(const std::vector<RentalSlip> &slips,
   table.SelectRow(0).Decorate(bold);
   table.SelectAll().SeparatorVertical(LIGHT);
   table.SelectRow(0).Border(DOUBLE);
+  table.SelectColumn(0).DecorateCells(ftxui::align_right);
+  table.SelectColumn(5).DecorateCells(ftxui::align_right);
   return table.Render();
 }
 

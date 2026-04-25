@@ -181,6 +181,11 @@ void render_statistics_screen() {
         tbl.SelectRow(0).Decorate(bold);
         tbl.SelectRow(0).SeparatorHorizontal();
         tbl.SelectAll().Border(LIGHT);
+        tbl.SelectColumn(0).DecorateCells(ftxui::align_right);
+        tbl.SelectColumn(3).DecorateCells(ftxui::align_right);
+        tbl.SelectColumn(4).DecorateCells(ftxui::align_right);
+        tbl.SelectColumn(5).DecorateCells(ftxui::align_right);
+        tbl.SelectColumn(6).DecorateCells(ftxui::align_right);
         return vbox({
              text(" Đang thuê: " + std::to_string(total_rented) + " phiếu ") | bold | color(Color::Cyan) | center,
              tbl.Render() | center

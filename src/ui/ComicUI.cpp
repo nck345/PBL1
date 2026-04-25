@@ -352,6 +352,9 @@ int select_comic_ui(const std::string& title) {
         table.SelectRow(0).Decorate(bold);
         table.SelectAll().SeparatorVertical(LIGHT);
         table.SelectRow(0).Border(DOUBLE);
+        table.SelectColumn(0).DecorateCells(ftxui::align_right);
+        table.SelectColumn(4).DecorateCells(ftxui::align_right);
+        table.SelectColumn(5).DecorateCells(ftxui::align_right);
         
         int row_index = selected_comic_index + 1;
         if (comic_menu->Focused()) {
@@ -410,8 +413,9 @@ void render_comic_table(const std::vector<Comic> &comics) {
   table.SelectAll().SeparatorVertical(LIGHT);
   table.SelectRow(0).Border(DOUBLE);
 
-  // Alignment
-  // table.SelectColumn(0).DecorateCells(align_right);
+  table.SelectColumn(0).DecorateCells(ftxui::align_right);
+  table.SelectColumn(4).DecorateCells(ftxui::align_right);
+  table.SelectColumn(5).DecorateCells(ftxui::align_right);
 
   auto document = table.Render();
   auto screen =
@@ -445,6 +449,9 @@ Element build_comic_table_element(const std::vector<Comic>& comics) {
   table.SelectRow(0).Decorate(bold);
   table.SelectAll().SeparatorVertical(LIGHT);
   table.SelectRow(0).Border(DOUBLE);
+  table.SelectColumn(0).DecorateCells(ftxui::align_right);
+  table.SelectColumn(4).DecorateCells(ftxui::align_right);
+  table.SelectColumn(5).DecorateCells(ftxui::align_right);
 
   return table.Render();
 }

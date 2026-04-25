@@ -33,7 +33,7 @@ Element build_customer_table_element(const std::vector<Customer> &customers) {
   for (const auto &c : customers) {
     if (!c.is_deleted) {
       has_data = true;
-      table_data.push_back({std::to_string(c.id), truncate_text(c.name, dyn_cu), truncate_text(c.phone, 15)});
+      table_data.push_back({std::to_string(c.id), truncate_text(c.name, dyn_cu), c.phone});
     }
   }
 
@@ -46,6 +46,8 @@ Element build_customer_table_element(const std::vector<Customer> &customers) {
   table.SelectRow(0).Decorate(bold);
   table.SelectAll().SeparatorVertical(LIGHT);
   table.SelectRow(0).Border(DOUBLE);
+  table.SelectColumn(0).DecorateCells(ftxui::align_right);
+  table.SelectColumn(2).DecorateCells(ftxui::align_right);
 
   return table.Render();
 }
@@ -169,6 +171,8 @@ int select_customer_ui(const std::string& title) {
          table.SelectRow(0).Decorate(bold);
          table.SelectAll().SeparatorVertical(LIGHT);
          table.SelectRow(0).Border(DOUBLE);
+         table.SelectColumn(0).DecorateCells(ftxui::align_right);
+         table.SelectColumn(2).DecorateCells(ftxui::align_right);
 
          int row_index = selected_customer_index + 1;
          if (customer_menu->Focused()) {
