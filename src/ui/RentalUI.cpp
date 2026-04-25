@@ -456,10 +456,10 @@ Element build_rental_table_element(const std::vector<RentalSlip> &slips,
 void render_rental_menu() {
   auto screen = ScreenInteractive::TerminalOutput();
   std::vector<std::string> entries = {
-      " [1] Danh sách Phiếu thuê ",
-      " [2] Lập thẻ mượn mới     ", 
-      " [3] Trả sách & Thu tiền  ",
-      " [4] Trở về Menu chính    "
+      " 1. Danh sách Phiếu thuê ",
+      " 2. Lập thẻ mượn mới     ", 
+      " 3. Trả sách & Thu tiền  ",
+      " 4. Trở về Menu chính    "
   };
   int selected = 0;
   MenuOption option;

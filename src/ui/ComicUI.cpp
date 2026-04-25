@@ -466,11 +466,11 @@ void render_comic_menu() {
   auto screen = ScreenInteractive::TerminalOutput();
 
   std::vector<std::string> entries = {
-      " [1] Xem danh sách truyện ", 
-      " [2] Thêm truyện mới      ",
-      " [3] Sửa thông tin truyện ", 
-      " [4] Xóa truyện           ",
-      " [5] Trở về Menu chính    "
+      " 1. Xem danh sách truyện ", 
+      " 2. Thêm truyện mới      ",
+      " 3. Sửa thông tin truyện ", 
+      " 4. Xóa truyện           ",
+      " 5. Trở về Menu chính    "
   };
   int selected = 0;
 

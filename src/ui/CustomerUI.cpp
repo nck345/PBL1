@@ -205,11 +205,11 @@ int select_customer_ui(const std::string& title) {
 void render_customer_menu() {
   auto screen = ScreenInteractive::TerminalOutput();
   std::vector<std::string> entries = {
-      " [1] Xem danh sách khách ", 
-      " [2] Thêm khách hàng mới ",
-      " [3] Sửa thông tin khách ", 
-      " [4] Xóa khách hàng      ",
-      " [5] Trở về Menu chính   "
+      " 1. Xem danh sách khách ", 
+      " 2. Thêm khách hàng mới ",
+      " 3. Sửa thông tin khách ", 
+      " 4. Xóa khách hàng      ",
+      " 5. Trở về Menu chính   "
   };
   int selected = 0;
   MenuOption option;
