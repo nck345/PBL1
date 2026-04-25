@@ -90,8 +90,12 @@ std::string truncate_text(const std::string& str, size_t max_width) {
         i += char_len;
     }
     
-    if (utf8_len <= max_width) return str;
-    
+    if (utf8_len <= max_width) {
+        std::string padded = str;
+        padded.append(max_width - utf8_len, ' ');
+        return padded;
+    }
+
     size_t return_length = 0;
     for (size_t i = 0; i < str.length(); ) {
         unsigned char c = str[i];

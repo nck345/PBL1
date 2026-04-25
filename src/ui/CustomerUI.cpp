@@ -30,7 +30,7 @@ Element build_customer_table_element(const std::vector<Customer> &customers) {
   for (const auto &c : customers) {
     if (!c.is_deleted) {
       has_data = true;
-      table_data.push_back({std::to_string(c.id), truncate_text(c.name, 35), truncate_text(c.phone, 15)});
+      table_data.push_back({std::to_string(c.id), truncate_text(c.name, 25), truncate_text(c.phone, 15)});
     }
   }
 
@@ -153,7 +153,7 @@ int select_customer_ui(const std::string& title) {
          table_data.push_back({"ID", "Ten Khach Hang", "SDT"});
          for (const auto& c : filtered_list) {
              table_data.push_back({
-                 std::to_string(c.id), truncate_text(c.name, 35),
+                 std::to_string(c.id), truncate_text(c.name, 25),
                  c.phone
              });
          }

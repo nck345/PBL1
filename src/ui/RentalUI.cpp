@@ -362,9 +362,9 @@ int select_rental_slip_ui(const std::string &title) {
                          std::to_string(r.slip.ngay_muon.month) + "/" +
                          std::to_string(r.slip.ngay_muon.year);
         table_data.push_back(
-            {std::to_string(r.slip.id_phieu), truncate_text(r.cu_name, 25),
-             truncate_text(r.c_name, 30), truncate_text(r.c_author, 20),
-             truncate_text(r.c_type, 15), nm});
+            {std::to_string(r.slip.id_phieu), truncate_text(r.cu_name, 20),
+             truncate_text(r.c_name, 20), truncate_text(r.c_author, 15),
+             truncate_text(r.c_type, 12), nm});
       }
 
       auto table = Table(table_data);
@@ -422,9 +422,9 @@ Element build_rental_table_element(const std::vector<RentalSlip> &slips,
     std::string c_author = get_c_author(s.comic_id, all_c);
     std::string c_type = get_c_type(s.comic_id, all_c);
     table_data.push_back({std::to_string(s.id_phieu),
-                          truncate_text(cu_name, 25), truncate_text(c_name, 25),
+                          truncate_text(cu_name, 20), truncate_text(c_name, 20),
                           truncate_text(c_author, 15),
-                          truncate_text(c_type, 15), nm, tt});
+                          truncate_text(c_type, 12), nm, tt});
   }
   auto table = Table(table_data);
   table.SelectAll().Border(LIGHT);

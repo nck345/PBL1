@@ -338,7 +338,7 @@ int select_comic_ui(const std::string& title) {
         table_data.push_back({"ID", "Ten Truyen", "Tac Gia", "The Loai", "Gia", "Ton/Tong"});
         for (const auto& c : filtered_comics) {
             table_data.push_back({
-                std::to_string(c.id), truncate_text(c.comic_name, 25),
+                std::to_string(c.id), truncate_text(c.comic_name, 20),
                 truncate_text(c.author, 15), truncate_text(c.type, 15),
                 format_currency(c.price), std::to_string(c.quantity) + "/" + std::to_string(c.total_quantity)
             });
@@ -386,7 +386,7 @@ void render_comic_table(const std::vector<Comic> &comics) {
   for (const auto &comic : comics) {
     if (!comic.is_deleted) {
       has_data = true;
-      table_data.push_back({std::to_string(comic.id), truncate_text(comic.comic_name, 25),
+      table_data.push_back({std::to_string(comic.id), truncate_text(comic.comic_name, 20),
                             truncate_text(comic.author, 15), truncate_text(comic.type, 15), format_currency(comic.price),
                             std::to_string(comic.quantity) + "/" + std::to_string(comic.total_quantity)});
     }
@@ -425,7 +425,7 @@ Element build_comic_table_element(const std::vector<Comic>& comics) {
 
   for (const auto &comic : comics) {
     if (!comic.is_deleted) {
-      table_data.push_back({std::to_string(comic.id), truncate_text(comic.comic_name, 25),
+      table_data.push_back({std::to_string(comic.id), truncate_text(comic.comic_name, 20),
                             truncate_text(comic.author, 15), truncate_text(comic.type, 15), format_currency(comic.price),
                             std::to_string(comic.quantity) + "/" + std::to_string(comic.total_quantity)});
     }
