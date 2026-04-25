@@ -101,13 +101,10 @@ void render_statistics_screen() {
         daily_revenue_str = format_currency(stats.daily_revenue);
     }, ButtonOption::Ascii());
 
-    // UI Elements for Tab 2
-    auto input_fm = Input(&from_m_str, "MM");
-    auto input_fy = Input(&from_y_str, "YYYY");
-    auto input_tm = Input(&to_m_str, "MM");
-    auto input_ty = Input(&to_y_str, "YYYY");
+    ftxui::Component btn_calc_monthly;
 
-    auto btn_calc_monthly = Button(" TÍNH GIAI ĐOẠN & VẼ BIỂU ĐỒ ", [&] {
+    // UI Elements for Tab 2
+    auto calculate_monthly = [&] {
         int fm = current_m, fy = current_y, tm = current_m, ty = current_y;
         try {
             if (!from_m_str.empty()) fm = std::stoi(from_m_str);
@@ -115,6 +112,24 @@ void render_statistics_screen() {
             if (!to_m_str.empty()) tm = std::stoi(to_m_str);
             if (!to_y_str.empty()) ty = std::stoi(to_y_str);
         } catch(...) {}
+
+        // Validation
+        if (fm < 1) fm = 1; else if (fm > 12) fm = 12;
+        if (tm < 1) tm = 1; else if (tm > 12) tm = 12;
+        if (fy < 1900) fy = current_y;
+        if (ty < 1900) ty = current_y;
+
+        // Ensure from_date <= to_date
+        if (fy > ty || (fy == ty && fm > tm)) {
+            std::swap(fm, tm);
+            std::swap(fy, ty);
+        }
+
+        // Loại bỏ mọi ký tự thừa (như \n) và chuẩn hóa lại giá trị
+        from_m_str = std::to_string(fm);
+        from_y_str = std::to_string(fy);
+        to_m_str = std::to_string(tm);
+        to_y_str = std::to_string(ty);
 
         double total = compute_revenue_between_months(fm, fy, tm, ty);
         monthly_revenue_str = format_currency(total);
@@ -128,7 +143,24 @@ void render_statistics_screen() {
             chart_data = get_monthly_chart_data(fm, fy, tm, ty); // Chế độ tháng
         }
         compute_peak();
-    }, ButtonOption::Ascii());
+
+        // Chuyển focus ra khỏi ô nhập liệu để tránh bị dính phím Enter
+        if (btn_calc_monthly) {
+            btn_calc_monthly->TakeFocus();
+        }
+    };
+
+    ftxui::InputOption opt_fm; opt_fm.on_enter = calculate_monthly;
+    ftxui::InputOption opt_fy; opt_fy.on_enter = calculate_monthly;
+    ftxui::InputOption opt_tm; opt_tm.on_enter = calculate_monthly;
+    ftxui::InputOption opt_ty; opt_ty.on_enter = calculate_monthly;
+
+    auto input_fm = Input(&from_m_str, "MM", opt_fm);
+    auto input_fy = Input(&from_y_str, "YYYY", opt_fy);
+    auto input_tm = Input(&to_m_str, "MM", opt_tm);
+    auto input_ty = Input(&to_y_str, "YYYY", opt_ty);
+
+    btn_calc_monthly = Button(" TÍNH GIAI ĐOẠN & VẼ BIỂU ĐỒ ", calculate_monthly, ButtonOption::Ascii());
 
     // Initialization
     rental_statistics initial_stats = compute_all_statistics(today_system, current_m, current_y);
