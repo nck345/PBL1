@@ -1,4 +1,4 @@
-﻿#include "../../include/repository/CustomerRepo.h"
+#include "../../include/repository/CustomerRepo.h"
 #include <iostream>
 #include <fstream>
 #include <algorithm>
@@ -57,25 +57,16 @@ bool update_customer(const Customer& updated_customer) {
 
   Customer c;
   bool found = false;
-  streampos pos;
-  
   while (file.read(reinterpret_cast<char*>(&c), sizeof(Customer))) {
     if (c.id == updated_customer.id) {
+      file.seekp(-static_cast<streamoff>(sizeof(Customer)), ios::cur);
+      file.write(reinterpret_cast<const char*>(&updated_customer), sizeof(Customer));
       found = true;
-      pos = file.tellg() - static_cast<streamoff>(sizeof(Customer));
       break;
     }
   }
-
-  if (found) {
-    file.seekp(pos);
-    file.write(reinterpret_cast<const char*>(&updated_customer), sizeof(Customer));
-    file.close();
-    return true;
-  }
-
   file.close();
-  return false;
+  return found;
 }
 
 bool delete_customer(int id) {

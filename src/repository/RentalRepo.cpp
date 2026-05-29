@@ -74,8 +74,7 @@ void update_rental_status(const RentalSlip &updated_slip) {
   RentalSlip slip;
   while (file.read(reinterpret_cast<char *>(&slip), sizeof(RentalSlip))) {
     if (slip.id_phieu == updated_slip.id_phieu) {
-      file.seekp(static_cast<streampos>(file.tellg()) -
-                 static_cast<streampos>(sizeof(RentalSlip)));
+      file.seekp(-static_cast<streamoff>(sizeof(RentalSlip)), ios::cur);
       file.write(reinterpret_cast<const char *>(&updated_slip),
                  sizeof(RentalSlip));
       break;
