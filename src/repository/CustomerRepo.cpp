@@ -59,7 +59,8 @@ bool update_customer(const Customer& updated_customer) {
   bool found = false;
   while (file.read(reinterpret_cast<char*>(&c), sizeof(Customer))) {
     if (c.id == updated_customer.id) {
-      file.seekp(-static_cast<streamoff>(sizeof(Customer)), ios::cur);
+      streampos pos = file.tellg() - static_cast<streamoff>(sizeof(Customer));
+      file.seekp(pos);
       file.write(reinterpret_cast<const char*>(&updated_customer), sizeof(Customer));
       found = true;
       break;

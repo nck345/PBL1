@@ -426,8 +426,9 @@ Element build_rental_table_element(const std::vector<RentalSlip> &slips,
                      std::to_string(s.ngay_muon.year);
     std::string tt = (s.trang_thai == 0)   ? "Dang thue"
                      : (s.trang_thai == 1) ? "Da tra"
-                     : (s.trang_thai == 2) ? "Mat/Hong"
-                     : (s.trang_thai == 3) ? "Dat truoc"
+                     : (s.trang_thai == 2) ? "Tra bi rach"
+                     : (s.trang_thai == 3) ? (s.ngay_tra_thuc_te.year == 0 ? "Dat truoc" : "Khuyet/Mat trang")
+                     : (s.trang_thai == 4) ? "Mat/Hong hoan toan"
                                            : "Khong ro";
     std::string cu_name = get_cu_name(s.customer_id, all_cu);
     std::string c_name = get_c_name(s.comic_id, all_c);
