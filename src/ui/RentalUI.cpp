@@ -358,7 +358,7 @@ int select_rental_slip_ui(const std::string &title) {
       table_data.push_back({"ID", "Khach Hang", "Ten Truyen", "Tac Gia",
                             "The Loai", "Ngay Muon"});
       int term_width = ftxui::Terminal::Size().dimx;
-      int remaining = std::max(20, term_width - 80);
+      int remaining = std::max(20, term_width - 86);
       int dyn_cu = remaining / 2;
       int dyn_c = remaining - dyn_cu;
 
@@ -416,7 +416,7 @@ Element build_rental_table_element(const std::vector<RentalSlip> &slips,
   table_data.push_back({"ID", "Khach Hang", "Ten Truyen", "Tac Gia", "The Loai",
                         "Ngay Muon", "Trang Thai"});
   int term_width = ftxui::Terminal::Size().dimx;
-  int remaining = std::max(20, term_width - 92);
+  int remaining = std::max(20, term_width - 98);
   int dyn_cu = remaining / 2;
   int dyn_c = remaining - dyn_cu;
 

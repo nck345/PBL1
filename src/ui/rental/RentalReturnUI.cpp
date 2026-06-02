@@ -87,7 +87,7 @@ void render_return_comic_screen() {
                  hbox(text(" Phiếu ID:   "), text(p_id_str) | bold),
                  hbox(text(" Ngày trả:   "), text(current_date) | bold | color(Color::Cyan)),
                  separator(),
-                 text(" Tình trạng truyền lúc trả: ") | bold,
+                 text(" Tình trạng truyện lúc trả: ") | bold,
                  radio_tt->Render(), separator(),
                  error_msg.empty() ? text("") : text(error_msg) | color(Color::Red) | center,
                  hbox(submit_button->Render(), text("   "),

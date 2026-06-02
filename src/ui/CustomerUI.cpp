@@ -27,7 +27,7 @@ Element build_customer_table_element(const std::vector<Customer> &customers) {
   table_data.push_back({"ID", "Ten Khach Hang", "So Dien Thoai"});
 
   int term_width = ftxui::Terminal::Size().dimx;
-  int dyn_cu = std::max(15, term_width - 50);
+  int dyn_cu = std::max(15, term_width - 55);
 
   bool has_data = false;
   for (const auto &c : customers) {
@@ -157,7 +157,7 @@ int select_customer_ui(const std::string& title) {
          std::vector<std::vector<std::string>> table_data;
          table_data.push_back({"ID", "Ten Khach Hang", "SDT"});
          int term_width = ftxui::Terminal::Size().dimx;
-         int dyn_cu = std::max(15, term_width - 50);
+         int dyn_cu = std::max(15, term_width - 85);
 
          for (const auto& c : filtered_list) {
              table_data.push_back({
