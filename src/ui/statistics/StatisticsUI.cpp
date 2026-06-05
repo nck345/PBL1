@@ -23,12 +23,47 @@
 
 using namespace ftxui;
 
+static Date g_stat_current_date;
+
+bool compare_overdue_and_revenue(const RentalSlip& a, const RentalSlip& b) {
+    long today_days = date_to_days(g_stat_current_date);
+    
+    long overdue_a = 0;
+    if (a.trang_thai == 0) {
+        long diff = today_days - date_to_days(a.ngay_tra_du_kien);
+        if (diff > 0) overdue_a = diff;
+    }
+    long overdue_b = 0;
+    if (b.trang_thai == 0) {
+        long diff = today_days - date_to_days(b.ngay_tra_du_kien);
+        if (diff > 0) overdue_b = diff;
+    }
+
+    if (overdue_a > 0 && overdue_b > 0) {
+        if (overdue_a != overdue_b) return overdue_a > overdue_b;
+        return a.id_phieu < b.id_phieu;
+    }
+    if (overdue_a > 0) return true;
+    if (overdue_b > 0) return false;
+
+    bool a_dang_muon = (a.trang_thai == 0);
+    bool b_dang_muon = (b.trang_thai == 0);
+    if (a_dang_muon && b_dang_muon) {
+        return date_to_days(a.ngay_tra_du_kien) < date_to_days(b.ngay_tra_du_kien);
+    }
+    if (a_dang_muon) return true;
+    if (b_dang_muon) return false;
+
+    return a.tong_tien > b.tong_tien;
+}
+
 void render_statistics_screen() {
     auto screen = ScreenInteractive::TerminalOutput();
     int current_d, current_m, current_y;
     get_current_date(current_d, current_m, current_y);
 
     Date today_system = {current_d, current_m, current_y};
+    g_stat_current_date = today_system;
 
     // --- State variables for Tab 1 (Daily) ---
     std::string day_str = "";
@@ -177,33 +212,56 @@ void render_statistics_screen() {
         if (slips.empty()) return text("Không có dữ liệu phiếu thuê.") | center;
         std::vector<RentalSlip> sorted_slips;
         total_rented = 0;
+        int total_overdue = 0;
+        long today_days = date_to_days(today_system);
+
         for (const auto& s : slips) {
-            if (s.trang_thai == 0) total_rented++;
-            if (s.trang_thai == 1) { // Chỉ lấy phiếu Đã Trả
+            if (s.trang_thai == 0) {
+                total_rented++;
+                sorted_slips.push_back(s);
+                if (today_days > date_to_days(s.ngay_tra_du_kien)) {
+                    total_overdue++;
+                }
+            } else if (s.trang_thai == 1) { // Lấy cả phiếu đã trả
                 sorted_slips.push_back(s);
             }
         }
 
-        quick_sort(sorted_slips, compare_revenue_desc);
+        quick_sort(sorted_slips, compare_overdue_and_revenue);
         std::vector<std::vector<std::string>> data;
-        data.push_back({" ID ", " Tên Truyện ", " Khách Hàng ", " Ngày Mượn ", " Hạn Trả ", " Ngày Trả ", " Tổng Tiền "});
+        data.push_back({" ID ", " Tên Truyện ", " Khách Hàng ", " Ngày Mượn ", " Hạn Trả ", " Ngày Trả ", " Trạng Thái ", " Tiền "});
         
         int term_width = ftxui::Terminal::Size().dimx;
-        int remaining = std::max(20, term_width - 92);
+        int remaining = std::max(20, term_width - 110);
         int dyn_c = remaining / 2;
         int dyn_cu = remaining - dyn_c;
 
         if (sorted_slips.empty()) {
-            data.push_back({"---", "---", "---", "---", "---", "---", "---"});
+            data.push_back({"---", "---", "---", "---", "---", "---", "---", "---"});
         } else {
             for (const auto &s : sorted_slips) {
                 std::string ngay_m = std::to_string(s.ngay_muon.day) + "/" + std::to_string(s.ngay_muon.month) + "/" + std::to_string(s.ngay_muon.year);
                 std::string ngay_d = std::to_string(s.ngay_tra_du_kien.day) + "/" + std::to_string(s.ngay_tra_du_kien.month) + "/" + std::to_string(s.ngay_tra_du_kien.year);
                 std::string ngay_t = (s.ngay_tra_thuc_te.year > 1900) ? (std::to_string(s.ngay_tra_thuc_te.day) + "/" + std::to_string(s.ngay_tra_thuc_te.month) + "/" + std::to_string(s.ngay_tra_thuc_te.year)) : "---";
                 
+                std::string str_trang_thai = "";
+                std::string str_tien = "";
+                if (s.trang_thai == 0) {
+                    long diff = today_days - date_to_days(s.ngay_tra_du_kien);
+                    if (diff > 0) {
+                        str_trang_thai = "Quá hạn " + std::to_string(diff) + " ngày";
+                    } else {
+                        str_trang_thai = "Đang mượn";
+                    }
+                    str_tien = "Cọc: " + format_currency(s.tien_coc);
+                } else if (s.trang_thai == 1) {
+                    str_trang_thai = "Đã hoàn tất";
+                    str_tien = format_currency(s.tong_tien);
+                }
+                
                 data.push_back({
                     std::to_string(s.id_phieu), truncate_text(get_c_name(s.comic_id, all_c), dyn_c), truncate_text(get_cu_name(s.customer_id, all_cu), dyn_cu),
-                    ngay_m, ngay_d, ngay_t, format_currency(s.tong_tien)
+                    ngay_m, ngay_d, ngay_t, str_trang_thai, str_tien
                 });
             }
         }
@@ -218,7 +276,19 @@ void render_statistics_screen() {
         tbl.SelectColumn(4).DecorateCells(ftxui::align_right);
         tbl.SelectColumn(5).DecorateCells(ftxui::align_right);
         tbl.SelectColumn(6).DecorateCells(ftxui::align_right);
+        tbl.SelectColumn(7).DecorateCells(ftxui::align_right);
+
+        for (int i = 0; i < (int)sorted_slips.size(); ++i) {
+            if (sorted_slips[i].trang_thai == 0) {
+                long diff = today_days - date_to_days(sorted_slips[i].ngay_tra_du_kien);
+                if (diff > 0) {
+                    tbl.SelectRow(i + 1).Decorate(color(Color::Red));
+                }
+            }
+        }
+
         return vbox({
+             text(" Cảnh báo: Đang có " + std::to_string(total_overdue) + " phiếu quá hạn! ") | bold | color(Color::Red) | center,
              text(" Đang thuê: " + std::to_string(total_rented) + " phiếu ") | bold | color(Color::Cyan) | center,
              tbl.Render() | center
         });
