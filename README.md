@@ -1,121 +1,109 @@
-# PBL1
+# 📚 ỨNG DỤNG QUẢN LÝ CHO THUÊ TRUYỆN TRANH (PBL1)
 
-## Cấu trúc thư mục dự án
+Ứng dụng Quản lý Cho thuê Truyện tranh là dự án đồ án PBL1 được phát triển bằng ngôn ngữ **C++**, kết hợp thư viện giao diện terminal hiện đại **FTXUI** để mang lại trải nghiệm TUI (Terminal User Interface) trực quan, sinh động. Hệ thống lưu trữ dữ liệu an toàn dưới dạng các file nhị phân (`.dat`) và triển khai các thuật toán tìm kiếm, sắp xếp và kiểm tra dữ liệu đầu vào tùy biến.
+
+---
+
+## ✨ Tính năng chính
+
+### 1. Quản lý Truyện tranh (Comics)
+* Thêm mới truyện tranh (tự sinh ID tăng dần).
+* Sửa thông tin truyện (tên truyện, tác giả, giá thuê, giá trị cọc, số lượng tồn kho).
+* Xóa truyện tranh (áp dụng phương pháp xóa mềm - soft delete thông qua thuộc tính `is_deleted`).
+* Tìm kiếm truyện tranh nâng cao (theo tên, mã truyện) sử dụng tìm kiếm nhị phân/tuyến tính.
+* Sắp xếp danh sách truyện tranh theo nhiều tiêu chí (ID, giá thuê, tên) sử dụng thuật toán tối ưu.
+
+### 2. Quản lý Khách hàng (Customers)
+* Lưu trữ và hiển thị danh sách khách hàng thân thiết.
+* Thêm mới, cập nhật thông tin và xóa khách hàng.
+* Tra cứu thông tin khách hàng nhanh chóng qua số điện thoại hoặc mã khách hàng.
+
+### 3. Quản lý Phiếu thuê (Rental Slips)
+* Tạo phiếu thuê truyện ghi nhận chi tiết: Khách hàng, các truyện đã thuê, ngày thuê, hạn trả, và tiền cọc.
+* Nhận trả truyện: Tính toán tự động số ngày thuê thực tế, đối chiếu hạn trả và tự động tính phí phạt nếu trả quá hạn hoặc làm mất sách.
+* Cập nhật trạng thái phiếu thuê trực tiếp trên file nhị phân.
+
+### 4. Thống kê & Báo cáo (Statistics)
+* Thống kê doanh thu theo ngày và theo tháng.
+* Đếm số lượng đầu truyện đang được cho thuê.
+* Thống kê tổng số truyện bị mất và tổng thiệt hại để quản trị kho sách hiệu quả.
+
+---
+
+## 📁 Cấu trúc thư mục dự án
 
 ```text
 PBL1/
-│
-├── .vscode/                # Cấu hình biên dịch và chạy cho VS Code
-│   ├── tasks.json          # Cấu hình biên dịch (Ctrl+Shift+B)
-│   └── launch.json         # Cấu hình chạy/debug (F5)
-│
-├── .antigravity/           # Cấu hình quy tắc
-│   └── rules/rule.md       # Các quy tắc phát triển dự án bắt buộc
-│
-├── bin/                    # Chứa file thực thi sau khi build (.exe)
-│   └── main.exe            # Sản phẩm biên dịch
-│   
-├── data/                   # Lưu trữ các file nhị phân (.dat)
-│   ├── comics.dat          # Danh mục truyện
-│   ├── rentals.dat         # Danh sách phiếu thuê
-│   └── metadata.dat        # Lưu các biến toàn cục (VD: ID tự tăng tiếp theo)
-│
-├── include/                # Khai báo cấu trúc và định dạng hàm (.h)
-│   ├── models/             # Định nghĩa Object (Comic, Customer, RentalSlip)
-│   ├── repository/         # Tương tác đọc/ghi file nhị phân (CRUD)
-│   ├── services/           # Logic nghiệp vụ (Tính tiền, Thanh toán)
-│   ├── ui/                 # Giao diện hiển thị Menu chính
-│   │   ├── comic/          # Các màn hình riêng của chức năng Truyện (Thêm, Sửa, Xóa, Xem)
-│   │   ├── customer/       # Các màn hình riêng của chức năng Khách hàng
-│   │   └── rental/         # Các màn hình riêng của Phiếu Thuê (Tạo phiếu, Trả sách, Thống kê)
-│   └── utils/              # Hàm tiện ích dùng chung
-│       ├── SearchUtils.h   # Cung cấp bộ lọc, thanh tìm kiếm Regex
-│       ├── SortUtils.h     # Các thuật toán sắp xếp (Quick Sort)
-│       ├── StringUtils.h   # Cắt khoảng trắng, in hoa, format tiền tệ
-│       ├── InputHandler.h  # Bắt lỗi nhập liệu của người dùng
-│       └── ConsoleUtils.h  # Xóa màn hình, dừng màn hình chờ
-│
-├── src/                    # Mã nguồn triển khai chi tiết logic (.cpp)
-│   ├── models/             # (Ít dùng, thường khai báo thẳng trong .h)
-│   ├── repository/         # Chứa mã nguồn đọc/ghi file thực tế
-│   ├── services/           # Chứa mã nguồn xử lý mượn/trả truyện
-│   ├── ui/                 # Các file Router kết nối Menu chính (ComicUI, CustomerUI, RentalUI)
-│   │   ├── comic/          # Mã nguồn các view Thêm, Sửa, Xóa của Truyện
-│   │   ├── customer/       # Mã nguồn các view Thêm, Sửa, Xóa của Khách Hàng 
-│   │   └── rental/         # Mã nguồn các view Tạo Phiếu, Nhận Trả Sách, Thống kê
-│   ├── utils/              # Mã nguồn thực thi Hàm tiện ích
-│   └── main.cpp            # Điểm bắt đầu (khởi chạy hệ thống)
-│
-└── README.md               # File mô tả dự án (bạn đang đọc)
+├── bin/                        # Chứa file thực thi sau khi biên dịch (.exe)
+│   └── main.exe
+├── obj/                        # Chứa các file đối tượng biên dịch trung gian (.o)
+├── data/                       # Thư mục lưu trữ cơ sở dữ liệu nhị phân (.dat)
+│   ├── comics.dat              # Dữ liệu các cuốn truyện tranh
+│   ├── customers.dat           # Dữ liệu danh sách khách hàng
+│   ├── rentals.dat             # Dữ liệu lịch sử phiếu thuê truyện
+│   ├── metadata.dat            # Lưu trữ ID tự tăng tiếp theo của truyện tranh
+│   └── customer_id.dat         # Lưu trữ ID tự tăng tiếp theo của khách hàng
+├── include/                    # Khai báo cấu trúc dữ liệu và mẫu hàm (.h)
+│   ├── models/                 # Các struct đại diện thực thể (Comic, Customer, Date, RentalSlip)
+│   ├── repository/             # Giao tiếp đọc/ghi tệp nhị phân (ComicRepo, CustomerRepo, RentalRepo)
+│   ├── services/               # Logic tính tiền, phạt quá hạn và điều phối nghiệp vụ (RentalService)
+│   ├── ui/                     # Giao diện chính và hệ thống màu sắc (UITheme, ComicUI,...)
+│   │   ├── comic/              # Giao diện TUI quản lý truyện tranh (thêm, sửa, xem, xóa)
+│   │   ├── customer/           # Giao diện TUI quản lý khách hàng (thêm, sửa, xem, xóa)
+│   │   ├── rental/             # Giao diện TUI quản lý phiếu thuê (tạo phiếu, trả truyện, xem)
+│   │   └── statistics/         # Giao diện TUI thống kê doanh thu và báo cáo kho
+│   └── utils/                  # Thuật toán bổ trợ (InputHandler, ValidationUtils, SortUtils, SearchUtils)
+├── src/                        # Triển khai chi tiết mã nguồn (.cpp)
+│   ├── repository/             # Triển khai thao tác đọc/ghi file nhị phân tại chỗ (seekp, seekg)
+│   ├── services/               # Triển khai các tính năng tính toán nghiệp vụ
+│   ├── ui/                     # Triển khai thiết kế giao diện FTXUI tương tác
+│   │   ├── comic/
+│   │   ├── customer/
+│   │   ├── rental/
+│   │   └── statistics/
+│   ├── utils/                  # Triển khai thuật toán tìm kiếm nhị phân, QuickSort và bắt lỗi nhập liệu
+│   └── main.cpp                # Hàm main khởi chạy vòng lặp menu giao diện chính
+├── Makefile                    # Kịch bản tự động biên dịch cho MSYS2 / MinGW G++
+└── README.md                   # Tài liệu hướng dẫn dự án
 ```
 
 ---
 
-## Các thư viện sử dụng trong dự án
+## 🛠️ Hướng dẫn cài đặt & Khởi chạy
 
-Dự án sử dụng các thư viện và công cụ hiện đại để tối ưu hóa trải nghiệm người dùng và tốc độ phát triển:
+### 1. Yêu cầu hệ thống (Prerequisites)
+Để biên dịch và chạy dự án thành công trên Windows, bạn cần cài đặt:
+1. **MSYS2 (UCRT64)**: Bộ môi trường phát triển C++.
+2. **Trình biên dịch G++** & công cụ **Make** được cài đặt thông qua MSYS2.
+3. **Thư viện FTXUI**: Được tích hợp sẵn trong môi trường biên dịch của bạn (liên kết qua các cờ biên dịch `-lftxui-component -lftxui-dom -lftxui-screen`).
 
-*   **[FTXUI](https://github.com/ArthurSonzogni/FTXUI)**: Thư viện C++ mạnh mẽ để xây dựng giao diện người dùng trên Terminal (TUI). Hỗ trợ các thành phần tương tác như Menu, Button, Input, Table và các hiệu ứng đồ họa mượt mà.
-*   **GNU Make (mingw32-make)**: Hệ thống quản lý biên dịch thông minh (Incremental Build). Chỉ biên dịch lại những phần code có thay đổi, giúp tiết kiệm thời gian build (dưới 1 giây cho các lần sửa đổi nhỏ).
+### 2. Các lệnh biên dịch bằng Makefile
 
----
+Mở terminal tại thư mục gốc của dự án và chạy các lệnh sau:
 
-## Đối với Thành viên trong nhóm (Team Setup)
+* **Biên dịch toàn bộ dự án**:
+  ```bash
+  make
+  ```
+  *Lưu ý: Lệnh này sẽ tự động quét toàn bộ mã nguồn trong `src/`, dịch thành các file đối tượng trong thư mục `obj/` và xuất ra file chạy `bin/main.exe`.*
 
-Dự án này đã được cấu hình tự động hoàn toàn trên VS Code thông qua thư mục `.vscode/` (chia sẻ chung cho cả đội). Để chạy được code mà không gặp bất kỳ lỗi gì, các thành viên chỉ cần làm đúng **1 lần duy nhất** theo các bước sau:
+* **Khởi chạy ứng dụng**:
+  Chạy trực tiếp file đã biên dịch:
+  ```bash
+  ./bin/main.exe
+  ```
 
-### Bước 1: Cài đặt Trình biên dịch C++ (Nếu máy chưa có)
-1. Truy cập trang chủ [MSYS2](https://www.msys2.org/) và tải file cài đặt (File `.exe` màu xanh lá).
-2. Cài đặt MSYS2 với các tuỳ chọn mặc định (Thường nó sẽ cài vào ổ `C:\msys64`).
-3. Sau khi cài xong, mở chương trình **MSYS2 UCRT64** (hình cửa sổ terminal gõ lệnh màu xám) từ menu Start.
-4. Gõ chính xác dòng lệnh sau và nhấn **Enter**:
-   ```bash
-   pacman -S mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-gdb
-   ```
-5. Nhấn `Y` để đồng ý tải và cài đặt bộ Compile (Biên dịch) và Debug (Gỡ lỗi) C++.
-6. **Thêm biến môi trường (PATH):**
-   * Mở Start Menu của Windows, gõ tìm kiếm `Environment Variables` (hoặc `Edit the system environment variables`).
-   * Chọn nút **Environment Variables...**.
-   * Ở bảng "User variables" hoặc "System variables", tìm dòng chữ `Path`, nhấn đúp chuột vào nó.
-   * Nhấn **New**, sau đó dán đường dẫn này vào: `C:\msys64\ucrt64\bin`
-   * Nhấn OK toàn bộ các bảng để lưu lại.
+* **Dọn dẹp các tệp tin build**:
+  Để xóa bỏ thư mục lưu trữ file `.o` trung gian (`obj/`) và file thực thi (`bin/main.exe`) khi muốn build lại từ đầu:
+  ```bash
+  make clean
+  ```
 
-### Bước 2: Cài đặt thư viện giao diện FTXUI
-1. Tại khu vực Terminal của VS Code, hãy mở cửa sổ dòng lệnh **PowerShell**.
-2. Dán nguyên lệnh sau vào và nhấn **Enter** để tải thư viện FTXUI về máy:
-   ```powershell
-   C:\msys64\usr\bin\pacman.exe -S mingw-w64-ucrt-x86_64-ftxui
-   ```
-3. Nhập `Y` (hoặc `y`) và nhấn Enter nếu hệ thống hỏi xác nhận.
-*(Lưu ý: Dự án đã được cấu hình sẵn để tự động liên kết với thư viện này trong `tasks.json`, bạn chỉ cần tải về là xong!)*
+### 3. Biên dịch & Chạy nhanh qua VS Code (Khuyên dùng)
+Dự án đã được cấu hình sẵn trong thư mục `.vscode/` để tối ưu hóa trải nghiệm trên Visual Studio Code:
+* **Nhấn phím `F5`** (hoặc chọn menu **Run -> Start Debugging**): Hệ thống sẽ tự động chạy tác vụ biên dịch dự án (`mingw32-make.exe`), sau đó khởi chạy ứng dụng trực tiếp trên một cửa sổ Terminal độc lập.
+* **Gỡ lỗi (Debugging)**: Bạn có thể đặt các breakpoint trực tiếp trong các tệp `.cpp` để gỡ lỗi chương trình bằng trình gỡ lỗi GDB đã cấu hình sẵn.
 
-### Bước 3: Cài đặt Extension hỗ trợ trong VS Code
-Mở VS Code lên, bấm tổ hợp phím `Ctrl + Shift + X` (Mở chợ thủ thuật Extensions) và tìm cài đặt công cụ sau:
-* **C/C++** (Của nhà phát hành Microsoft, icon màu xanh/trắng)
-
-### Bước 4: Build & Chạy chương trình
-Tất cả những phần phức tạp như "Build file ra thư mục `bin/`" hay "Gom toàn bộ project để compile" đều đã được **cấu hình sẵn**. Công việc hàng ngày của bạn chỉ là:
-1. Viết code.
-2. Lưu file hiện tại (Ctrl + S).
-3. Nhấn phím **`F5`** là chương trình sẽ tự động Cập nhật file biên dịch + Mở màn hình Debug + Chạy mượt mà!
-
----
-
-## Phân công Nhiệm vụ 
-
-### 👨‍💻 Khiêm: Kỹ sư Dữ liệu Truyện & Nền tảng Core
-**Nhiệm vụ:** Xây dựng móng vững chắc cho dự án và Quản lý toàn bộ danh mục Truyện.
-*   **Thiết kế Cấu trúc (Models):** Định nghĩa file `models/Comic.h` (id, tên truyện, giá, số lượng) và `models/Date.h` (Ngày tháng dùng chung).
-*   **Xử lý File nhị phân (Repository):** Hoàn thiện `repository/ComicRepo.cpp` để thực hiện chức năng Thêm mới, Sửa thông tin, Xóa truyện (Soft Delete) và Tìm kiếm Truyện trên file `comics.dat`.
-*   **Khởi chạy hệ thống (Core):** Xây dựng bộ Menu chính điều hướng của chương trình tại `main.cpp`.
-*   **Tiện ích:** Hỗ trợ viết các hàm nhập liệu chống lỗi (Validate input) tại thư viện `utils/InputHandler`.
-*   **Giao diện (UI):** Thiết kế màn hình "Quản lý Truyện", in ấn danh sách các bộ truyện dưới dạng bảng ngay ngắn, đẹp mắt.
-
-### 🕵️‍♂️ Như Ý: Kỹ sư Logic Phiếu Thuê & Thống kê Thuế
-**Nhiệm vụ:** Xử lý các nghiệp vụ (thuật toán) khó nhất của phần mềm, móc nối dữ liệu giữa Phiếu Thuê và Kho Truyện.
-*   **Quản lý Phiếu thuê (Rental):** Định nghĩa `models/RentalSlip.h` và xây dựng `repository/RentalRepo.cpp` để lưu các phiếu do khách hàng thuê xuống file `rentals.dat`.
-*   **Xử lý Nghiệp vụ Cho Thuê (Services):**
-    *   `RentalService`: Khi khách hàng muốn thuê, Như Ý phải gọi hàm lấy truyện của Khiêm để kiểm tra truyện có còn trong kho không. Nếu còn $\rightarrow$ tạo phiếu $\rightarrow$ tự động trừ số lượng truyện trong kho.
-    *   Định giá: Viết hàm tính số dư ngày mượn/ngày trả để quy ra tiền cọc và tiền thanh toán thực tế.
-*   **Thống kê Báo cáo (Statistics):** Chạy vòng quét toàn bộ dữ liệu ở cả 2 file `.dat` để đếm: Hôm nay/Tháng này thu được bao nhiêu tiền? Kho bị mất mát bao nhiêu quyển, đang cho thuê ra ngoài bao nhiêu quyển?
-*   **Giao diện (UI):** Xây dựng Menu "Quản lý Phiếu Thuê" và thiết kế Bảng Thống kê Doanh Thu cuối ngày cực xịn xò.
+### 4. Lưu ý về tệp dữ liệu (`data/`)
+* Thư mục `data/` chứa các tệp cơ sở dữ liệu `.dat`. Để tránh xung đột dữ liệu giữa các thành viên khi đẩy code lên GitHub, các tệp nhị phân này đã được cấu hình bỏ qua trong `.gitignore`.
+* Chương trình có cơ chế tự động tạo mới các tệp dữ liệu trắng nếu chưa tìm thấy tệp tin tương ứng trong thư mục `data/`, giúp ứng dụng luôn sẵn sàng chạy ngay sau khi build.
