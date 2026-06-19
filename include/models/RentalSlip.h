@@ -7,6 +7,7 @@
 struct RentalSlip {
   int id_phieu;
   int comic_id;
+  int book_copy_id; // Thêm trường book_copy_id để theo dõi bản sao cụ thể
   int customer_id;
   Date ngay_muon;
   Date ngay_tra_du_kien;

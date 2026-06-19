@@ -1,4 +1,5 @@
 #include "../../include/repository/CustomerRepo.h"
+#include "../../include/utils/SearchUtils.h"
 #include <iostream>
 #include <fstream>
 #include <algorithm>
@@ -40,14 +41,16 @@ vector<Customer> read_all_customers() {
   return customers;
 }
 
-void add_customer(Customer& customer) {
+bool add_customer(Customer& customer) {
   customer.id = get_next_customer_id();
   ofstream outFile(CUSTOMER_FILE, ios::app | ios::binary);
   if (outFile.is_open()) {
     outFile.write(reinterpret_cast<const char*>(&customer), sizeof(Customer));
     outFile.close();
+    return true;
   } else {
     cerr << "Khong the ghi file " << CUSTOMER_FILE << "!\n";
+    return false;
   }
 }
 
@@ -109,12 +112,11 @@ vector<Customer> search_customers_by_name(const string& name) {
 }
 
 bool get_customer_by_id(int id, Customer& out_customer) {
-  vector<Customer> all = read_all_customers();
-  for (const auto& c : all) {
-    if (c.id == id && !c.is_deleted) {
-      out_customer = c;
-      return true;
-    }
+  std::vector<Customer> all = read_all_customers();
+  int idx = binary_search_idx<Customer, int>(all, id, search_cmp_customer_id);
+  if (idx != -1 && !all[idx].is_deleted) {
+    out_customer = all[idx];
+    return true;
   }
   return false;
 }
@@ -137,4 +139,9 @@ bool find_customer_by_phone(const char* phone, Customer& out_customer) {
     }
   }
   return false;
+}
+
+int search_cmp_customer_id(const Customer& c, const int& key) {
+  if (c.id == key) return 0;
+  return c.id < key ? -1 : 1;
 }

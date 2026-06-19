@@ -1,4 +1,5 @@
 #include "../../include/repository/ComicRepo.h"
+#include "../../include/utils/SearchUtils.h"
 #include <fstream>
 #include <iostream>
 #include <algorithm>
@@ -45,7 +46,7 @@ std::vector<Comic> read_all_comics() {
     return comics;
 }
 
-void add_comic(Comic& comic) {
+bool add_comic(Comic& comic) {
     comic.id = get_next_comic_id(); // Lấy ID tự động tăng
     comic.is_deleted = false;
     
@@ -53,8 +54,10 @@ void add_comic(Comic& comic) {
     if (file) {
         file.write(reinterpret_cast<const char*>(&comic), sizeof(Comic));
         file.close();
+        return true;
     } else {
         std::cerr << "Loi: Khong the mo file " << COMICS_FILE << " de ghi.\n";
+        return false;
     }
 }
 
@@ -138,18 +141,12 @@ std::vector<Comic> search_comics_by_type(const std::string& type_keyword) {
 }
 
 bool get_comic_by_id(int id, Comic& out_comic) {
-    std::ifstream file(COMICS_FILE, std::ios::binary);
-    if (!file) return false;
-
-    Comic comic;
-    while (file.read(reinterpret_cast<char*>(&comic), sizeof(Comic))) {
-        if (comic.id == id && !comic.is_deleted) {
-            out_comic = comic;
-            file.close();
-            return true;
-        }
+    std::vector<Comic> all_comics = read_all_comics();
+    int idx = binary_search_idx<Comic, int>(all_comics, id, search_cmp_comic_id);
+    if (idx != -1 && !all_comics[idx].is_deleted) {
+        out_comic = all_comics[idx];
+        return true;
     }
-    file.close();
     return false;
 }
 

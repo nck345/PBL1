@@ -1,6 +1,7 @@
 #include "../../../include/ui/comic/ComicEditUI.h"
 #include "../../../include/ui/ComicUI.h"
 #include "../../../include/repository/ComicRepo.h"
+#include "../../../include/repository/BookCopyRepo.h"
 #include "../../../include/utils/InputHandler.h"
 #include "../../../include/utils/ValidationUtils.h"
 #include "../../../include/utils/SortUtils.h"
@@ -73,8 +74,14 @@ void handle_edit_comic() {
           if (is_empty_string(name_str)) {
               error_msg = "Loi: Ten khong duoc de trong!"; is_saved = false; return;
           }
+          if (name_str.length() >= 100) {
+              error_msg = "Loi: Ten truyen khong duoc dai qua 99 ky tu!"; is_saved = false; return;
+          }
           if (is_empty_string(author_str)) {
               error_msg = "Loi: Tac gia khong duoc de trong!"; is_saved = false; return;
+          }
+          if (author_str.length() >= 50) {
+              error_msg = "Loi: Tac gia khong duoc dai qua 49 ky tu!"; is_saved = false; return;
           }
           if (is_empty_string(type_str) && !filtered_type_options.empty() &&
               is_valid_type_suggestion(filtered_type_options[selected_type_option])) {
@@ -85,6 +92,9 @@ void handle_edit_comic() {
           }
           if (is_empty_string(type_str)) {
               error_msg = "Loi: The loai khong duoc de trong!"; is_saved = false; return;
+          }
+          if (type_str.length() >= 50) {
+              error_msg = "Loi: The loai khong duoc dai qua 49 ky tu!"; is_saved = false; return;
           }
           if ((name_str != orig_name || author_str != orig_author || type_str != orig_type) &&
               is_comic_duplicate(name_str.c_str(), author_str.c_str(), type_str.c_str())) {
@@ -130,6 +140,8 @@ void handle_edit_comic() {
               error_msg = "Loi: Ton kho khong the lon hon tong so luong!"; is_saved = false; return;
           }
 
+          int old_total = comic_to_edit.total_quantity;
+
           copy_text_to_buffer(comic_to_edit.comic_name, sizeof(comic_to_edit.comic_name), name_str);
           copy_text_to_buffer(comic_to_edit.author, sizeof(comic_to_edit.author), author_str);
           copy_text_to_buffer(comic_to_edit.type, sizeof(comic_to_edit.type), type_str);
@@ -138,6 +150,7 @@ void handle_edit_comic() {
           comic_to_edit.total_quantity = total_quantity;
 
           if (update_comic(comic_to_edit)) {
+              adjust_copies_for_comic(comic_to_edit.id, old_total, total_quantity);
               is_saved = true;
               error_msg = "Cap nhat thanh cong! Nhan Huy hoac ESC de thoat.";
           } else {

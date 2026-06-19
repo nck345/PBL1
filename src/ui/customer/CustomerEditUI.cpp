@@ -43,6 +43,11 @@ void handle_edit_customer() {
             is_saved = false;
             return;
           }
+          if (name_str.length() >= 100) {
+            error_msg = "Loi: Ten khach hang khong duoc dai qua 99 ky tu!";
+            is_saved = false;
+            return;
+          }
           if (is_empty_string(phone_str)) {
             error_msg = "Loi: SDT khong duoc de trong!";
             is_saved = false;

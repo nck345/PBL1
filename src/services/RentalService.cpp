@@ -3,6 +3,7 @@
 #include "../../include/repository/ComicRepo.h"
 #include "../../include/repository/CustomerRepo.h"
 #include "../../include/repository/RentalRepo.h"
+#include "../../include/repository/BookCopyRepo.h"
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -168,7 +169,13 @@ int process_new_rental(int comic_id, int customer_id, Date ngay_tra_du_kien, dou
   }
 
   // 5. Tien hanh tru so luong sach do xuat kho (neu khong phai dat truoc)
+  int book_copy_id = -1;
   if (!is_reservation) {
+      book_copy_id = rent_available_copy(comic_id);
+      if (book_copy_id == -1) {
+        cout << "Loi: Khong the thue truyen do khong tim thay ban sao san co trong kho!\n";
+        return -1;
+      }
       comic.quantity -= 1;
       if (!update_comic(comic)) {
         cout << "Loi: Khong the cap nhat so luong truyen vao kho!\n";
@@ -180,6 +187,7 @@ int process_new_rental(int comic_id, int customer_id, Date ngay_tra_du_kien, dou
   RentalSlip slip;
   slip.id_phieu = get_next_rental_id();
   slip.comic_id = comic_id;
+  slip.book_copy_id = book_copy_id;
   slip.customer_id = customer_id;
   slip.ngay_muon = ngay_muon;
   slip.ngay_tra_du_kien = ngay_tra_du_kien;
@@ -187,9 +195,10 @@ int process_new_rental(int comic_id, int customer_id, Date ngay_tra_du_kien, dou
 
   slip.tien_coc = tien_coc;
   slip.tong_tien = tien_thue;
-  slip.trang_thai = is_reservation ? 3 : 0; // 3 la Dat truoc, 0 la Dang thue
-
-  save_rental_slip(slip);
+  if (!save_rental_slip(slip)) {
+    cout << "Loi: Khong the luu phieu thue xuong he thong!\n";
+    return -1;
+  }
   
   return slip.id_phieu;
 }
@@ -270,6 +279,11 @@ void process_return_comic(int id_phieu, Date ngay_tra_thuc_te,
     slip.ngay_tra_thuc_te = ngay_tra_thuc_te;
     slip.trang_thai = trang_thai_tra; // 1: Đã Trả Hoàn, 2: Làm Mất Hư Hỏng
 
+    // Cập nhật trạng thái của bản sao cuốn lẻ trong book_copies.dat
+    if (slip.book_copy_id != -1) {
+      return_copy(slip.book_copy_id, trang_thai_tra);
+    }
+
     Comic comic;
     if (get_comic_by_id(slip.comic_id, comic)) {
       gia_bia = comic.price;
@@ -279,11 +293,11 @@ void process_return_comic(int id_phieu, Date ngay_tra_thuc_te,
         update_comic(comic);
       } else if (trang_thai_tra == 2) { // 2: Rach
         comic.quantity += 1;
-        comic.price *= 0.8;
+        // Giữ nguyên giá gốc đầu truyện, không nhân giảm
         update_comic(comic);
       } else if (trang_thai_tra == 3) { // 3: Mat trang
         comic.quantity += 1;
-        comic.price *= 0.5;
+        // Giữ nguyên giá gốc đầu truyện, không nhân giảm
         update_comic(comic);
       } else if (trang_thai_tra == 4) { // 4: Mat hong toan bo
         comic.total_quantity -= 1;

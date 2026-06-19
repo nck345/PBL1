@@ -36,6 +36,11 @@ void handle_add_customer() {
           is_saved = false;
           return;
         }
+        if (name_str.length() >= 100) {
+          error_msg = "Loi: Ten khach hang khong duoc dai qua 99 ky tu!";
+          is_saved = false;
+          return;
+        }
         if (is_empty_string(phone_str)) {
           error_msg = "Loi: SDT khong duoc de trong!";
           is_saved = false;
@@ -59,9 +64,13 @@ void handle_add_customer() {
         new_c.phone[sizeof(new_c.phone) - 1] = '\0';
         new_c.is_deleted = false;
 
-        add_customer(new_c);
-        is_saved = true;
-        error_msg = "Them khach hang thanh cong! Nhan Huy hoac ESC de thoat.";
+        if (add_customer(new_c)) {
+          is_saved = true;
+          error_msg = "Them khach hang thanh cong! Nhan Huy hoac ESC de thoat.";
+        } else {
+          is_saved = false;
+          error_msg = "Loi: Khong the ghi file du lieu khach hang!";
+        }
       };
 
       auto submit_button = Button("Xac nhan & Luu", submit_action, ButtonOption::Animated());

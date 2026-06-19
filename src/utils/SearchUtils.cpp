@@ -1,5 +1,6 @@
 #include "../../include/utils/SearchUtils.h"
 #include "../../include/models/Comic.h"
+#include "../../include/models/Customer.h"
 #include <vector>
 #include <string>
 
@@ -28,3 +29,4 @@ int binary_search_idx(const std::vector<T>& arr, const KeyType& key, int (*compa
 template int binary_search_idx<Comic, int>(const std::vector<Comic>&, const int&, int (*)(const Comic&, const int&));
 template int binary_search_idx<Comic, std::string>(const std::vector<Comic>&, const std::string&, int (*)(const Comic&, const std::string&));
 template int binary_search_idx<Comic, double>(const std::vector<Comic>&, const double&, int (*)(const Comic&, const double&));
+template int binary_search_idx<Customer, int>(const std::vector<Customer>&, const int&, int (*)(const Customer&, const int&));

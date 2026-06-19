@@ -1,6 +1,7 @@
 #include "../../../include/ui/comic/ComicAddUI.h"
 #include "../../../include/ui/ComicUI.h"
 #include "../../../include/repository/ComicRepo.h"
+#include "../../../include/repository/BookCopyRepo.h"
 #include "../../../include/utils/InputHandler.h"
 #include "../../../include/utils/ValidationUtils.h"
 #include "../../../include/utils/SortUtils.h"
@@ -56,8 +57,14 @@ void handle_add_comic() {
         if (is_empty_string(name_str)) {
             error_msg = "Loi: Ten khong duoc de trong!"; is_saved = false; return;
         }
+        if (name_str.length() >= 100) {
+            error_msg = "Loi: Ten truyen khong duoc dai qua 99 ky tu!"; is_saved = false; return;
+        }
         if (is_empty_string(author_str)) {
             error_msg = "Loi: Tac gia khong duoc de trong!"; is_saved = false; return;
+        }
+        if (author_str.length() >= 50) {
+            error_msg = "Loi: Tac gia khong duoc dai qua 49 ky tu!"; is_saved = false; return;
         }
         if (is_empty_string(type_str) && !filtered_type_options.empty() &&
             is_valid_type_suggestion(filtered_type_options[selected_type_option])) {
@@ -68,6 +75,9 @@ void handle_add_comic() {
         }
         if (is_empty_string(type_str)) {
             error_msg = "Loi: The loai khong duoc de trong!"; is_saved = false; return;
+        }
+        if (type_str.length() >= 50) {
+            error_msg = "Loi: The loai khong duoc dai qua 49 ky tu!"; is_saved = false; return;
         }
         if (is_comic_duplicate(name_str.c_str(), author_str.c_str(), type_str.c_str())) {
             error_msg = "Loi: Truyen co Ten + Tac gia + The loai nay da ton tai!"; is_saved = false; return;
@@ -106,9 +116,14 @@ void handle_add_comic() {
         new_comic.total_quantity = quantity;
         new_comic.is_deleted = false;
 
-        add_comic(new_comic);
-        is_saved = true;
-        error_msg = "Them truyen thanh cong! Nhan Huy hoac ESC de thoat.";
+        if (add_comic(new_comic)) {
+            add_copies_for_comic(new_comic.id, new_comic.total_quantity);
+            is_saved = true;
+            error_msg = "Them truyen thanh cong! Nhan Huy hoac ESC de thoat.";
+        } else {
+            is_saved = false;
+            error_msg = "Loi: Khong the ghi file du lieu truyen tranh!";
+        }
       };
 
       auto submit_button = Button("Xac nhan & Luu", submit_action, ButtonOption::Animated());

@@ -15,13 +15,15 @@ void print_date(Date d) {
 }
 
 // Ghi 1 struct RentalSlip vào cuối file nhị phân rentals.dat
-void save_rental_slip(const RentalSlip &slip) {
+bool save_rental_slip(const RentalSlip &slip) {
   ofstream file("data/rentals.dat", ios::binary | ios::app);
   if (file.is_open()) {
     file.write(reinterpret_cast<const char *>(&slip), sizeof(RentalSlip));
     file.close();
+    return true;
   } else {
     cout << "Loi: Khong the mo file data/rentals.dat de ghi.\n";
+    return false;
   }
 }
 

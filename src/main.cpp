@@ -13,6 +13,7 @@
 #include "../include/repository/ComicRepo.h"
 #include "../include/repository/CustomerRepo.h"
 #include "../include/repository/RentalRepo.h"
+#include "../include/repository/BookCopyRepo.h"
 #include "../include/utils/ValidationUtils.h"
 
 // Include FTXUI headers for the main menu
@@ -25,6 +26,8 @@
 using namespace ftxui;
 
 int main() {
+  initialize_book_copies_if_empty();
+
   auto screen = ScreenInteractive::TerminalOutput();
 
   std::vector<std::string> entries = {

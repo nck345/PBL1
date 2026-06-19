@@ -14,7 +14,7 @@ int get_next_comic_id();
 std::vector<Comic> read_all_comics();
 
 // Add a new comic to comics.dat (auto-generates ID)
-void add_comic(Comic& comic);
+bool add_comic(Comic& comic);
 
 // Update an existing comic's info in comics.dat
 bool update_comic(const Comic& updated_comic);
