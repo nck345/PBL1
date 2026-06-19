@@ -4,6 +4,10 @@
 #include <string>
 #include <vector>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 // Include UI headers
 #include "../include/ui/ComicUI.h"
 #include "../include/ui/CustomerUI.h"
@@ -26,6 +30,24 @@
 using namespace ftxui;
 
 int main() {
+#ifdef _WIN32
+  HWND hwnd = GetConsoleWindow();
+  if (hwnd != NULL) {
+    RECT rectWindow;
+    GetWindowRect(hwnd, &rectWindow);
+    int windowWidth = rectWindow.right - rectWindow.left;
+    int windowHeight = rectWindow.bottom - rectWindow.top;
+    
+    int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+    int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+    
+    int posX = (screenWidth - windowWidth) / 2;
+    int posY = (screenHeight - windowHeight) / 2;
+    
+    SetWindowPos(hwnd, NULL, posX, posY, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+  }
+#endif
+
   initialize_book_copies_if_empty();
 
   auto screen = ScreenInteractive::TerminalOutput();
