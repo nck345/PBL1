@@ -474,3 +474,42 @@ std::vector<int> get_monthly_chart_data(int m1, int y1, int m2, int y2) {
   file.close();
   return monthly_rev;
 }
+
+void check_and_update_overdue_rentals(Date today) {
+  fstream file("data/rentals.dat", ios::in | ios::out | ios::binary);
+  if (!file.is_open()) return;
+
+  RentalSlip slip;
+  while (file.read(reinterpret_cast<char*>(&slip), sizeof(RentalSlip))) {
+    if (slip.trang_thai == 0) {
+      Comic comic;
+      if (get_comic_by_id(slip.comic_id, comic)) {
+        double gia_bia = comic.price;
+        long so_ngay_qua_han = date_to_days(today) - date_to_days(slip.ngay_tra_du_kien);
+        if (so_ngay_qua_han > 0) {
+          double phat_tre_han = so_ngay_qua_han * (0.10 * gia_bia);
+          double current_total_fee = slip.tong_tien + phat_tre_han;
+          if (slip.tien_coc - current_total_fee <= 0) {
+            // Chuyển sang trạng thái 4: Làm mất/Hỏng hoàn toàn (mất cọc)
+            slip.trang_thai = 4;
+            slip.ngay_tra_thuc_te = today;
+            slip.tong_tien = slip.tien_coc; // Doanh thu thu được là tiền đặt cọc
+            
+            streampos pos = file.tellg() - static_cast<streamoff>(sizeof(RentalSlip));
+            file.seekp(pos);
+            file.write(reinterpret_cast<const char*>(&slip), sizeof(RentalSlip));
+            
+            // Cập nhật trạng thái bản sao sách
+            if (slip.book_copy_id != -1) {
+              return_copy(slip.book_copy_id, 4);
+            }
+            
+            // Đồng bộ lại con trỏ đọc
+            file.seekg(pos + static_cast<streamoff>(sizeof(RentalSlip)));
+          }
+        }
+      }
+    }
+  }
+  file.close();
+}

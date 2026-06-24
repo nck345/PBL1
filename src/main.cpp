@@ -192,6 +192,11 @@ int main() {
   });
 
   while (true) {
+    int cur_d, cur_m, cur_y;
+    get_current_date(cur_d, cur_m, cur_y);
+    Date today_system = {cur_d, cur_m, cur_y};
+    check_and_update_overdue_rentals(today_system);
+
     system("cls");
     // Run the FTXUI loop
     screen.Loop(renderer);

@@ -40,5 +40,6 @@ void get_current_date(int &d, int &m, int &y);
 double compute_revenue_between_months(int m1, int y1, int m2, int y2);
 std::vector<int> get_revenue_chart_data(int month, int year);
 std::vector<int> get_monthly_chart_data(int m1, int y1, int m2, int y2);
+void check_and_update_overdue_rentals(Date today);
 
 #endif
