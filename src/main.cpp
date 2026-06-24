@@ -19,6 +19,7 @@
 #include "../include/repository/RentalRepo.h"
 #include "../include/repository/BookCopyRepo.h"
 #include "../include/utils/ValidationUtils.h"
+#include "../include/services/RentalService.h"
 
 // Include FTXUI headers for the main menu
 #include <ftxui/component/component.hpp>
@@ -104,15 +105,21 @@ int main() {
       }
     }
 
+    int current_d, current_m, current_y;
+    get_current_date(current_d, current_m, current_y);
+
     std::vector<RentalSlip> all_slips = get_all_rental_slips();
     int active_rental_count = 0;
     double total_revenue = 0.0;
     for (const auto &s : all_slips) {
       if (s.trang_thai == 0) {
         active_rental_count++;
-      } else if (s.trang_thai == 1) {
-        total_revenue +=
-            s.tong_tien; // Tong doanh thu tu cac phieu da hoan thanh
+      } else if (s.trang_thai != 0) {
+        if (s.ngay_tra_thuc_te.day == current_d &&
+            s.ngay_tra_thuc_te.month == current_m &&
+            s.ngay_tra_thuc_te.year == current_y) {
+          total_revenue += s.tong_tien; // Doanh thu tu cac phieu tra trong hom nay
+        }
       }
     }
 
