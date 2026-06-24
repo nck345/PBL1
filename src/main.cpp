@@ -114,7 +114,7 @@ int main() {
     for (const auto &s : all_slips) {
       if (s.trang_thai == 0) {
         active_rental_count++;
-      } else if (s.trang_thai != 0) {
+      } else if (s.trang_thai != 0 && s.trang_thai != 4) {
         if (s.ngay_tra_thuc_te.day == current_d &&
             s.ngay_tra_thuc_te.month == current_m &&
             s.ngay_tra_thuc_te.year == current_y) {

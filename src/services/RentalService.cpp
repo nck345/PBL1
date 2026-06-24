@@ -351,7 +351,7 @@ rental_statistics compute_all_statistics(Date today, int target_month,
     }
 
     // Tinh doanh thu
-    if (slip.trang_thai != 0) {
+    if (slip.trang_thai != 0 && slip.trang_thai != 4) {
       // Doanh thu ngay
       if (slip.ngay_tra_thuc_te.day == today.day &&
           slip.ngay_tra_thuc_te.month == today.month &&
@@ -407,7 +407,7 @@ double compute_revenue_between_months(int m1, int y1, int m2, int y2) {
 
   RentalSlip slip;
   while (file.read(reinterpret_cast<char *>(&slip), sizeof(RentalSlip))) {
-    if (slip.trang_thai != 0) { // Thu tien khi tra hoac lam mat
+    if (slip.trang_thai != 0 && slip.trang_thai != 4) { // Thu tien khi tra hoac lam mat
       long t_month = slip.ngay_tra_thuc_te.year * 12 + slip.ngay_tra_thuc_te.month;
       long start_month = y1 * 12 + m1;
       long end_month = y2 * 12 + m2;
@@ -431,7 +431,7 @@ std::vector<int> get_revenue_chart_data(int month, int year) {
   RentalSlip slip;
   double max_rev = 0;
   while (file.read(reinterpret_cast<char *>(&slip), sizeof(RentalSlip))) {
-    if (slip.trang_thai != 0) {
+    if (slip.trang_thai != 0 && slip.trang_thai != 4) {
       if (slip.ngay_tra_thuc_te.month == month && slip.ngay_tra_thuc_te.year == year) {
         int day = slip.ngay_tra_thuc_te.day;
         if (day >= 1 && day <= 31) {
@@ -463,7 +463,7 @@ std::vector<int> get_monthly_chart_data(int m1, int y1, int m2, int y2) {
   long start_key = (long)y1 * 12 + m1;
   RentalSlip slip;
   while (file.read(reinterpret_cast<char*>(&slip), sizeof(RentalSlip))) {
-    if (slip.trang_thai != 0) {
+    if (slip.trang_thai != 0 && slip.trang_thai != 4) {
       long key = (long)slip.ngay_tra_thuc_te.year * 12 + slip.ngay_tra_thuc_te.month;
       int idx = (int)(key - start_key);
       if (idx >= 0 && idx < total_months) {
