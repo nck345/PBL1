@@ -72,7 +72,7 @@ void render_new_rental_screen() {
   system("cls");
   auto screen = ScreenInteractive::TerminalOutput();
   
-  double tien_coc = popup_comic.price * 1.2;
+  double tien_coc = popup_comic.price;
   double phi_1_ngay = popup_comic.price * 0.05;
   double phi_3_ngay = popup_comic.price * 0.10;
   double phi_7_ngay = popup_comic.price * 0.20;
@@ -159,7 +159,7 @@ void render_new_rental_screen() {
     return vbox({text(is_reservation ? " PHIẾU ĐẶT TRƯỚC " : " THIẾT LẬP GÓI THUÊ ") | bold | center, separator(),
                  hbox(text(" Truyện: "), text(popup_comic.comic_name)),
                  vbox({ text(" CHỌN BẮT ĐẦU MƯỢN TRUYỆN: ") | bold | color(Color::Green), res_radiobox->Render() | color(Color::Green) }),
-                 hbox(text(" Tiền cọc (120%): "), text(format_currency(tien_coc)) | color(Color::Yellow)),
+                 hbox(text(" Tiền cọc (100%): "), text(format_currency(tien_coc)) | color(Color::Yellow)),
                  separator(),
                  text(" Mức giá: 1 Ngày(" + format_currency(phi_1_ngay) + "), Combo 3 Ngày(" + format_currency(phi_3_ngay) + "), Combo 1 Tuần(" + format_currency(phi_7_ngay) + ")") | dim,
                  hbox(text(" CHỌN SỐ NGÀY THUÊ: ") | bold, input_days->Render()),
